@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: jellyfin
+  namespace: jellyfin
+  labels:
+    app: jellyfin
+spec:
+  serviceName: jellyfin
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jellyfin
+  template:
+    metadata:
+      labels:
+        app: jellyfin
+    spec:
+      containers:
+      - name: jellyfin
+        image: jellyfin/jellyfin:latest
+        ports:
+        - containerPort: 8096
+          name: http
+        env:
+        - name: TZ
+          value: "Europe/Tallinn"
+        resources:
+          limits:
+            memory: 4Gi
+          requests:
+            memory: 2Gi
+        volumeMounts:
+        - name: jellyfin-data
+          mountPath: /config
+        - name: jellyfin-media
+          mountPath: /media
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8096
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8096
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: jellyfin-data
+        persistentVolumeClaim:
+          claimName: jellyfin-data-pvc
+      - name: jellyfin-media
+        persistentVolumeClaim:
+          claimName: shared-media-pvc 
