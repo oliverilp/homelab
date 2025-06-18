@@ -17,17 +17,3 @@ spec:
     backendRefs:
     - name: jellyfin
       port: 8096
-
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: jellyfin-tls
-  namespace: jellyfin
-spec:
-  secretName: jellyfin-tls-secret
-  issuerRef:
-    name: cloudflare-cluster-issuer
-    kind: ClusterIssuer
-  dnsNames:
-  - jellyfin.k8s.oliverilp.ee 
