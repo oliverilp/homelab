@@ -1,11 +1,9 @@
-# NFS CSI Driver configuration
 driver:
   name: nfs.csi.k8s.io
 
 controller:
   replicas: 2
 
-# Configure node DaemonSet to exclude control plane nodes
 node:
   affinity:
     nodeAffinity:
@@ -15,11 +13,9 @@ node:
           - key: node-role.kubernetes.io/control-plane
             operator: DoesNotExist
 
-# Enable volume expansion
 feature:
   enableVolumeExpansion: true
 
-# Resource limits
 resources:
   csiProvisioner:
     limits:

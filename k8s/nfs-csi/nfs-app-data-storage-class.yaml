@@ -8,8 +8,6 @@ provisioner: nfs.csi.k8s.io
 parameters:
   server: "10.1.1.22"
   share: "/mnt/seagate/k8s"
-  # Use only PVC name for directory naming (user ensures uniqueness)
-  # Creates isolated directories per PVC: /mnt/seagate/k8s/jellyfin-config-pvc/
   subDir: "${pvc.metadata.name}"
 reclaimPolicy: Retain
 allowVolumeExpansion: true
