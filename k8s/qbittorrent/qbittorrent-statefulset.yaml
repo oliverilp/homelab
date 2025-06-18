@@ -64,4 +64,4 @@ spec:
           claimName: qbittorrent-data-pvc
       - name: qbittorrent-media
         persistentVolumeClaim:
-          claimName: shared-media-pvc 
+          claimName: qbittorrent-shared-media-pvc 

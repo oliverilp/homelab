@@ -53,4 +53,4 @@ spec:
           claimName: jellyfin-data-pvc
       - name: jellyfin-media
         persistentVolumeClaim:
-          claimName: shared-media-pvc 
+          claimName: jellyfin-shared-media-pvc
