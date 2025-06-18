@@ -34,6 +34,7 @@ spec:
       - CreateNamespace=true
       - PrunePropagationPolicy=foreground
       - Replace=true
+      - ServerSideApply=true
     retry:
       limit: 3
       backoff:

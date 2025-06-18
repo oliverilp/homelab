@@ -1,2 +1,23 @@
 crds:
   enabled: true
+
+webhook:
+  timeoutSeconds: 30
+  serviceType: ClusterIP
+startupapicheck:
+  enabled: true
+  
+  timeout: 5m
+  
+  backoffLimit: 10
+  
+  jobAnnotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+
+global:
+  logLevel: 2
+  
+  leaderElection:
+    namespace: cert-manager
