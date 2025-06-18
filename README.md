@@ -1,6 +1,6 @@
 # homelab
 
-brew install siderolabs/tap/talosctl kubectl helm helmfile
+brew install siderolabs/tap/talosctl kubectl helm
 
 talosctl gen config ramiel-cluster https://10.1.1.30:6443 \
   --install-image factory.talos.dev/nocloud-installer/88d1f7a5c4f1d3aba7df787c448c1d3d008ed29cfb34af53fa0df4336a56040b:v1.10.4 \
@@ -32,10 +32,6 @@ talosctl bootstrap
 talosctl get members -n 10.1.1.31
 
 talosctl kubeconfig -n 10.1.1.31
-
-helm plugin install https://github.com/databus23/helm-diff
-helmfile -f k8s/cilium/cilium-helmfile.yaml apply
-helmfile -f k8s/cert-manager/cert-manager-helmfile.yaml apply
 
 kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/standard/gateway.networking.k8s.io_gatewayclasses.yaml
 kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/standard/gateway.networking.k8s.io_gateways.yaml
