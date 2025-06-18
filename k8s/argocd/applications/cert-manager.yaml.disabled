@@ -1,0 +1,42 @@
+# Infrastructure Application - Enable when ready to migrate to ArgoCD management
+# Rename to .yaml when ready to use
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"  # Deploy before other apps
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/oliverilp/homelab.git'
+    path: k8s/cert-manager
+    targetRevision: HEAD
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: cert-manager
+  syncPolicy:
+    # NOTE: Infrastructure apps often need manual sync initially
+    automated:
+      prune: false     # Be careful with infrastructure
+      selfHeal: false  # Manual control for critical infrastructure
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - Replace=true   # Required for some CRDs
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 2m
+  # Add ignoreDifferences for commonly noisy fields
+  ignoreDifferences:
+  - group: apiextensions.k8s.io
+    kind: CustomResourceDefinition
+    jsonPointers:
+    - /metadata/annotations
+    - /spec/conversion/webhook/clientConfig/caBundle 

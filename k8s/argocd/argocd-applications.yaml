@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd-applications
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io  # Ensures cascade delete
+spec:
+  project: default
+  source:
+    repoURL: 'git@github.com:oliverilp/homelab.git'  # SSH for private repo
+    path: k8s/argocd/applications
+    targetRevision: HEAD
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true      # Remove resources when deleted from Git
+      selfHeal: true   # Automatically fix drift
+      allowEmpty: false # Prevent accidental empty deployments
+    syncOptions:
+      - CreateNamespace=true  # Auto-create target namespaces
+      - PrunePropagationPolicy=foreground  # Proper cleanup order
+    retry:
+      limit: 5  # Retry failed syncs
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m 

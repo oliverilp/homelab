@@ -1,0 +1,67 @@
+global:
+  domain: argocd.k8s.oliverilp.ee
+
+server:
+  replicas: 2
+  service:
+    type: ClusterIP
+  
+  extraArgs:
+    - --insecure
+  
+  config:
+    url: "https://argocd.k8s.oliverilp.ee"
+    application.instanceLabelKey: argocd.argoproj.io/instance
+
+  metrics:
+    enabled: true
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+repoServer:
+  replicas: 2
+  metrics:
+    enabled: true
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+controller:
+  metrics:
+    enabled: true
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+redis:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# Disable dex (OIDC) for now - use admin user
+dex:
+  enabled: false
+
+# Notifications controller - disabled for now
+notifications:
+  enabled: false 
