@@ -1,0 +1,51 @@
+ipam:
+  mode: kubernetes
+
+kubeProxyReplacement: true
+k8sServiceHost: localhost
+k8sServicePort: 7445
+
+gatewayAPI:
+  enabled: true
+  enableAlpn: true
+  enableAppProtocol: true
+
+l2announcements:
+  enabled: true
+k8s-client-qps: 40
+k8s-client-burst: 80
+
+loadBalancerIPs:
+  algorithm: maglev
+  mode: dsr
+
+ingressController:
+  enabled: true
+  loadbalancerMode: shared
+
+operator:
+  replicas: 3
+
+securityContext:
+  capabilities:
+    ciliumAgent:
+      - CHOWN
+      - KILL
+      - NET_ADMIN
+      - NET_RAW
+      - IPC_LOCK
+      - SYS_ADMIN
+      - SYS_RESOURCE
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    cleanCiliumState:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - SYS_RESOURCE
+
+cgroup:
+  autoMount:
+    enabled: false
+  hostRoot: /sys/fs/cgroup
