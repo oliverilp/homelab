@@ -12,6 +12,21 @@ server:
   config:
     url: "https://argocd.k8s.oliverilp.ee"
     application.instanceLabelKey: argocd.argoproj.io/instance
+    
+    resource.exclusions: |
+      - apiGroups:
+        - ""
+        kinds:
+        - Endpoints
+        - Event
+        clusters:
+        - "*"
+      - apiGroups:
+        - "metrics.k8s.io"
+        kinds:
+        - "*"
+        clusters:
+        - "*"
 
   metrics:
     enabled: true
