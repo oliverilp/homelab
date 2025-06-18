@@ -15,8 +15,14 @@ variable "vm_state" {
 }
 
 variable "memory" {
-  description = "Memory in MB"
+  description = "Memory in MB (maximum when using ballooning)"
   type        = number
+}
+
+variable "balloon" {
+  description = "Minimum memory in MB for ballooning"
+  type        = number
+  default     = 0
 }
 
 variable "disk_size" {

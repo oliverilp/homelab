@@ -3,7 +3,7 @@ module "docker" {
   
   vmid = "210"
   name = "tailkeep-docker"
-  vm_state    = "stopped"
+  vm_state    = "running"
   memory      = 4096
   disk_size   = 30
   ip          = "10.1.1.25"

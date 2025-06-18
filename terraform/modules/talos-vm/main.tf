@@ -65,5 +65,6 @@ resource "proxmox_vm_qemu" "vm" {
   vmid = "${var.vmid_prefix}${count.index + 1}"
   name = "${var.name_prefix}-0${count.index + 1}"
   memory = var.memory
+  balloon = var.balloon
   ipconfig0 = "ip=${var.ip_base}${count.index + var.ip_offset}/24,gw=10.1.1.1"
 }

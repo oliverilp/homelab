@@ -61,6 +61,7 @@ resource "proxmox_vm_qemu" "vm" {
   vmid = var.vmid
   name = var.name
   memory = var.memory
+  balloon = var.balloon
   ipconfig0 = "ip=${var.ip}/24,gw=10.1.1.1"
   cipassword = var.cloud_init_password
   sshkeys = var.public_ssh_key
