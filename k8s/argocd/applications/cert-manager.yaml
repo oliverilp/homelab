@@ -19,6 +19,9 @@ spec:
     - repoURL: 'git@github.com:oliverilp/homelab.git'
       targetRevision: HEAD
       ref: values
+    - repoURL: 'git@github.com:oliverilp/homelab.git'
+      path: k8s/cert-manager
+      targetRevision: HEAD
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: cert-manager
