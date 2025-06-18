@@ -4,17 +4,10 @@ crds:
 webhook:
   timeoutSeconds: 30
   serviceType: ClusterIP
+
+# Temporarily disable startupapicheck to avoid hook conflicts
 startupapicheck:
-  enabled: true
-  
-  timeout: 5m
-  
-  backoffLimit: 10
-  
-  jobAnnotations:
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "1"
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+  enabled: false
 
 global:
   logLevel: 2

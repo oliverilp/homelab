@@ -35,6 +35,8 @@ spec:
       - PrunePropagationPolicy=foreground
       - Replace=true
       - ServerSideApply=true
+      - ApplyOutOfSyncOnly=true
+      - Force=true
     retry:
       limit: 3
       backoff:
@@ -46,4 +48,14 @@ spec:
     kind: CustomResourceDefinition
     jsonPointers:
     - /metadata/annotations
-    - /spec/conversion/webhook/clientConfig/caBundle 
+    - /spec/conversion/webhook/clientConfig/caBundle
+  - group: rbac.authorization.k8s.io
+    kind: Role
+    jsonPointers:
+    - /metadata/annotations
+    - /metadata/labels
+  - group: rbac.authorization.k8s.io
+    kind: RoleBinding
+    jsonPointers:
+    - /metadata/annotations
+    - /metadata/labels 
