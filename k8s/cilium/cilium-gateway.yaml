@@ -3,9 +3,10 @@ kind: Gateway
 metadata:
   name: cilium-gateway
   namespace: kube-system
-  annotations:
-    io.cilium/lb-ipam-ips: "10.1.1.100"
 spec:
+  addresses:
+  - type: IPAddress
+    value: 10.1.1.100
   gatewayClassName: cilium
   listeners:
   - name: http
