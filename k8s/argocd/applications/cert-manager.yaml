@@ -9,10 +9,16 @@ metadata:
     argocd.argoproj.io/sync-wave: "-10"
 spec:
   project: default
-  source:
-    repoURL: 'git@github.com:oliverilp/homelab.git'
-    path: k8s/cert-manager
-    targetRevision: HEAD
+  sources:
+    - repoURL: https://charts.jetstack.io
+      chart: cert-manager
+      targetRevision: v1.18.0
+      helm:
+        valueFiles:
+          - k8s/cert-manager/cert-manager-values.yaml
+    - repoURL: 'git@github.com:oliverilp/homelab.git'
+      targetRevision: HEAD
+      ref: values
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: cert-manager
