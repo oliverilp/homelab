@@ -15,7 +15,7 @@ spec:
       targetRevision: v1.18.0
       helm:
         valueFiles:
-          - k8s/cert-manager/cert-manager-values.yaml
+          - cert-manager-values.yaml
     - repoURL: 'git@github.com:oliverilp/homelab.git'
       targetRevision: HEAD
       ref: values
