@@ -10,7 +10,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/oliverilp/homelab.git'
+    repoURL: 'git@github.com:oliverilp/homelab.git'
     path: k8s/cert-manager
     targetRevision: HEAD
   destination:
