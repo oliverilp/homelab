@@ -5,9 +5,10 @@ webhook:
   timeoutSeconds: 30
   serviceType: ClusterIP
 
-# Temporarily disable startupapicheck to avoid hook conflicts
 startupapicheck:
-  enabled: false
+  enabled: true
+  timeout: 5m
+  backoffLimit: 4
 
 global:
   logLevel: 2

@@ -35,8 +35,6 @@ spec:
       - PrunePropagationPolicy=foreground
       - Replace=true
       - ServerSideApply=true
-      - ApplyOutOfSyncOnly=true
-      - Force=true
     retry:
       limit: 3
       backoff:
