@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-test-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: cloudflare-cluster-issuer
+spec:
+  ingressClassName: cilium
+  tls:
+  - hosts:
+    - nginx.k8s.oliverilp.ee
+    secretName: nginx-demo-tls
+  rules:
+  - host: nginx.k8s.oliverilp.ee
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-test-clusterip
+            port:
+              number: 80 
