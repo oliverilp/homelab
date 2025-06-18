@@ -6,7 +6,7 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.argoproj.io
   annotations:
-    argocd.argoproj.io/sync-wave: "20"  # Deploy after basic apps
+    argocd.argoproj.io/sync-wave: "20"
 spec:
   project: default
   source:
