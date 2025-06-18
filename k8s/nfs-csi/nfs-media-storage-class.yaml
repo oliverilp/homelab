@@ -1,0 +1,25 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-media
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: nfs.csi.k8s.io
+parameters:
+  server: "10.1.1.22"
+  share: "/mnt/seagate/media"
+  # No subDir = direct mount to root of media share
+  # All PVCs using this storage class will see the same files
+  # Supports ReadWriteMany for shared access
+reclaimPolicy: Retain
+allowVolumeExpansion: true
+volumeBindingMode: Immediate
+mountOptions:
+  - nfsvers=4
+  - rsize=8192
+  - wsize=8192
+  - tcp
+  - timeo=14
+  - noatime
+  - hard
+  - retrans=2 

@@ -1,0 +1,11 @@
+repositories:
+- name: csi-driver-nfs
+  url: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
+
+releases:
+- name: csi-driver-nfs
+  namespace: kube-system
+  chart: csi-driver-nfs/csi-driver-nfs
+  version: v4.11.0
+  values:
+  - ./nfs-csi-values.yaml 
