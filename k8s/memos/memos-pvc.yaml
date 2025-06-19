@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: memos-data
+  namespace: memos
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nfs-app-data
+  resources:
+    requests:
+      storage: 2Gi 

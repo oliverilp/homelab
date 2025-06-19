@@ -1,0 +1,11 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: memos-database
+  namespace: postgresql
+spec:
+  cluster:
+    name: postgres
+  name: memosdb
+  owner: memos
+  reclaimPolicy: retain
