@@ -14,7 +14,7 @@ module "k8s_master" {
 module "k8s_worker" {
   source = "./modules/talos-vm"
   
-  vm_count = 2
+  vm_count = 3
   vmid_prefix = "41"
   name_prefix = "k8s-worker"
   vm_state    = "running"
