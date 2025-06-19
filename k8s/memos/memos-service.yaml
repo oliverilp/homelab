@@ -9,7 +9,24 @@ spec:
   selector:
     app: memos
   ports:
-  - name: http2
+  - name: http
+    port: 5230
+    targetPort: 5230
+    protocol: TCP
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: memos-grpc-web
+  namespace: memos
+  labels:
+    app: memos
+spec:
+  selector:
+    app: memos
+  ports:
+  - name: grpc-web
     port: 5230
     targetPort: 5230
     protocol: TCP
