@@ -23,7 +23,9 @@ spec:
         - name: http
           containerPort: 5230
           protocol: TCP
-        # env:
+        env:
+        - name: MEMOS_PORT
+          value: "5230"
         # - name: MEMOS_DRIVER
         #   value: "postgres"
         # - name: MEMOS_DSN
