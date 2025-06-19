@@ -9,8 +9,9 @@ spec:
   selector:
     app: memos
   ports:
-  - name: http
+  - name: http2
     port: 5230
     targetPort: 5230
     protocol: TCP
+    appProtocol: kubernetes.io/h2c
   type: ClusterIP 
