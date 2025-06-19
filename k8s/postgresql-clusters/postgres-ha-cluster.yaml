@@ -18,6 +18,15 @@ spec:
       createrole: false
       passwordSecret:
         name: memos-postgres-credentials
+    - name: linkwarden
+      ensure: present
+      comment: "Linkwarden application user"
+      login: true
+      superuser: false
+      createdb: false
+      createrole: false
+      passwordSecret:
+        name: linkwarden-postgres-credentials
 
   bootstrap:
     initdb:
