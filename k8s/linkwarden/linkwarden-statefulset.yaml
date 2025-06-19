@@ -22,6 +22,7 @@ spec:
         ports:
         - containerPort: 3000
           name: http
+          protocol: TCP
         env:
         - name: DATABASE_URL
           valueFrom:
@@ -54,16 +55,16 @@ spec:
           mountPath: /data/data
         livenessProbe:
           httpGet:
-            path: /api/health
-            port: 3000
+            path: /
+            port: http
           initialDelaySeconds: 60
           periodSeconds: 30
           timeoutSeconds: 10
           failureThreshold: 3
         readinessProbe:
           httpGet:
-            path: /api/health
-            port: 3000
+            path: /
+            port: http
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
