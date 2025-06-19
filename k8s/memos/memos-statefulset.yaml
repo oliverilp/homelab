@@ -45,13 +45,17 @@ spec:
             path: /
             port: 5230
           initialDelaySeconds: 60
-          periodSeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /
             port: 5230
           initialDelaySeconds: 30
-          periodSeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
       volumes:
       - name: memos-data
         persistentVolumeClaim:
