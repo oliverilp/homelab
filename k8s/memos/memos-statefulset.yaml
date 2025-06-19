@@ -1,11 +1,12 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: memos
   namespace: memos
   labels:
     app: memos
 spec:
+  serviceName: memos
   replicas: 1
   selector:
     matchLabels:
