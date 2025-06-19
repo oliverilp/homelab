@@ -20,8 +20,9 @@ spec:
       - name: memos
         image: neosmemo/memos:0.24.4
         ports:
-        - containerPort: 5230
-          name: http
+        - name: http
+          containerPort: 5230
+          protocol: TCP
         # env:
         # - name: MEMOS_DRIVER
         #   value: "postgres"
