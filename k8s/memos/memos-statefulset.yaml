@@ -22,14 +22,14 @@ spec:
         ports:
         - containerPort: 5230
           name: http
-        env:
-        - name: MEMOS_DRIVER
-          value: "postgres"
-        - name: MEMOS_DSN
-          valueFrom:
-            secretKeyRef:
-              name: memos-postgres-dsn
-              key: dsn
+        # env:
+        # - name: MEMOS_DRIVER
+        #   value: "postgres"
+        # - name: MEMOS_DSN
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: memos-postgres-dsn
+        #       key: dsn
         resources:
           requests:
             memory: "128Mi"
