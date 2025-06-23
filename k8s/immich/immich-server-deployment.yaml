@@ -51,6 +51,8 @@ spec:
               key: redis-password
         - name: IMMICH_MACHINE_LEARNING_URL
           value: "http://immich-machine-learning:3003"
+        - name: TZ
+          value: "Europe/Tallinn"
         resources:
           requests:
             memory: "512Mi"
@@ -61,15 +63,8 @@ spec:
         volumeMounts:
         - name: immich-data
           mountPath: /usr/src/app/upload
-        - name: localtime
-          mountPath: /etc/localtime
-          readOnly: true
 
       volumes:
       - name: immich-data
         persistentVolumeClaim:
-          claimName: immich-data-pvc
-      - name: localtime
-        hostPath:
-          path: /etc/localtime
-          type: File 
+          claimName: immich-data-pvc 
