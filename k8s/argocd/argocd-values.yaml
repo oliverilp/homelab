@@ -65,13 +65,14 @@ controller:
       memory: 1Gi
 
 redis:
-  resources:
-    requests:
-      cpu: 100m
-      memory: 128Mi
-    limits:
-      cpu: 200m
-      memory: 256Mi
+  enabled: false
+redis-ha:
+  enabled: false
+externalRedis:
+  host: argocd-dragonfly.argocd.svc.cluster.local
+  port: 6379
+  existingSecret: argocd-redis
+  existingSecretPasswordKey: redis-password
 
 # Disable dex (OIDC) for now - use admin user
 dex:
