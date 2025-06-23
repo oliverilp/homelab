@@ -31,7 +31,7 @@ spec:
       ensure: present
       comment: "Immich application user"
       login: true
-      superuser: false
+      superuser: true
       createdb: false
       createrole: false
       passwordSecret:
