@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: immich-machine-learning
+  namespace: immich
+  labels:
+    app: immich-machine-learning
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: immich-machine-learning
+  template:
+    metadata:
+      labels:
+        app: immich-machine-learning
+    spec:
+      containers:
+      - name: immich-machine-learning
+        image: ghcr.io/immich-app/immich-machine-learning:v1.135.3
+        ports:
+        - containerPort: 3003
+          name: http
+        env:
+        - name: TRANSFORMERS_CACHE
+          value: "/cache"
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        volumeMounts:
+        - name: model-cache
+          mountPath: /cache
+
+      volumes:
+      - name: model-cache
+        persistentVolumeClaim:
+          claimName: immich-ml-cache-pvc 

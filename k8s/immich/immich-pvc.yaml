@@ -10,3 +10,16 @@ spec:
   resources:
     requests:
       storage: 200Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-ml-cache-pvc
+  namespace: immich
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nfs-app-data
+  resources:
+    requests:
+      storage: 10Gi
