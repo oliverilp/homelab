@@ -4,7 +4,7 @@ metadata:
   name: postgres
   namespace: postgresql
 spec:
-  imageName: ghcr.io/tensorchord/cloudnative-pgvecto.rs:17.0@sha256:3e2052d40b892dcd6b356ee95d93184b881b708b86d7034bf6a1be56ce86be1f
+  imageName: ghcr.io/tensorchord/cloudnative-vectorchord:17.5-0.4.3@sha256:acebb38ca309938bc05ce268b019c98aa718cb554dd54e4443654d9d00a0d498
   instances: 3
   
   managed:
@@ -36,6 +36,10 @@ spec:
       createrole: false
       passwordSecret:
         name: immich-postgres-credentials
+  
+  postgresql:
+    shared_preload_libraries:
+      - "vchord.so"
 
   bootstrap:
     initdb:
@@ -43,6 +47,8 @@ spec:
       owner: app
       secret:
         name: postgres-credentials
+      postInitSQL:
+        - CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
 
   superuserSecret:
     name: postgres-superuser-credentials
