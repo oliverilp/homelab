@@ -4,7 +4,7 @@ metadata:
   name: postgres
   namespace: postgresql
 spec:
-  imageName: ghcr.io/tensorchord/cloudnative-pgvecto.rs:17.5
+  imageName: ghcr.io/tensorchord/cloudnative-pgvecto.rs:17.5@sha256:de34b32c799f5c35382b57370df73237efdc292814a5160f593210ebf04d0deb
   instances: 3
   
   managed:
