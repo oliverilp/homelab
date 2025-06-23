@@ -27,6 +27,15 @@ spec:
       createrole: false
       passwordSecret:
         name: linkwarden-postgres-credentials
+    - name: immich
+      ensure: present
+      comment: "Immich application user"
+      login: true
+      superuser: false
+      createdb: false
+      createrole: false
+      passwordSecret:
+        name: immich-postgres-credentials
 
   bootstrap:
     initdb:

@@ -1,0 +1,37 @@
+apiVersion: dragonflydb.io/v1alpha1
+kind: Dragonfly
+metadata:
+  name: immich-dragonfly
+  namespace: immich
+  labels:
+    app.kubernetes.io/name: dragonfly
+    app.kubernetes.io/instance: immich-dragonfly
+    app.kubernetes.io/component: redis
+    app.kubernetes.io/part-of: immich
+    app.kubernetes.io/managed-by: immich
+spec:
+  replicas: 2
+  authentication:
+    passwordFromSecret:
+      key: redis-password
+      name: immich-redis
+  resources:
+    requests:
+      cpu: 500m
+      memory: 256Mi
+    limits:
+      cpu: 600m
+      memory: 512Mi
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: node-role.kubernetes.io/control-plane
+            operator: DoesNotExist
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: dragonfly
+        topologyKey: kubernetes.io/hostname
