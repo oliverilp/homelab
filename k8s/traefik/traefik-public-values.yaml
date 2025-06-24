@@ -3,12 +3,15 @@ service:
   spec:
     loadBalancerIP: 10.1.1.101
 
-gateway:
-  enabled: true
-
 providers:
   kubernetesGateway:
     enabled: true
+
+gateway:
+  enabled: true
+
+gatewayClass:
+  enabled: false
 
 ingressClass:
   enabled: false
@@ -29,6 +32,12 @@ podLabels:
   traefik-instance: public
 
 affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: DoesNotExist
   podAntiAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
       - weight: 100
