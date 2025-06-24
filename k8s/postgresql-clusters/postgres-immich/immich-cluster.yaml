@@ -19,6 +19,10 @@ spec:
       passwordSecret:
         name: immich-postgres-credentials
   
+  initdb:
+    postInitSQL:
+      - CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
+  
   postgresql:
     shared_preload_libraries:
       - "vchord.so"
