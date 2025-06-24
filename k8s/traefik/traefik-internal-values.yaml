@@ -3,6 +3,10 @@ service:
   spec:
     loadBalancerIP: 10.1.1.102
 
+providers:
+  kubernetesGateway:
+    enabled: true
+
 gateway:
   enabled: true
 

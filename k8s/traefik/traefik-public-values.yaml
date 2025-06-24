@@ -6,6 +6,10 @@ service:
 gateway:
   enabled: true
 
+providers:
+  kubernetesGateway:
+    enabled: true
+
 ingressClass:
   enabled: false
   isDefaultClass: false
