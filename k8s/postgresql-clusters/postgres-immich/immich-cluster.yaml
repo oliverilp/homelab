@@ -1,7 +1,7 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: postgres
+  name: postgres-immich
   namespace: postgresql
 spec:
   imageName: ghcr.io/tensorchord/cloudnative-vectorchord:17.5-0.4.3@sha256:acebb38ca309938bc05ce268b019c98aa718cb554dd54e4443654d9d00a0d498
@@ -9,24 +9,6 @@ spec:
   
   managed:
     roles:
-    - name: memos
-      ensure: present
-      comment: "Memos application user"
-      login: true
-      superuser: false
-      createdb: false
-      createrole: false
-      passwordSecret:
-        name: memos-postgres-credentials
-    - name: linkwarden
-      ensure: present
-      comment: "Linkwarden application user"
-      login: true
-      superuser: false
-      createdb: false
-      createrole: false
-      passwordSecret:
-        name: linkwarden-postgres-credentials
     - name: immich
       ensure: present
       comment: "Immich application user"
@@ -41,17 +23,8 @@ spec:
     shared_preload_libraries:
       - "vchord.so"
 
-  bootstrap:
-    initdb:
-      database: app
-      owner: app
-      secret:
-        name: postgres-credentials
-      postInitSQL:
-        - CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
-
   superuserSecret:
-    name: postgres-superuser-credentials
+    name: postgres-immich-superuser-credentials
 
   storage:
     size: 10Gi

@@ -5,7 +5,7 @@ metadata:
   namespace: postgresql
 spec:
   cluster:
-    name: postgres
+    name: postgres-immich
   name: immichdb
   owner: immich
   reclaimPolicy: retain
