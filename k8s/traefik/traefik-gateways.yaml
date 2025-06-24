@@ -1,0 +1,72 @@
+---
+# Traefik GatewayClass - shared by both gateways
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: traefik
+spec:
+  controllerName: traefik.io/gateway-controller
+---
+# Public Gateway - accessible from internet
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: traefik-public-gateway
+  namespace: traefik
+  labels:
+    gateway-type: public
+spec:
+  addresses:
+    - type: IPAddress
+      value: 10.1.1.101 # Public gateway IP
+  gatewayClassName: traefik
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https
+      port: 443
+      protocol: HTTPS
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: traefik-shared-wildcard-certificate-secret
+            namespace: cert-manager
+---
+# Internal Gateway - only for admin/internal services
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: traefik-internal-gateway
+  namespace: traefik
+  labels:
+    gateway-type: internal
+spec:
+  addresses:
+    - type: IPAddress
+      value: 10.1.1.102 # Internal gateway IP
+  gatewayClassName: traefik
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https
+      port: 443
+      protocol: HTTPS
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: traefik-shared-wildcard-certificate-secret
+            namespace: cert-manager

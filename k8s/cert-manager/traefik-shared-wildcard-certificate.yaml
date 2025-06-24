@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: traefik-shared-wildcard-certificate
+  namespace: cert-manager
+spec:
+  commonName: kube.oliverilp.ee
+  dnsNames:
+    - kube.oliverilp.ee
+    - "*.kube.oliverilp.ee"
+  issuerRef:
+    kind: ClusterIssuer
+    name: cloudflare-cluster-issuer
+  secretName: traefik-shared-wildcard-certificate-secret

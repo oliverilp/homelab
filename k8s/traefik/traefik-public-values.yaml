@@ -1,0 +1,39 @@
+service:
+  type: LoadBalancer
+  spec:
+    loadBalancerIP: 10.1.1.101
+
+gateway:
+  enabled: true
+
+ingressClass:
+  enabled: false
+  isDefaultClass: false
+
+metrics:
+  prometheus:
+    enabled: true
+    service:
+      labels:
+        gateway-type: public
+
+deployment:
+  replicas: 2
+
+podLabels:
+  gateway-type: public
+  traefik-instance: public
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+              traefik-instance: public
+          topologyKey: kubernetes.io/hostname
+
+nodeSelector:
+  node-role.kubernetes.io/control-plane: "false"
