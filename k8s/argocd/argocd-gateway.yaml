@@ -5,15 +5,15 @@ metadata:
   namespace: argocd
 spec:
   parentRefs:
-  - name: cilium-gateway
-    namespace: kube-system
+    - name: traefik-public-gateway
+      namespace: traefik
   hostnames:
-  - argocd.k8s.oliverilp.ee
+    - argocd.kube.oliverilp.ee
   rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /
-    backendRefs:
-    - name: argocd-server
-      port: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: argocd-server
+          port: 80

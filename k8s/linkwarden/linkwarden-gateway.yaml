@@ -5,15 +5,15 @@ metadata:
   namespace: linkwarden
 spec:
   parentRefs:
-  - name: cilium-gateway
-    namespace: kube-system
+    - name: traefik-public-gateway
+      namespace: traefik
   hostnames:
-  - linkwarden.k8s.oliverilp.ee
+    - linkwarden.kube.oliverilp.ee
   rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /
-    backendRefs:
-    - name: linkwarden
-      port: 3000 
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: linkwarden
+          port: 3000

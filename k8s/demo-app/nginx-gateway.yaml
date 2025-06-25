@@ -5,15 +5,15 @@ metadata:
   namespace: default
 spec:
   parentRefs:
-  - name: cilium-gateway
-    namespace: kube-system
+    - name: traefik-public-gateway
+      namespace: traefik
   hostnames:
-  - nginx.k8s.oliverilp.ee
+    - nginx.kube.oliverilp.ee
   rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /
-    backendRefs:
-    - name: nginx-test-clusterip
-      port: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: nginx-test-clusterip
+          port: 80

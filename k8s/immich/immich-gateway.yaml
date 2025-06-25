@@ -5,15 +5,15 @@ metadata:
   namespace: immich
 spec:
   parentRefs:
-  - name: cilium-gateway
-    namespace: kube-system
+    - name: traefik-public-gateway
+      namespace: traefik
   hostnames:
-  - immich.k8s.oliverilp.ee
+    - immich.kube.oliverilp.ee
   rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /
-    backendRefs:
-    - name: immich-server
-      port: 2283 
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: immich-server
+          port: 2283

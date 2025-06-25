@@ -1,18 +1,18 @@
 global:
-  domain: argocd.k8s.oliverilp.ee
+  domain: argocd.kube.oliverilp.ee
 
 server:
   replicas: 2
   service:
     type: ClusterIP
-  
+
   extraArgs:
     - --insecure
-  
+
   config:
-    url: "https://argocd.k8s.oliverilp.ee"
+    url: "https://argocd.kube.oliverilp.ee"
     application.instanceLabelKey: argocd.argoproj.io/instance
-    
+
     resource.exclusions: |
       - apiGroups:
         - ""
@@ -80,4 +80,4 @@ dex:
 
 # Notifications controller - disabled for now
 notifications:
-  enabled: false 
+  enabled: false

@@ -5,19 +5,19 @@ metadata:
   namespace: memos
 spec:
   parentRefs:
-  - name: cilium-gateway
-    namespace: kube-system
+    - name: traefik-public-gateway
+      namespace: traefik
   hostnames:
-  - memos.k8s.oliverilp.ee
+    - memos.kube.oliverilp.ee
   rules:
-  # gRPC-Web API calls - need HTTP/2
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /memos.api
-    backendRefs:
-    - name: memos-grpc-web
-      port: 5230
+    # gRPC-Web API calls - need HTTP/2
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /memos.api
+      backendRefs:
+        - name: memos-grpc-web
+          port: 5230
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -26,16 +26,16 @@ metadata:
   namespace: memos
 spec:
   parentRefs:
-  - name: cilium-gateway
-    namespace: kube-system
+    - name: traefik-public-gateway
+      namespace: traefik
   hostnames:
-  - memos.k8s.oliverilp.ee
+    - memos.kube.oliverilp.ee
   rules:
-  # Static web content - regular HTTP
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /
-    backendRefs:
-    - name: memos
-      port: 5230 
+    # Static web content - regular HTTP
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: memos
+          port: 5230

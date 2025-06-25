@@ -17,59 +17,59 @@ spec:
         app: linkwarden
     spec:
       containers:
-      - name: linkwarden
-        image: ghcr.io/linkwarden/linkwarden:latest
-        ports:
-        - containerPort: 3000
-          name: http
-          protocol: TCP
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: linkwarden-secrets
-              key: database-url
-        - name: NEXTAUTH_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: linkwarden-secrets
-              key: nextauth-secret
-        - name: NEXTAUTH_URL
-          value: "https://linkwarden.k8s.oliverilp.ee/api/v1/auth"
-        - name: MEILI_ADDR
-          value: "http://meilisearch:7700"
-        - name: MEILI_MASTER_KEY
-          valueFrom:
-            secretKeyRef:
-              name: meilisearch-secret
-              key: master-key
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "200m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
-        volumeMounts:
-        - name: linkwarden-data
-          mountPath: /data/data
-        livenessProbe:
-          httpGet:
-            path: /
-            port: http
-          initialDelaySeconds: 60
-          periodSeconds: 30
-          timeoutSeconds: 10
-          failureThreshold: 3
-        readinessProbe:
-          httpGet:
-            path: /
-            port: http
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
+        - name: linkwarden
+          image: ghcr.io/linkwarden/linkwarden:latest
+          ports:
+            - containerPort: 3000
+              name: http
+              protocol: TCP
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: linkwarden-secrets
+                  key: database-url
+            - name: NEXTAUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: linkwarden-secrets
+                  key: nextauth-secret
+            - name: NEXTAUTH_URL
+              value: "https://linkwarden.kube.oliverilp.ee/api/v1/auth"
+            - name: MEILI_ADDR
+              value: "http://meilisearch:7700"
+            - name: MEILI_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: meilisearch-secret
+                  key: master-key
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "200m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          volumeMounts:
+            - name: linkwarden-data
+              mountPath: /data/data
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
       volumes:
-      - name: linkwarden-data
-        persistentVolumeClaim:
-          claimName: linkwarden-data 
+        - name: linkwarden-data
+          persistentVolumeClaim:
+            claimName: linkwarden-data

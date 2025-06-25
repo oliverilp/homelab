@@ -5,15 +5,15 @@ metadata:
   namespace: jellyfin
 spec:
   parentRefs:
-  - name: cilium-gateway
-    namespace: kube-system
+    - name: traefik-public-gateway
+      namespace: traefik
   hostnames:
-  - "jellyfin.k8s.oliverilp.ee"
+    - "jellyfin.kube.oliverilp.ee"
   rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /
-    backendRefs:
-    - name: jellyfin
-      port: 8096
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: jellyfin
+          port: 8096
