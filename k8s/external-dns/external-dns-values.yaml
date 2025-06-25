@@ -26,9 +26,6 @@ sources:
   - service
   - ingress
   - gateway-httproute
-  - gateway-tlsroute
-  - gateway-tcproute
-  - gateway-udproute
 
 domainFilters:
   - oliverilp.ee
