@@ -1,0 +1,39 @@
+provider:
+  name: cloudflare
+
+env:
+  - name: CF_API_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: cloudflare-api-key
+        key: apiKey
+
+rbac:
+  create: true
+
+serviceAccount:
+  create: true
+  name: external-dns
+
+policy: upsert-only
+
+registry: txt
+txtOwnerId: external-dns-homelab
+
+logLevel: info
+
+sources:
+  - service
+  - ingress
+  - gateway-httproute
+  - gateway-grpcroute
+  - gateway-tlsroute
+  - gateway-tcproute
+  - gateway-udproute
+
+domainFilters:
+  - oliverilp.ee
+  - crunchyroll.ee
+
+interval: 1m
+triggerLoopOnEvent: true
