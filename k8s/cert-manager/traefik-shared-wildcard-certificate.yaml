@@ -4,10 +4,11 @@ metadata:
   name: traefik-shared-wildcard-certificate
   namespace: cert-manager
 spec:
-  commonName: kube.oliverilp.ee
+  commonName: k8s.oliverilp.ee
   dnsNames:
-    - kube.oliverilp.ee
-    - "*.kube.oliverilp.ee"
+    - k8s.oliverilp.ee
+    - "*.k8s.oliverilp.ee"
+    - "*.local.k8s.oliverilp.ee"
   issuerRef:
     kind: ClusterIssuer
     name: cloudflare-cluster-issuer
