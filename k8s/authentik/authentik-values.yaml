@@ -7,7 +7,7 @@ authentik:
   postgresql:
     name: authentikdb
     user: authentik
-    host: postgres-authentik-rw.postgresql.svc.cluster.local
+    host: postgres-apps-rw.postgresql.svc.cluster.local
   redis:
     host: authentik-dragonfly.immich.svc.cluster.local
 
