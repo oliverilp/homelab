@@ -14,9 +14,7 @@ providers:
     enabled: true
 
 gateway:
-  enabled: true
-  name: traefik-public
-  namespace: traefik
+  enabled: false
 
 gatewayClass:
   enabled: true
