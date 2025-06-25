@@ -5,11 +5,11 @@ metadata:
   namespace: default
   annotations:
     external-dns.alpha.kubernetes.io/hostname: nginx.local.k8s.oliverilp.ee
-    external-dns.alpha.kubernetes.io/target: 10.1.1.101
+    external-dns.alpha.kubernetes.io/target: 10.1.1.102
     external-dns.alpha.kubernetes.io/ttl: "60"
 spec:
   parentRefs:
-    - name: traefik-public-gateway
+    - name: traefik-internal-gateway
       namespace: traefik
   hostnames:
     - nginx.local.k8s.oliverilp.ee

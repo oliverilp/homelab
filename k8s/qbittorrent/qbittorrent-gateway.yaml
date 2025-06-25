@@ -9,7 +9,7 @@ metadata:
     external-dns.alpha.kubernetes.io/ttl: "60"
 spec:
   parentRefs:
-    - name: traefik-public-gateway
+    - name: traefik-internal-gateway
       namespace: traefik
   hostnames:
     - "qbittorrent.local.k8s.oliverilp.ee"
