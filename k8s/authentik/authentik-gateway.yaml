@@ -1,0 +1,23 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: authentik-route
+  namespace: authentik
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: authentik.k8s.oliverilp.ee
+    external-dns.alpha.kubernetes.io/target: 10.1.1.101
+    external-dns.alpha.kubernetes.io/ttl: "60"
+spec:
+  parentRefs:
+    - name: traefik-internal-gateway
+      namespace: traefik
+  hostnames:
+    - authentik.k8s.oliverilp.ee
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: authentik-server
+          port: 80
