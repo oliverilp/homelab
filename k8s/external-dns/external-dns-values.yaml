@@ -26,7 +26,6 @@ sources:
   - service
   - ingress
   - gateway-httproute
-  - gateway-grpcroute
   - gateway-tlsroute
   - gateway-tcproute
   - gateway-udproute
