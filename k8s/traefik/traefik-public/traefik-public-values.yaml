@@ -47,6 +47,3 @@ affinity:
               app.kubernetes.io/name: traefik
               traefik-instance: public
           topologyKey: kubernetes.io/hostname
-
-nodeSelector:
-  node-role.kubernetes.io/control-plane: "false"
