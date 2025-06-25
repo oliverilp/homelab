@@ -20,7 +20,7 @@ loadBalancerIPs:
   mode: dsr
 
 ingressController:
-  enabled: true
+  enabled: false
   loadbalancerMode: shared
 
 operator:
