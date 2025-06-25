@@ -10,7 +10,7 @@ spec:
   addresses:
     - type: IPAddress
       value: 10.1.1.102 # Internal gateway IP
-  gatewayClassName: traefik
+  gatewayClassName: traefik-internal
   listeners:
     - name: http
       port: 80

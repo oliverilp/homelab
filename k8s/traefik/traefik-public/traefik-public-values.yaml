@@ -11,7 +11,8 @@ gateway:
   enabled: true
 
 gatewayClass:
-  enabled: false
+  enabled: true
+  name: traefik-public
 
 ingressClass:
   enabled: false

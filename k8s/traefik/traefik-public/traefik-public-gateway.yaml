@@ -10,7 +10,7 @@ spec:
   addresses:
     - type: IPAddress
       value: 10.1.1.101 # Public gateway IP
-  gatewayClassName: traefik
+  gatewayClassName: traefik-public
   listeners:
     - name: http
       port: 80
