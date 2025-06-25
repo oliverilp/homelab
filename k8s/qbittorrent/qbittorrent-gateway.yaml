@@ -3,12 +3,16 @@ kind: HTTPRoute
 metadata:
   name: qbittorrent
   namespace: qbittorrent
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: qbittorrent.local.k8s.oliverilp.ee
+    external-dns.alpha.kubernetes.io/target: 10.1.1.102
+    external-dns.alpha.kubernetes.io/ttl: "60"
 spec:
   parentRefs:
     - name: traefik-public-gateway
       namespace: traefik
   hostnames:
-    - "qbittorrent.kube.oliverilp.ee"
+    - "qbittorrent.local.k8s.oliverilp.ee"
   rules:
     - matches:
         - path:

@@ -3,12 +3,16 @@ kind: HTTPRoute
 metadata:
   name: argocd-route
   namespace: argocd
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: argocd.local.k8s.oliverilp.ee
+    external-dns.alpha.kubernetes.io/target: 10.1.1.102
+    external-dns.alpha.kubernetes.io/ttl: "60"
 spec:
   parentRefs:
     - name: traefik-public-gateway
       namespace: traefik
   hostnames:
-    - argocd.kube.oliverilp.ee
+    - argocd.local.k8s.oliverilp.ee
   rules:
     - matches:
         - path:

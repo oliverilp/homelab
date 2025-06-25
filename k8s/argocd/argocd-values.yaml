@@ -1,5 +1,5 @@
 global:
-  domain: argocd.kube.oliverilp.ee
+  domain: argocd.local.k8s.oliverilp.ee
 
 server:
   replicas: 2
@@ -10,7 +10,7 @@ server:
     - --insecure
 
   config:
-    url: "https://argocd.kube.oliverilp.ee"
+    url: "https://argocd.local.k8s.oliverilp.ee"
     application.instanceLabelKey: argocd.argoproj.io/instance
 
     resource.exclusions: |

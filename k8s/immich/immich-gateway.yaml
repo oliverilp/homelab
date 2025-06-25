@@ -3,12 +3,16 @@ kind: HTTPRoute
 metadata:
   name: immich-route
   namespace: immich
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: immich.k8s.oliverilp.ee
+    external-dns.alpha.kubernetes.io/target: 10.1.1.101
+    external-dns.alpha.kubernetes.io/ttl: "60"
 spec:
   parentRefs:
     - name: traefik-public-gateway
       namespace: traefik
   hostnames:
-    - immich.kube.oliverilp.ee
+    - immich.k8s.oliverilp.ee
   rules:
     - matches:
         - path:
