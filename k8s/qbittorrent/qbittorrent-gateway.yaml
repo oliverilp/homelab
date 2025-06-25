@@ -5,15 +5,15 @@ metadata:
   namespace: qbittorrent
 spec:
   parentRefs:
-  - name: cilium-gateway
-    namespace: kube-system
+    - name: traefik-public-gateway
+      namespace: traefik
   hostnames:
-  - "qbittorrent.k8s.oliverilp.ee"
+    - "qbittorrent.kube.oliverilp.ee"
   rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /
-    backendRefs:
-    - name: qbittorrent
-      port: 9092 
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: qbittorrent
+          port: 9092
