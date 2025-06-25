@@ -6,28 +6,37 @@ metadata:
 spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:17.5
   instances: 3
-  
+
   managed:
     roles:
-    - name: memos
-      ensure: present
-      comment: "Memos application user"
-      login: true
-      superuser: false
-      createdb: false
-      createrole: false
-      passwordSecret:
-        name: memos-postgres-credentials
-    - name: linkwarden
-      ensure: present
-      comment: "Linkwarden application user"
-      login: true
-      superuser: false
-      createdb: false
-      createrole: false
-      passwordSecret:
-        name: linkwarden-postgres-credentials
-  
+      - name: memos
+        ensure: present
+        comment: "Memos application user"
+        login: true
+        superuser: false
+        createdb: false
+        createrole: false
+        passwordSecret:
+          name: memos-postgres-credentials
+      - name: linkwarden
+        ensure: present
+        comment: "Linkwarden application user"
+        login: true
+        superuser: false
+        createdb: false
+        createrole: false
+        passwordSecret:
+          name: linkwarden-postgres-credentials
+      - name: authentik
+        ensure: present
+        comment: "Authentik application user"
+        login: true
+        superuser: false
+        createdb: false
+        createrole: false
+        passwordSecret:
+          name: authentik-postgres-credentials
+
   superuserSecret:
     name: postgres-apps-superuser-credentials
 
@@ -40,22 +49,22 @@ spec:
       memory: "512Mi"
       cpu: "500m"
     limits:
-      memory: "1Gi"  
+      memory: "1Gi"
       cpu: "1000m"
 
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
-        - matchExpressions:
-          - key: node-role.kubernetes.io/control-plane
-            operator: DoesNotExist
+          - matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: DoesNotExist
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
-      - labelSelector:
-          matchLabels:
-            cnpg.io/cluster: postgres
-        topologyKey: kubernetes.io/hostname
+        - labelSelector:
+            matchLabels:
+              cnpg.io/cluster: postgres
+          topologyKey: kubernetes.io/hostname
 
   monitoring:
-    enabled: true 
+    enabled: true
