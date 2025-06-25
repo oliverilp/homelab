@@ -1,9 +1,3 @@
-entryPoints:
-  web:
-    address: ":80"
-  websecure:
-    address: ":443"
-
 service:
   type: LoadBalancer
   spec:
