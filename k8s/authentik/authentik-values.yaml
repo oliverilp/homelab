@@ -9,7 +9,7 @@ authentik:
     user: authentik
     host: postgres-apps-rw.postgresql.svc.cluster.local
   redis:
-    host: authentik-dragonfly.immich.svc.cluster.local
+    host: authentik-dragonfly.authentik.svc.cluster.local
 
 server:
   env:
