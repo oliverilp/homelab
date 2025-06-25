@@ -1,3 +1,9 @@
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
 service:
   type: LoadBalancer
   spec:
@@ -9,6 +15,8 @@ providers:
 
 gateway:
   enabled: true
+  name: traefik-internal
+  namespace: traefik
 
 gatewayClass:
   enabled: true
