@@ -1,0 +1,61 @@
+authentik:
+  # secret_key is now sourced from a Kubernetes secret via environment variable
+  # This sends anonymous usage-data, stack traces on errors and
+  # performance data to sentry.io, and is fully opt-in
+  error_reporting:
+    enabled: false
+  postgresql:
+    name: authentikdb
+    user: authentik
+    host: postgres-authentik-rw.postgresql.svc.cluster.local
+  redis:
+    host: authentik-dragonfly.immich.svc.cluster.local
+
+server:
+  env:
+    - name: AUTHENTIK_POSTGRESQL__PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: authentik-postgres-credentials
+          namespace: postgresql
+          key: password
+    - name: AUTHENTIK_SECRET_KEY
+      valueFrom:
+        secretKeyRef:
+          name: authentik-secret
+          namespace: authentik
+          key: secret-key
+    - name: AUTHENTIK_REDIS__PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: authentik-redis
+          namespace: authentik
+          key: redis-password
+  ingress:
+    enabled: false
+
+worker:
+  env:
+    - name: AUTHENTIK_POSTGRESQL__PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: authentik-postgres-credentials
+          namespace: postgresql
+          key: password
+    - name: AUTHENTIK_SECRET_KEY
+      valueFrom:
+        secretKeyRef:
+          name: authentik-secret
+          namespace: authentik
+          key: secret-key
+    - name: AUTHENTIK_REDIS__PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: authentik-redis
+          namespace: authentik
+          key: redis-password
+
+postgresql:
+  enabled: false
+redis:
+  enabled: false
