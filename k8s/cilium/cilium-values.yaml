@@ -6,9 +6,7 @@ k8sServiceHost: localhost
 k8sServicePort: 7445
 
 gatewayAPI:
-  enabled: true
-  enableAlpn: true
-  enableAppProtocol: true
+  enabled: false
 
 l2announcements:
   enabled: true
@@ -21,7 +19,6 @@ loadBalancerIPs:
 
 ingressController:
   enabled: false
-  loadbalancerMode: shared
 
 operator:
   replicas: 3
