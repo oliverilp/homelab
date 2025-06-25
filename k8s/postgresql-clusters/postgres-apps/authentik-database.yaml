@@ -5,7 +5,7 @@ metadata:
   namespace: postgresql
 spec:
   cluster:
-    name: postgres
+    name: postgres-apps
   name: authentikdb
   owner: authentik
   reclaimPolicy: retain
