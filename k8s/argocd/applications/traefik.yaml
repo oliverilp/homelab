@@ -18,12 +18,12 @@ spec:
       helm:
         releaseName: traefik-public
         valueFiles:
-          - $values/k8s/traefik/traefik-public-values.yaml
+          - $values/k8s/traefik/traefik-public/traefik-public-values.yaml
     - repoURL: "git@github.com:oliverilp/homelab.git"
       targetRevision: HEAD
       ref: values
     - repoURL: "git@github.com:oliverilp/homelab.git"
-      path: k8s/traefik
+      path: k8s/traefik/traefik-public
       targetRevision: HEAD
   destination:
     server: "https://kubernetes.default.svc"
@@ -63,10 +63,13 @@ spec:
       helm:
         releaseName: traefik-internal
         valueFiles:
-          - $values/k8s/traefik/traefik-internal-values.yaml
+          - $values/k8s/traefik/traefik-internal/traefik-internal-values.yaml
     - repoURL: "git@github.com:oliverilp/homelab.git"
       targetRevision: HEAD
       ref: values
+    - repoURL: "git@github.com:oliverilp/homelab.git"
+      path: k8s/traefik/traefik-internal
+      targetRevision: HEAD
   destination:
     server: "https://kubernetes.default.svc"
     namespace: traefik
