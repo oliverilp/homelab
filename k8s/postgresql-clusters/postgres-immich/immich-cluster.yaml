@@ -19,9 +19,10 @@ spec:
         passwordSecret:
           name: immich-postgres-credentials
 
-  initdb:
-    postInitSQL:
-      - CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
+  bootstrap:
+    initdb:
+      postInitSQL:
+        - CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
 
   postgresql:
     shared_preload_libraries:
@@ -50,6 +51,3 @@ spec:
               - key: node-role.kubernetes.io/control-plane
                 operator: DoesNotExist
     podAntiAffinityType: required
-
-  monitoring:
-    enabled: true
