@@ -17,19 +17,16 @@ server:
       valueFrom:
         secretKeyRef:
           name: authentik-postgres-credentials
-          namespace: postgresql
           key: password
     - name: AUTHENTIK_SECRET_KEY
       valueFrom:
         secretKeyRef:
           name: authentik-secret
-          namespace: authentik
           key: secret-key
     - name: AUTHENTIK_REDIS__PASSWORD
       valueFrom:
         secretKeyRef:
           name: authentik-redis
-          namespace: authentik
           key: redis-password
   ingress:
     enabled: false
@@ -40,19 +37,16 @@ worker:
       valueFrom:
         secretKeyRef:
           name: authentik-postgres-credentials
-          namespace: postgresql
           key: password
     - name: AUTHENTIK_SECRET_KEY
       valueFrom:
         secretKeyRef:
           name: authentik-secret
-          namespace: authentik
           key: secret-key
     - name: AUTHENTIK_REDIS__PASSWORD
       valueFrom:
         secretKeyRef:
           name: authentik-redis
-          namespace: authentik
           key: redis-password
 
 postgresql:

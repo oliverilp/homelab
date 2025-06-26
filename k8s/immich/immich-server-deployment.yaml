@@ -16,55 +16,53 @@ spec:
         app: immich-server
     spec:
       containers:
-      - name: immich-server
-        image: ghcr.io/immich-app/immich-server:v1.135.3
-        ports:
-        - containerPort: 2283
-          name: http
-        env:
-        - name: DB_HOSTNAME
-          value: "postgres-immich-rw.postgresql.svc.cluster.local"
-        - name: DB_PORT
-          value: "5432"
-        - name: DB_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: immich-postgres-credentials
-              namespace: postgresql
-              key: username
-        - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: immich-postgres-credentials
-              namespace: postgresql
-              key: password
-        - name: DB_DATABASE_NAME
-          value: "immichdb"
-        - name: REDIS_HOSTNAME
-          value: "immich-dragonfly.immich.svc.cluster.local"
-        - name: REDIS_PORT
-          value: "6379"
-        - name: REDIS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: immich-redis
-              key: redis-password
-        - name: IMMICH_MACHINE_LEARNING_URL
-          value: "http://immich-machine-learning:3003"
-        - name: TZ
-          value: "Europe/Tallinn"
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "200m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
-        volumeMounts:
-        - name: immich-data
-          mountPath: /usr/src/app/upload
+        - name: immich-server
+          image: ghcr.io/immich-app/immich-server:v1.135.3
+          ports:
+            - containerPort: 2283
+              name: http
+          env:
+            - name: DB_HOSTNAME
+              value: "postgres-immich-rw.postgresql.svc.cluster.local"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: immich-postgres-credentials
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: immich-postgres-credentials
+                  key: password
+            - name: DB_DATABASE_NAME
+              value: "immichdb"
+            - name: REDIS_HOSTNAME
+              value: "immich-dragonfly.immich.svc.cluster.local"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: immich-redis
+                  key: redis-password
+            - name: IMMICH_MACHINE_LEARNING_URL
+              value: "http://immich-machine-learning:3003"
+            - name: TZ
+              value: "Europe/Tallinn"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "200m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          volumeMounts:
+            - name: immich-data
+              mountPath: /usr/src/app/upload
 
       volumes:
-      - name: immich-data
-        persistentVolumeClaim:
-          claimName: immich-data-pvc 
+        - name: immich-data
+          persistentVolumeClaim:
+            claimName: immich-data-pvc
