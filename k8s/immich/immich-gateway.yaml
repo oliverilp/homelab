@@ -5,7 +5,6 @@ metadata:
   namespace: immich
   annotations:
     external-dns.alpha.kubernetes.io/hostname: photos.oliverilp.ee
-    external-dns.alpha.kubernetes.io/target: hgc09j4m350.sn.mynetname.net
     external-dns.alpha.kubernetes.io/ttl: "60"
 spec:
   parentRefs:
