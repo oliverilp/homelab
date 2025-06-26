@@ -7,6 +7,8 @@ metadata:
     external-dns.alpha.kubernetes.io/hostname: linkwarden.oliverilp.ee
     external-dns.alpha.kubernetes.io/ttl: "60"
 spec:
+  type: ExternalName
+  externalName: hgc09j4m350.sn.mynetname.net
   parentRefs:
     - name: traefik-public-gateway
       namespace: traefik
