@@ -4,7 +4,7 @@ metadata:
   name: traefik-shared-wildcard-certificate
   namespace: cert-manager
 spec:
-  commonName: k8s.oliverilp.ee
+  commonName: oliverilp.ee
   dnsNames:
     - oliverilp.ee
     - "*.oliverilp.ee"
