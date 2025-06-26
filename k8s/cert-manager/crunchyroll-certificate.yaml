@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: crunchyroll-certificate
+  namespace: cert-manager
+spec:
+  commonName: crunchyroll.ee
+  dnsNames:
+    - crunchyroll.ee
+    - "*.crunchyroll.ee"
+  issuerRef:
+    kind: ClusterIssuer
+    name: cloudflare-cluster-issuer
+  secretName: crunchyroll-certificate-secret

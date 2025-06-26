@@ -27,5 +27,5 @@ spec:
       tls:
         mode: Terminate
         certificateRefs:
-          - name: traefik-shared-wildcard-certificate-secret
+          - name: oliverilp-certificate-secret
             namespace: cert-manager
