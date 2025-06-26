@@ -36,11 +36,11 @@ spec:
 
   resources:
     requests:
-      memory: "1024Mi"
-      cpu: 1
+      memory: "1Gi"
+      cpu: "1"
     limits:
-      memory: "1024Mi"
-      cpu: 1
+      memory: "1Gi"
+      cpu: "1"
 
   affinity:
     nodeAffinity:
