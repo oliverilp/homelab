@@ -6,23 +6,23 @@ metadata:
 spec:
   imageName: ghcr.io/tensorchord/cloudnative-vectorchord:17.5-0.4.3@sha256:acebb38ca309938bc05ce268b019c98aa718cb554dd54e4443654d9d00a0d498
   instances: 3
-  
+
   managed:
     roles:
-    - name: immich
-      ensure: present
-      comment: "Immich application user"
-      login: true
-      superuser: true
-      createdb: false
-      createrole: false
-      passwordSecret:
-        name: immich-postgres-credentials
-  
+      - name: immich
+        ensure: present
+        comment: "Immich application user"
+        login: true
+        superuser: true
+        createdb: false
+        createrole: false
+        passwordSecret:
+          name: immich-postgres-credentials
+
   initdb:
     postInitSQL:
       - CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
-  
+
   postgresql:
     shared_preload_libraries:
       - "vchord.so"
@@ -36,25 +36,20 @@ spec:
 
   resources:
     requests:
-      memory: "512Mi"
-      cpu: "500m"
+      memory: "1024Mi"
+      cpu: 1
     limits:
-      memory: "1Gi"  
-      cpu: "1000m"
+      memory: "1024Mi"
+      cpu: 1
 
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
-        - matchExpressions:
-          - key: node-role.kubernetes.io/control-plane
-            operator: DoesNotExist
-    podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-      - labelSelector:
-          matchLabels:
-            cnpg.io/cluster: postgres
-        topologyKey: kubernetes.io/hostname
+          - matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: DoesNotExist
+    podAntiAffinityType: required
 
   monitoring:
-    enabled: true 
+    enabled: true

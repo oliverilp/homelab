@@ -8,4 +8,4 @@ spec:
     name: postgres-apps
   name: memosdb
   owner: memos
-  reclaimPolicy: retain
+  databaseReclaimPolicy: retain

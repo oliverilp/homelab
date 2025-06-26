@@ -8,4 +8,4 @@ spec:
     name: postgres-apps
   name: authentikdb
   owner: authentik
-  reclaimPolicy: retain
+  databaseReclaimPolicy: retain

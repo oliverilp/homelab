@@ -46,11 +46,11 @@ spec:
 
   resources:
     requests:
-      memory: "512Mi"
-      cpu: "500m"
+      memory: "1024Mi"
+      cpu: 1
     limits:
-      memory: "1Gi"
-      cpu: "1000m"
+      memory: "1024Mi"
+      cpu: 1
 
   affinity:
     nodeAffinity:
@@ -59,12 +59,7 @@ spec:
           - matchExpressions:
               - key: node-role.kubernetes.io/control-plane
                 operator: DoesNotExist
-    podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        - labelSelector:
-            matchLabels:
-              cnpg.io/cluster: postgres
-          topologyKey: kubernetes.io/hostname
+    podAntiAffinityType: required
 
   monitoring:
     enabled: true

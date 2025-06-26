@@ -8,4 +8,4 @@ spec:
     name: postgres-immich
   name: immichdb
   owner: immich
-  reclaimPolicy: retain
+  databaseReclaimPolicy: retain

@@ -8,4 +8,4 @@ spec:
     name: postgres-apps
   name: linkwardendb
   owner: linkwarden
-  reclaimPolicy: retain
+  databaseReclaimPolicy: retain
