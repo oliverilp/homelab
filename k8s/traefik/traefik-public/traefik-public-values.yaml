@@ -1,7 +1,7 @@
 service:
   type: LoadBalancer
   spec:
-    loadBalancerIP: 10.1.1.101
+    loadBalancerIP: 10.1.1.100
 
 providers:
   kubernetesGateway:
