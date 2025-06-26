@@ -4,15 +4,15 @@ metadata:
   name: immich-route
   namespace: immich
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: immich.k8s.oliverilp.ee
-    external-dns.alpha.kubernetes.io/target: 10.1.1.101
+    external-dns.alpha.kubernetes.io/hostname: immich.oliverilp.ee
+    external-dns.alpha.kubernetes.io/target: hgc09j4m350.sn.mynetname.net
     external-dns.alpha.kubernetes.io/ttl: "60"
 spec:
   parentRefs:
     - name: traefik-public-gateway
       namespace: traefik
   hostnames:
-    - immich.k8s.oliverilp.ee
+    - immich.oliverilp.ee
   rules:
     - matches:
         - path:

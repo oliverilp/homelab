@@ -6,9 +6,9 @@ metadata:
 spec:
   commonName: k8s.oliverilp.ee
   dnsNames:
-    - k8s.oliverilp.ee
-    - "*.k8s.oliverilp.ee"
-    - "*.local.k8s.oliverilp.ee"
+    - oliverilp.ee
+    - "*.oliverilp.ee"
+    - "*.local.oliverilp.ee"
   issuerRef:
     kind: ClusterIssuer
     name: cloudflare-cluster-issuer

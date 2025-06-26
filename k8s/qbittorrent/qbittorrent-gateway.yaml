@@ -4,15 +4,15 @@ metadata:
   name: qbittorrent
   namespace: qbittorrent
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: qbittorrent.local.k8s.oliverilp.ee
-    external-dns.alpha.kubernetes.io/target: 10.1.1.102
+    external-dns.alpha.kubernetes.io/hostname: qbittorrent.oliverilp.ee
+    external-dns.alpha.kubernetes.io/target: 10.1.1.101
     external-dns.alpha.kubernetes.io/ttl: "60"
 spec:
   parentRefs:
     - name: traefik-internal-gateway
       namespace: traefik
   hostnames:
-    - "qbittorrent.local.k8s.oliverilp.ee"
+    - "qbittorrent.oliverilp.ee"
   rules:
     - matches:
         - path:

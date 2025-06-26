@@ -4,15 +4,15 @@ metadata:
   name: jellyfin
   namespace: jellyfin
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: jellyfin.k8s.oliverilp.ee
-    external-dns.alpha.kubernetes.io/target: 10.1.1.101
+    external-dns.alpha.kubernetes.io/hostname: jellyfin.oliverilp.ee
+    external-dns.alpha.kubernetes.io/target: hgc09j4m350.sn.mynetname.net
     external-dns.alpha.kubernetes.io/ttl: "60"
 spec:
   parentRefs:
     - name: traefik-public-gateway
       namespace: traefik
   hostnames:
-    - "jellyfin.k8s.oliverilp.ee"
+    - "jellyfin.oliverilp.ee"
   rules:
     - matches:
         - path:

@@ -4,15 +4,15 @@ metadata:
   name: linkwarden-route
   namespace: linkwarden
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: linkwarden.k8s.oliverilp.ee
-    external-dns.alpha.kubernetes.io/target: 10.1.1.101
+    external-dns.alpha.kubernetes.io/hostname: linkwarden.oliverilp.ee
+    external-dns.alpha.kubernetes.io/target: hgc09j4m350.sn.mynetname.net
     external-dns.alpha.kubernetes.io/ttl: "60"
 spec:
   parentRefs:
     - name: traefik-public-gateway
       namespace: traefik
   hostnames:
-    - linkwarden.k8s.oliverilp.ee
+    - linkwarden.oliverilp.ee
   rules:
     - matches:
         - path:

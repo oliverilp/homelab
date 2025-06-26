@@ -4,15 +4,15 @@ metadata:
   name: argocd-route
   namespace: argocd
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: argocd.local.k8s.oliverilp.ee
-    external-dns.alpha.kubernetes.io/target: 10.1.1.102
+    external-dns.alpha.kubernetes.io/hostname: argocd.oliverilp.ee
+    external-dns.alpha.kubernetes.io/target: 10.1.1.101
     external-dns.alpha.kubernetes.io/ttl: "60"
 spec:
   parentRefs:
     - name: traefik-internal-gateway
       namespace: traefik
   hostnames:
-    - argocd.local.k8s.oliverilp.ee
+    - argocd.oliverilp.ee
   rules:
     - matches:
         - path:
