@@ -13,32 +13,32 @@ End user applications.
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/immich.svg"></td>
-        <td><a href="https://www.commafeed.com/#/welcome">Immich</a></td>
+        <td><a href="https://immich.app/">Immich</a></td>
         <td>Google Photos alternative.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyfin.svg"></td>
-        <td><a href="https://github.com/gethomepage/homepage">Jellyfin</a></td>
+        <td><a href="https://jellyfin.org/">Jellyfin</a></td>
         <td>Netflix alternative.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/memos.png"></td>
-        <td><a href="https://github.com/gethomepage/homepage">Memos</a></td>
+        <td><a href="https://www.usememos.com/">Memos</a></td>
         <td>Personal note-taking app.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/linkwarden.png"></td>
-        <td><a href="https://github.com/gethomepage/homepage">Linkwarden</a></td>
+        <td><a href="https://linkwarden.app/">Linkwarden</a></td>
         <td>Bookmark manager to collect and download webpages.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/authentik.svg"></td>
-        <td><a href="https://www.commafeed.com/#/welcome">Authentik</a></td>
+        <td><a href="https://goauthentik.io/">Authentik</a></td>
         <td>Provides single sign-on functionality with OIDC for other apps.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qbittorrent.svg"></td>
-        <td><a href="https://n8n.io/">qBittorrent</a></td>
+        <td><a href="https://www.qbittorrent.org/">qBittorrent</a></td>
         <td>Used for legally downloading Linux ISOs.</td>
     </tr>
 </table>
