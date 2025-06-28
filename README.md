@@ -1,42 +1,134 @@
-# homelab
+# :house: Homelab
 
-brew install siderolabs/tap/talosctl kubectl helm helmfile
+## :rocket: Installed Apps & Tools
 
-talosctl gen config ramiel-cluster https://10.1.1.30:6443 \
-  --install-image factory.talos.dev/nocloud-installer/88d1f7a5c4f1d3aba7df787c448c1d3d008ed29cfb34af53fa0df4336a56040b:v1.10.4 \
-  --with-secrets secrets.yaml \
-  --config-patch @patches/cni.yaml \
-  --config-patch @patches/disable-kube-proxy.yaml \
-  --config-patch @patches/install-disk.yaml \
-  --config-patch @patches/interface-names.yaml \
-  --config-patch-control-plane @patches/vip.yaml \
-  --output out/
+### :globe_with_meridians: Apps
 
-mkdir -p ~/.talos
-cp out/talosconfig ~/.talos/config
+End user applications.
+<table>
+    <tr>
+        <th>Logo</th>
+        <th>Name</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/immich.svg"></td>
+        <td><a href="https://www.commafeed.com/#/welcome">Immich</a></td>
+        <td>Google Photos alternative.</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyfin.svg"></td>
+        <td><a href="https://github.com/gethomepage/homepage">Jellyfin</a></td>
+        <td>Netflix alternative.</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/memos.png"></td>
+        <td><a href="https://github.com/gethomepage/homepage">Memos</a></td>
+        <td>Personal note-taking app.</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/linkwarden.png"></td>
+        <td><a href="https://github.com/gethomepage/homepage">Linkwarden</a></td>
+        <td>Bookmark manager to collect and download webpages.</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/authentik.svg"></td>
+        <td><a href="https://www.commafeed.com/#/welcome">Authentik</a></td>
+        <td>Provides single sign-on functionality with OIDC for other apps.</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qbittorrent.svg"></td>
+        <td><a href="https://n8n.io/">qBittorrent</a></td>
+        <td>Used for legally downloading Linux ISOs.</td>
+    </tr>
+</table>
 
-talosctl apply-config --insecure -n 10.1.1.31 -f out/controlplane.yaml
-talosctl apply-config --insecure -n 10.1.1.32 -f out/controlplane.yaml
-talosctl apply-config --insecure -n 10.1.1.33 -f out/controlplane.yaml
+### :hammer: Infrastructure
 
-talosctl apply-config --insecure -n 10.1.1.41 -f out/worker.yaml
-talosctl apply-config --insecure -n 10.1.1.42 -f out/worker.yaml
-talosctl apply-config --insecure -n 10.1.1.43 -f out/worker.yaml
+Everything needed to run my cluster and deploy my applications.
+<table>
+    <tr>
+        <th>Logo</th>
+        <th>Name</th>
+        <th>Cloud equivalent</th>
+        <th>Purpose</th>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/traefik-proxy.svg"></td>
+        <td><a href="https://traefik.io/traefik/">Traefik</a></td>
+        <td>AWS ALB</td>
+        <td>Reverse proxy, also known as an ingress and gateway controller in Kubernetes jargon.</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/cert-manager.svg"></td>
+        <td><a href="https://cert-manager.io/">Cert Manager</a></td>
+        <td>AWS Certificate Manager</td>
+        <td>X.509 certificate management for Kubernetes.</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/cilium.svg"></td>
+        <td><a href="https://cilium.io/">Cilium</a></td>
+        <td>AWS VPC & NLB</td>
+        <td>Overlay network that also provides L2/L3-level load balancing, which replaces MetalLB.</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/postgresql.svg"></td>
+        <td><a href="https://cloudnative-pg.io/">CloudNativePG</a></td>
+        <td>AWS RDS for PostgreSQL</td>
+        <td>Database operator for running highly available PostgreSQL clusters.</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://www.dragonflydb.io/favicon.ico"></td>
+        <td><a href="https://www.dragonflydb.io/">Dragonfly</a></td>
+        <td>AWS ElastiCache</td>
+        <td>Dragonfly database operator for running highly available Redis-compatible clusters.</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://www.svgrepo.com/download/530451/dns.svg"></td>
+        <td><a href="https://github.com/kubernetes-sigs/external-dns">External DNS</a></td>
+        <td>—</td>
+        <td>Synchronizes exposed Kubernetes services with Cloudflare DNS.</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/argo-cd.svg"></td>
+        <td><a href="https://argoproj.github.io/cd/">Argo CD</a></td>
+        <td>—</td>
+        <td>My GitOps solution of choice.</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/terraform.svg"></td>
+        <td><a href="https://www.hashicorp.com/en/products/terraform/">Terraform</a></td>
+        <td>—</td>
+        <td>Used for automating and provisioning virtual machines. I plan to start using it for IaC configuration of network devices (Mikrotik switches and router).</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://www.svgrepo.com/download/374041/renovate.svg"></td>
+        <td><a href="https://github.com/renovatebot/renovate">Renovate</a></td>
+        <td>—</td>
+        <td>Automated dependency updates.</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/talos.svg"></td>
+        <td><a href="https://www.talos.dev/">Talos</a></td>
+        <td>AWS EKS & Bottlerocket</td>
+        <td>Modern and lightweight Linux distribution built for Kubernetes that provides production-grade security right out of the box.</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/truenas.svg"></td>
+        <td><a href="https://www.truenas.com/">TrueNAS</a></td>
+        <td>AWS EBS</td>
+        <td>Used to provision block storage with the NFS CSI driver on my TrueNAS server. I'm planning to migrate to Longhorn in the near future.</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/proxmox.svg"></td>
+        <td><a href="https://www.proxmox.com/en/products/proxmox-virtual-environment/overview">Proxmox VE</a></td>
+        <td>AWS EC2</td>
+        <td>Virtualization layer.</td>
+    </tr>
+</table>
 
-talosctl config endpoint 10.1.1.31 10.1.1.32 10.1.1.33
-talosctl config node 10.1.1.31
-talosctl config contexts
+# :construction: Bootstrapping
 
-talosctl bootstrap
-talosctl get members -n 10.1.1.31
-talosctl kubeconfig -n 10.1.1.31
+This section documents the complete infrastructure provisioning and cluster bootstrap process, from Talos Linux configuration generation to Kubernetes cluster initialization and core operator deployment.
 
-kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/standard/gateway.networking.k8s.io_gatewayclasses.yaml
-kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/standard/gateway.networking.k8s.io_gateways.yaml
-kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/standard/gateway.networking.k8s.io_httproutes.yaml
-kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/standard/gateway.networking.k8s.io_referencegrants.yaml
-kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/standard/gateway.networking.k8s.io_grpcroutes.yaml
-
-kubectl apply --server-side -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.26/releases/cnpg-1.26.0.yaml
-
-kubectl apply -f https://raw.githubusercontent.com/dragonflydb/dragonfly-operator/main/manifests/dragonfly-operator.yaml
+[Bootstrap documentation](BOOTSTRAP.MD)
