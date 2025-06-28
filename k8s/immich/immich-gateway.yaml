@@ -5,7 +5,6 @@ metadata:
   namespace: immich
   annotations:
     external-dns.alpha.kubernetes.io/hostname: photos.oliverilp.ee
-    external-dns.alpha.kubernetes.io/ttl: "60"
 spec:
   parentRefs:
     - name: traefik-public-gateway
