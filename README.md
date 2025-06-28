@@ -127,7 +127,7 @@ Everything needed to run my cluster and deploy my applications.
     </tr>
 </table>
 
-# :construction: Bootstrapping
+## :construction: Bootstrapping
 
 This section documents the complete infrastructure provisioning and cluster bootstrap process, from Talos Linux configuration generation to Kubernetes cluster initialization and core operator deployment.
 
