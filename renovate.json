@@ -7,6 +7,9 @@
     "fileMatch": ["^k8s/.*\\.yaml$"]
   },
   "argocd": {
-    "fileMatch": ["^k8s/argocd/applications/.*\\.yaml$", "^k8s/argocd/argocd-helmfile\\.yaml$"]
+    "fileMatch": ["^k8s/argocd/applications/.*\\.yaml$"]
+  },
+  "helmfile": {
+    "fileMatch": ["^k8s/argocd/argocd-helmfile\\.yaml$"]
   }
 }
