@@ -69,17 +69,17 @@ Everything needed to run my cluster and deploy my applications.
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/cilium.svg"></td>
         <td><a href="https://cilium.io/">Cilium</a></td>
         <td>AWS VPC & NLB</td>
-        <td>Overlay network that also provides L2/L3-level load balancing, which replaces MetalLB.</td>
+        <td>Overlay network that also provides L2/L3-level load balancing, which replaces MetalLB. Features fast eBPF-based networking which replaces legacy Linux iptables.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/postgresql.svg"></td>
-        <td><a href="https://cloudnative-pg.io/">CloudNativePG</a></td>
+        <td><a href="https://cloudnative-pg.io/">CloudNativePG Operator</a></td>
         <td>AWS RDS for PostgreSQL</td>
         <td>Database operator for running highly available PostgreSQL clusters.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://www.dragonflydb.io/favicon.ico"></td>
-        <td><a href="https://www.dragonflydb.io/">Dragonfly</a></td>
+        <td><a href="https://www.dragonflydb.io/">Dragonfly Operator</a></td>
         <td>AWS ElastiCache</td>
         <td>Dragonfly database operator for running highly available Redis-compatible clusters.</td>
     </tr>
