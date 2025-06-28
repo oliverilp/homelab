@@ -3,34 +3,14 @@ kind: HTTPRoute
 metadata:
   name: jellyfin-crunchyroll
   namespace: jellyfin
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: crunchyroll.ee
 spec:
   parentRefs:
     - name: traefik-public-gateway
       namespace: traefik
   hostnames:
     - crunchyroll.ee
-  rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      backendRefs:
-        - name: jellyfin
-          port: 8096
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: jellyfin-oliverilp
-  namespace: jellyfin
-  annotations:
-    external-dns.alpha.kubernetes.io/hostname: jellyfin.oliverilp.ee
-spec:
-  parentRefs:
-    - name: traefik-public-gateway
-      namespace: traefik
-  hostnames:
-    - jellyfin.oliverilp.ee
   rules:
     - matches:
         - path:

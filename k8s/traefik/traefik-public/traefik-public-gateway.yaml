@@ -29,7 +29,7 @@ spec:
       tls:
         mode: Terminate
         certificateRefs:
-          - name: oliverilp-certificate-secret
-            namespace: cert-manager
           - name: crunchyroll-certificate-secret
+            namespace: cert-manager
+          - name: oliverilp-certificate-secret
             namespace: cert-manager
