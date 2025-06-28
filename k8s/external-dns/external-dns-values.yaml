@@ -15,7 +15,7 @@ serviceAccount:
   create: true
   name: external-dns
 
-policy: upsert-only
+policy: sync
 
 registry: txt
 txtOwnerId: external-dns-homelab
