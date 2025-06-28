@@ -6,6 +6,8 @@ metadata:
   namespace: traefik
   labels:
     gateway-type: internal
+  annotations:
+    external-dns.alpha.kubernetes.io/target: 10.1.1.101
 spec:
   addresses:
     - type: IPAddress
