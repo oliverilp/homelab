@@ -44,6 +44,7 @@ talosctl gen config ramiel-cluster https://10.1.1.30:6443 \
 --config-patch @patches/disable-kube-proxy.yaml \
 --config-patch @patches/install-disk.yaml \
 --config-patch @patches/interface-names.yaml \
+--config-patch @patches/kubelet-certificates.yaml \
 --config-patch-control-plane @patches/vip.yaml \
 --output out/
 ```
@@ -61,17 +62,13 @@ mkdir -p ~/.talos cp out/talosconfig ~/.talos/config
 Apply configurations to control plane nodes:
 
 ```bash
-talosctl apply-config --insecure -n 10.1.1.31 -f out/controlplane.yaml
-talosctl apply-config --insecure -n 10.1.1.32 -f out/controlplane.yaml
-talosctl apply-config --insecure -n 10.1.1.33 -f out/controlplane.yaml
+talosctl apply-config --insecure -n 10.1.1.31,10.1.1.32,10.1.1.33 -f out/controlplane.yaml
 ```
 
 Apply configurations to worker nodes:
 
 ```bash
-talosctl apply-config --insecure -n 10.1.1.41 -f out/worker.yaml
-talosctl apply-config --insecure -n 10.1.1.42 -f out/worker.yaml
-talosctl apply-config --insecure -n 10.1.1.43 -f out/worker.yaml
+talosctl apply-config --insecure -n 10.1.1.41,10.1.1.42,10.1.1.43 -f out/worker.yaml
 ```
 
 ### 2. Configure Talos Client
