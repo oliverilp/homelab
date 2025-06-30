@@ -96,10 +96,22 @@ Everything needed to run my cluster and deploy my applications.
         <td>My GitOps solution of choice.</td>
     </tr>
     <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/grafana.svg"></td>
+        <td><a href="https://grafana.com/">Grafana</a></td>
+        <td>AWS AMG</td>
+        <td>Creates dashboards to visualize metrics and logs from multiple data sources.</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/prometheus.svg"></td>
+        <td><a href="https://prometheus.io/">Prometheus Operator</a></td>
+        <td>AWS AMP</td>
+        <td>Collects metrics from applications and infrastructure for monitoring and alerting.</td>
+    </tr>
+    <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/terraform.svg"></td>
         <td><a href="https://www.hashicorp.com/en/products/terraform/">Terraform</a></td>
         <td>—</td>
-        <td>Used for automating and provisioning virtual machines. I plan to start using it for IaC configuration of network devices (Mikrotik switches and router).</td>
+        <td>Monitoring and alerting.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://www.svgrepo.com/download/374041/renovate.svg"></td>
