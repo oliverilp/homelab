@@ -111,7 +111,7 @@ Everything needed to run my cluster and deploy my applications.
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/terraform.svg"></td>
         <td><a href="https://www.hashicorp.com/en/products/terraform/">Terraform</a></td>
         <td>—</td>
-        <td>Monitoring and alerting.</td>
+        <td>Used for automating and provisioning virtual machines. I plan to start using it for IaC configuration of network devices (Mikrotik switches and router).</td>
     </tr>
     <tr>
         <td><img width="32" src="https://www.svgrepo.com/download/374041/renovate.svg"></td>
