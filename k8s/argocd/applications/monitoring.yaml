@@ -32,6 +32,7 @@ spec:
       - PrunePropagationPolicy=foreground
       - Replace=true
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true
     retry:
       limit: 3
       backoff:

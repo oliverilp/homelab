@@ -89,7 +89,15 @@ talosctl kubeconfig -n 10.1.1.31
 
 ## Kubernetes Setup
 
-### 1. Install Gateway API CRDs
+### NFS CSI Snapshotter
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/client/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml
+```
+
+### 2. Install Gateway API CRDs
 
 Install the Gateway API Custom Resource Definitions:
 
@@ -101,7 +109,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v
 kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/standard/gateway.networking.k8s.io_grpcroutes.yaml
 ```
 
-### 2. Install CloudNative-PG Operator
+### 3. Install CloudNative-PG Operator
 
 Install the PostgreSQL operator for database management:
 
@@ -109,7 +117,7 @@ Install the PostgreSQL operator for database management:
 kubectl apply --server-side -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.26/releases/cnpg-1.26.0.yaml
 ```
 
-### 3. Install Dragonfly Operator
+### 4. Install Dragonfly Operator
 
 Install the Dragonfly operator for Redis-compatible caching:
 

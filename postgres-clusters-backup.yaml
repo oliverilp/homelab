@@ -1,0 +1,483 @@
+apiVersion: v1
+items:
+- apiVersion: postgresql.cnpg.io/v1
+  kind: Cluster
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: postgresql:postgresql.cnpg.io/Cluster:postgresql/postgres-apps
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"postgresql.cnpg.io/v1","kind":"Cluster","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"postgresql:postgresql.cnpg.io/Cluster:postgresql/postgres-apps"},"name":"postgres-apps","namespace":"postgresql"},"spec":{"affinity":{"nodeAffinity":{"requiredDuringSchedulingIgnoredDuringExecution":{"nodeSelectorTerms":[{"matchExpressions":[{"key":"node-role.kubernetes.io/control-plane","operator":"DoesNotExist"}]}]}},"podAntiAffinityType":"preferred"},"imageName":"ghcr.io/cloudnative-pg/postgresql:17.5","instances":3,"managed":{"roles":[{"comment":"Memos application user","createdb":false,"createrole":false,"ensure":"present","login":true,"name":"memos","passwordSecret":{"name":"memos-postgres-credentials"},"superuser":false},{"comment":"Linkwarden application user","createdb":false,"createrole":false,"ensure":"present","login":true,"name":"linkwarden","passwordSecret":{"name":"linkwarden-postgres-credentials"},"superuser":false},{"comment":"Authentik application user","createdb":false,"createrole":false,"ensure":"present","login":true,"name":"authentik","passwordSecret":{"name":"authentik-postgres-credentials"},"superuser":false}]},"storage":{"size":"10Gi","storageClass":"nfs-app-data"},"superuserSecret":{"name":"postgres-apps-superuser-credentials"}}}
+    creationTimestamp: "2025-06-24T14:43:04Z"
+    generation: 4
+    name: postgres-apps
+    namespace: postgresql
+    resourceVersion: "18401748"
+    uid: dcf7098a-b9b7-4f2d-8df6-61cc8e5ee478
+  spec:
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: DoesNotExist
+      podAntiAffinityType: preferred
+    bootstrap:
+      initdb:
+        database: app
+        encoding: UTF8
+        localeCType: C
+        localeCollate: C
+        owner: app
+    enablePDB: true
+    enableSuperuserAccess: false
+    failoverDelay: 0
+    imageName: ghcr.io/cloudnative-pg/postgresql:17.5
+    instances: 3
+    logLevel: info
+    managed:
+      roles:
+      - comment: Memos application user
+        connectionLimit: -1
+        createdb: false
+        createrole: false
+        ensure: present
+        inherit: true
+        login: true
+        name: memos
+        passwordSecret:
+          name: memos-postgres-credentials
+        superuser: false
+      - comment: Linkwarden application user
+        connectionLimit: -1
+        createdb: false
+        createrole: false
+        ensure: present
+        inherit: true
+        login: true
+        name: linkwarden
+        passwordSecret:
+          name: linkwarden-postgres-credentials
+        superuser: false
+      - comment: Authentik application user
+        connectionLimit: -1
+        createdb: false
+        createrole: false
+        ensure: present
+        inherit: true
+        login: true
+        name: authentik
+        passwordSecret:
+          name: authentik-postgres-credentials
+        superuser: false
+    maxSyncReplicas: 0
+    minSyncReplicas: 0
+    monitoring:
+      customQueriesConfigMap:
+      - key: queries
+        name: cnpg-default-monitoring
+      disableDefaultQueries: false
+      enablePodMonitor: false
+    postgresGID: 26
+    postgresUID: 26
+    postgresql:
+      parameters:
+        archive_mode: "on"
+        archive_timeout: 5min
+        dynamic_shared_memory_type: posix
+        full_page_writes: "on"
+        log_destination: csvlog
+        log_directory: /controller/log
+        log_filename: postgres
+        log_rotation_age: "0"
+        log_rotation_size: "0"
+        log_truncate_on_rotation: "false"
+        logging_collector: "on"
+        max_parallel_workers: "32"
+        max_replication_slots: "32"
+        max_worker_processes: "32"
+        shared_memory_type: mmap
+        shared_preload_libraries: ""
+        ssl_max_protocol_version: TLSv1.3
+        ssl_min_protocol_version: TLSv1.3
+        wal_keep_size: 512MB
+        wal_level: logical
+        wal_log_hints: "on"
+        wal_receiver_timeout: 5s
+        wal_sender_timeout: 5s
+      syncReplicaElectionConstraint:
+        enabled: false
+    primaryUpdateMethod: restart
+    primaryUpdateStrategy: unsupervised
+    replicationSlots:
+      highAvailability:
+        enabled: true
+        slotPrefix: _cnpg_
+      synchronizeReplicas:
+        enabled: true
+      updateInterval: 30
+    resources: {}
+    smartShutdownTimeout: 180
+    startDelay: 3600
+    stopDelay: 1800
+    storage:
+      resizeInUseVolumes: true
+      size: 10Gi
+      storageClass: nfs-app-data
+    superuserSecret:
+      name: postgres-apps-superuser-credentials
+    switchoverDelay: 3600
+  status:
+    availableArchitectures:
+    - goArch: amd64
+      hash: 024c5162e1dee336b21121d781397b347d04939a857d9d8a47664d1796e8b7c9
+    - goArch: arm64
+      hash: 63f3a3fbe19b8fe1c26a0e516ecb965c3412e390729a02706825399f585d9298
+    certificates:
+      clientCASecret: postgres-apps-ca
+      expirations:
+        postgres-apps-ca: 2025-09-22 14:38:04 +0000 UTC
+        postgres-apps-replication: 2025-09-22 14:38:04 +0000 UTC
+        postgres-apps-server: 2025-09-22 14:38:04 +0000 UTC
+      replicationTLSSecret: postgres-apps-replication
+      serverAltDNSNames:
+      - postgres-apps-rw
+      - postgres-apps-rw.postgresql
+      - postgres-apps-rw.postgresql.svc
+      - postgres-apps-rw.postgresql.svc.cluster.local
+      - postgres-apps-r
+      - postgres-apps-r.postgresql
+      - postgres-apps-r.postgresql.svc
+      - postgres-apps-r.postgresql.svc.cluster.local
+      - postgres-apps-ro
+      - postgres-apps-ro.postgresql
+      - postgres-apps-ro.postgresql.svc
+      - postgres-apps-ro.postgresql.svc.cluster.local
+      serverCASecret: postgres-apps-ca
+      serverTLSSecret: postgres-apps-server
+    cloudNativePGCommitHash: 1535f3c17
+    cloudNativePGOperatorHash: 024c5162e1dee336b21121d781397b347d04939a857d9d8a47664d1796e8b7c9
+    conditions:
+    - lastTransitionTime: "2025-07-05T17:49:51Z"
+      message: Cluster is Ready
+      reason: ClusterIsReady
+      status: "True"
+      type: Ready
+    - lastTransitionTime: "2025-07-05T16:29:02Z"
+      message: Continuous archiving is working
+      reason: ContinuousArchivingSuccess
+      status: "True"
+      type: ContinuousArchiving
+    configMapResourceVersion:
+      metrics:
+        cnpg-default-monitoring: "3401008"
+    currentPrimary: postgres-apps-2
+    currentPrimaryTimestamp: "2025-07-05T16:24:01.574392Z"
+    healthyPVC:
+    - postgres-apps-1
+    - postgres-apps-2
+    - postgres-apps-3
+    image: ghcr.io/cloudnative-pg/postgresql:17.5
+    instanceNames:
+    - postgres-apps-1
+    - postgres-apps-2
+    - postgres-apps-3
+    instances: 3
+    instancesReportedState:
+      postgres-apps-1:
+        ip: 10.244.5.28
+        isPrimary: false
+        timeLineID: 8
+      postgres-apps-2:
+        ip: 10.244.2.89
+        isPrimary: true
+        timeLineID: 8
+      postgres-apps-3:
+        ip: 10.244.3.85
+        isPrimary: false
+        timeLineID: 8
+    instancesStatus:
+      healthy:
+      - postgres-apps-1
+      - postgres-apps-2
+      - postgres-apps-3
+    latestGeneratedNode: 3
+    managedRolesStatus:
+      byStatus:
+        not-managed:
+        - app
+        reconciled:
+        - memos
+        - linkwarden
+        - authentik
+        reserved:
+        - postgres
+        - streaming_replica
+      passwordStatus:
+        authentik:
+          resourceVersion: "4593894"
+          transactionID: 756
+        linkwarden:
+          resourceVersion: "3397950"
+          transactionID: 743
+        memos:
+          resourceVersion: "3397949"
+          transactionID: 741
+    pgDataImageInfo:
+      image: ghcr.io/cloudnative-pg/postgresql:17.5
+      majorVersion: 17
+    phase: Cluster in healthy state
+    poolerIntegrations:
+      pgBouncerIntegration: {}
+    pvcCount: 3
+    readService: postgres-apps-r
+    readyInstances: 3
+    secretsResourceVersion:
+      applicationSecretVersion: "3400942"
+      clientCaSecretVersion: "3400936"
+      managedRoleSecretVersion:
+        authentik-postgres-credentials: "4593894"
+        linkwarden-postgres-credentials: "3397950"
+        memos-postgres-credentials: "3397949"
+      replicationSecretVersion: "3400939"
+      serverCaSecretVersion: "3400936"
+      serverSecretVersion: "3400938"
+    switchReplicaClusterStatus: {}
+    targetPrimary: postgres-apps-2
+    targetPrimaryTimestamp: "2025-07-05T17:47:21.255892Z"
+    timelineID: 8
+    topology:
+      instances:
+        postgres-apps-1: {}
+        postgres-apps-2: {}
+        postgres-apps-3: {}
+      nodesUsed: 3
+      successfullyExtracted: true
+    writeService: postgres-apps-rw
+- apiVersion: postgresql.cnpg.io/v1
+  kind: Cluster
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: postgresql:postgresql.cnpg.io/Cluster:postgresql/postgres-immich
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"postgresql.cnpg.io/v1","kind":"Cluster","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"postgresql:postgresql.cnpg.io/Cluster:postgresql/postgres-immich"},"name":"postgres-immich","namespace":"postgresql"},"spec":{"affinity":{"nodeAffinity":{"requiredDuringSchedulingIgnoredDuringExecution":{"nodeSelectorTerms":[{"matchExpressions":[{"key":"node-role.kubernetes.io/control-plane","operator":"DoesNotExist"}]}]}},"podAntiAffinityType":"preferred"},"bootstrap":{"initdb":{"postInitSQL":["CREATE EXTENSION IF NOT EXISTS vchord CASCADE;"]}},"imageName":"ghcr.io/tensorchord/cloudnative-vectorchord:17.5-0.4.3@sha256:acebb38ca309938bc05ce268b019c98aa718cb554dd54e4443654d9d00a0d498","instances":3,"managed":{"roles":[{"comment":"Immich application user","createdb":false,"createrole":false,"ensure":"present","login":true,"name":"immich","passwordSecret":{"name":"immich-postgres-credentials"},"superuser":true}]},"postgresql":{"shared_preload_libraries":["vchord.so"]},"storage":{"size":"10Gi","storageClass":"nfs-app-data"},"superuserSecret":{"name":"postgres-immich-superuser-credentials"}}}
+    creationTimestamp: "2025-06-24T14:43:04Z"
+    generation: 4
+    name: postgres-immich
+    namespace: postgresql
+    resourceVersion: "18406466"
+    uid: 92c6e4cd-3a12-4c9c-b502-849d60a9e60e
+  spec:
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: DoesNotExist
+      podAntiAffinityType: preferred
+    bootstrap:
+      initdb:
+        database: app
+        encoding: UTF8
+        localeCType: C
+        localeCollate: C
+        owner: app
+        postInitSQL:
+        - CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
+    enablePDB: true
+    enableSuperuserAccess: false
+    failoverDelay: 0
+    imageName: ghcr.io/tensorchord/cloudnative-vectorchord:17.5-0.4.3@sha256:acebb38ca309938bc05ce268b019c98aa718cb554dd54e4443654d9d00a0d498
+    instances: 3
+    logLevel: info
+    managed:
+      roles:
+      - comment: Immich application user
+        connectionLimit: -1
+        createdb: false
+        createrole: false
+        ensure: present
+        inherit: true
+        login: true
+        name: immich
+        passwordSecret:
+          name: immich-postgres-credentials
+        superuser: true
+    maxSyncReplicas: 0
+    minSyncReplicas: 0
+    monitoring:
+      customQueriesConfigMap:
+      - key: queries
+        name: cnpg-default-monitoring
+      disableDefaultQueries: false
+      enablePodMonitor: false
+    postgresGID: 26
+    postgresUID: 26
+    postgresql:
+      parameters:
+        archive_mode: "on"
+        archive_timeout: 5min
+        dynamic_shared_memory_type: posix
+        full_page_writes: "on"
+        log_destination: csvlog
+        log_directory: /controller/log
+        log_filename: postgres
+        log_rotation_age: "0"
+        log_rotation_size: "0"
+        log_truncate_on_rotation: "false"
+        logging_collector: "on"
+        max_parallel_workers: "32"
+        max_replication_slots: "32"
+        max_worker_processes: "32"
+        shared_memory_type: mmap
+        shared_preload_libraries: ""
+        ssl_max_protocol_version: TLSv1.3
+        ssl_min_protocol_version: TLSv1.3
+        wal_keep_size: 512MB
+        wal_level: logical
+        wal_log_hints: "on"
+        wal_receiver_timeout: 5s
+        wal_sender_timeout: 5s
+      shared_preload_libraries:
+      - vchord.so
+      syncReplicaElectionConstraint:
+        enabled: false
+    primaryUpdateMethod: restart
+    primaryUpdateStrategy: unsupervised
+    replicationSlots:
+      highAvailability:
+        enabled: true
+        slotPrefix: _cnpg_
+      synchronizeReplicas:
+        enabled: true
+      updateInterval: 30
+    resources: {}
+    smartShutdownTimeout: 180
+    startDelay: 3600
+    stopDelay: 1800
+    storage:
+      resizeInUseVolumes: true
+      size: 10Gi
+      storageClass: nfs-app-data
+    superuserSecret:
+      name: postgres-immich-superuser-credentials
+    switchoverDelay: 3600
+  status:
+    availableArchitectures:
+    - goArch: amd64
+      hash: 024c5162e1dee336b21121d781397b347d04939a857d9d8a47664d1796e8b7c9
+    - goArch: arm64
+      hash: 63f3a3fbe19b8fe1c26a0e516ecb965c3412e390729a02706825399f585d9298
+    certificates:
+      clientCASecret: postgres-immich-ca
+      expirations:
+        postgres-immich-ca: 2025-09-22 14:38:04 +0000 UTC
+        postgres-immich-replication: 2025-09-22 14:38:04 +0000 UTC
+        postgres-immich-server: 2025-09-22 14:38:04 +0000 UTC
+      replicationTLSSecret: postgres-immich-replication
+      serverAltDNSNames:
+      - postgres-immich-rw
+      - postgres-immich-rw.postgresql
+      - postgres-immich-rw.postgresql.svc
+      - postgres-immich-rw.postgresql.svc.cluster.local
+      - postgres-immich-r
+      - postgres-immich-r.postgresql
+      - postgres-immich-r.postgresql.svc
+      - postgres-immich-r.postgresql.svc.cluster.local
+      - postgres-immich-ro
+      - postgres-immich-ro.postgresql
+      - postgres-immich-ro.postgresql.svc
+      - postgres-immich-ro.postgresql.svc.cluster.local
+      serverCASecret: postgres-immich-ca
+      serverTLSSecret: postgres-immich-server
+    cloudNativePGCommitHash: 1535f3c17
+    cloudNativePGOperatorHash: 024c5162e1dee336b21121d781397b347d04939a857d9d8a47664d1796e8b7c9
+    conditions:
+    - lastTransitionTime: "2025-06-26T13:07:45Z"
+      message: Cluster Is Not Ready
+      reason: ClusterIsNotReady
+      status: "False"
+      type: Ready
+    - lastTransitionTime: "2025-07-05T12:23:15Z"
+      message: Continuous archiving is working
+      reason: ContinuousArchivingSuccess
+      status: "True"
+      type: ContinuousArchiving
+    configMapResourceVersion:
+      metrics:
+        cnpg-default-monitoring: "3401008"
+    currentPrimary: postgres-immich-2
+    currentPrimaryTimestamp: "2025-07-05T12:23:14.702492Z"
+    healthyPVC:
+    - postgres-immich-1
+    - postgres-immich-2
+    - postgres-immich-3
+    image: ghcr.io/tensorchord/cloudnative-vectorchord:17.5-0.4.3@sha256:acebb38ca309938bc05ce268b019c98aa718cb554dd54e4443654d9d00a0d498
+    instanceNames:
+    - postgres-immich-1
+    - postgres-immich-2
+    - postgres-immich-3
+    instances: 3
+    instancesReportedState:
+      postgres-immich-1:
+        ip: 10.244.2.107
+        isPrimary: false
+        timeLineID: 4
+      postgres-immich-2:
+        ip: 10.244.3.49
+        isPrimary: true
+        timeLineID: 4
+    instancesStatus:
+      failed:
+      - postgres-immich-3
+      healthy:
+      - postgres-immich-1
+      - postgres-immich-2
+    latestGeneratedNode: 3
+    managedRolesStatus:
+      byStatus:
+        not-managed:
+        - app
+        reconciled:
+        - immich
+        reserved:
+        - postgres
+        - streaming_replica
+      passwordStatus:
+        immich:
+          resourceVersion: "3397951"
+          transactionID: 741
+    pgDataImageInfo:
+      image: ghcr.io/tensorchord/cloudnative-vectorchord:17.5-0.4.3@sha256:acebb38ca309938bc05ce268b019c98aa718cb554dd54e4443654d9d00a0d498
+      majorVersion: 17
+    phase: Waiting for the instances to become active
+    phaseReason: Some instances are not yet active. Please wait.
+    poolerIntegrations:
+      pgBouncerIntegration: {}
+    pvcCount: 3
+    readService: postgres-immich-r
+    readyInstances: 2
+    secretsResourceVersion:
+      applicationSecretVersion: "3400943"
+      clientCaSecretVersion: "3400935"
+      managedRoleSecretVersion:
+        immich-postgres-credentials: "3397951"
+      replicationSecretVersion: "3400940"
+      serverCaSecretVersion: "3400935"
+      serverSecretVersion: "3400937"
+    switchReplicaClusterStatus: {}
+    targetPrimary: postgres-immich-2
+    targetPrimaryTimestamp: "2025-07-05T18:31:30.860020Z"
+    timelineID: 4
+    topology:
+      instances:
+        postgres-immich-1: {}
+        postgres-immich-2: {}
+        postgres-immich-3: {}
+      nodesUsed: 3
+      successfullyExtracted: true
+    writeService: postgres-immich-rw
+kind: List
+metadata:
+  resourceVersion: ""

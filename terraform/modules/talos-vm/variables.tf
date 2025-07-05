@@ -46,3 +46,9 @@ variable "ip_offset" {
   type        = number
   default     = 1
 }
+
+variable "onboot" {
+  description = "Whether the VM should start on boot"
+  type        = bool
+  default     = true
+}

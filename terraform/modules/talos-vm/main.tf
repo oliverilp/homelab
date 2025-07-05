@@ -17,7 +17,7 @@ resource "proxmox_vm_qemu" "vm" {
   clone = "talos-v1.10.4"
   scsihw = "virtio-scsi-single"
   # boot = "order=scsi0;ide2;net0"
-  onboot = true
+  onboot = var.onboot
   
   nameserver = "1.1.1.1 8.8.8.8"
   skip_ipv6 = true

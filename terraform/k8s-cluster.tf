@@ -9,6 +9,7 @@ module "k8s_master" {
   disk_size   = 20
   ip_base     = "10.1.1.3"
   ip_offset   = 1
+  onboot      = true
 }
 
 module "k8s_worker" {
@@ -18,9 +19,10 @@ module "k8s_worker" {
   vmid_prefix = "41"
   name_prefix = "k8s-worker"
   vm_state    = "running"
-  memory      = 8192
-  balloon     = 4096
+  memory      = 12288
+  balloon     = 8192
   disk_size   = 30
   ip_base     = "10.1.1.4"
   ip_offset   = 1
+  onboot      = false
 }
