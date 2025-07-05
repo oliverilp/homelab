@@ -35,14 +35,6 @@ spec:
     size: 10Gi
     storageClass: nfs-app-data
 
-  resources:
-    requests:
-      memory: "1Gi"
-      cpu: "1"
-    limits:
-      memory: "1Gi"
-      cpu: "1"
-
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
