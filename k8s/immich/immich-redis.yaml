@@ -11,6 +11,8 @@ metadata:
     app.kubernetes.io/managed-by: immich
 spec:
   replicas: 2
+  args:
+    - "--default_lua_flags=allow-undeclared-keys,disable-atomicity"
   authentication:
     passwordFromSecret:
       key: redis-password
@@ -26,12 +28,12 @@ spec:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
-        - matchExpressions:
-          - key: node-role.kubernetes.io/control-plane
-            operator: DoesNotExist
+          - matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: DoesNotExist
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
-      - labelSelector:
-          matchLabels:
-            app.kubernetes.io/name: dragonfly
-        topologyKey: kubernetes.io/hostname
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: dragonfly
+          topologyKey: kubernetes.io/hostname
