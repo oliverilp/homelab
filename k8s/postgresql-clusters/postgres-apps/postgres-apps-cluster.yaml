@@ -59,4 +59,4 @@ spec:
           - matchExpressions:
               - key: node-role.kubernetes.io/control-plane
                 operator: DoesNotExist
-    podAntiAffinityType: required
+    podAntiAffinityType: preferred
