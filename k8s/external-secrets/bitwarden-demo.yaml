@@ -12,3 +12,6 @@ spec:
     - secretKey: demo-secret
       remoteRef:
         key: "94344143-5e63-4a1f-a8dd-b31200d65f8b"
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: Fetch
