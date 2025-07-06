@@ -1,0 +1,14 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: demo-secret
+  namespace: external-secrets
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: bitwarden-secrets-manager
+    kind: SecretStore
+  data:
+    - secretKey: demo-secret
+      remoteRef:
+        key: "94344143-5e63-4a1f-a8dd-b31200d65f8b"
