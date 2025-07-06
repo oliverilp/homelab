@@ -5,7 +5,7 @@ module "k8s_master" {
   vmid_prefix = "40"
   name_prefix = "k8s-master"
   vm_state    = "running"
-  memory      = 4096
+  memory      = 5120
   disk_size   = 20
   ip_base     = "10.1.1.3"
   ip_offset   = 1
