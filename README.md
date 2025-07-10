@@ -84,10 +84,16 @@ Everything needed to run my cluster and deploy my applications.
         <td>Dragonfly database operator for running highly available Redis-compatible clusters.</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://www.svgrepo.com/download/530451/dns.svg"></td>
+        <td><img width="32" src="https://raw.githubusercontent.com/kubernetes-sigs/external-dns/refs/heads/master/docs/img/external-dns.png"></td>
         <td><a href="https://github.com/kubernetes-sigs/external-dns">External DNS</a></td>
         <td>—</td>
         <td>Synchronizes exposed Kubernetes services with Cloudflare DNS.</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://raw.githubusercontent.com/external-secrets/external-secrets/refs/heads/main/assets/eso-round-logo.svg"></td>
+        <td><a href="https://external-secrets.io/">External Secrets Operator</a></td>
+        <td>—</td>
+        <td>Used to sync my secrets from Bitwarden Secrets Manager to my cluster</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/argo-cd.svg"></td>
