@@ -93,7 +93,7 @@ Everything needed to run my cluster and deploy my applications.
         <td><img width="32" src="https://raw.githubusercontent.com/external-secrets/external-secrets/refs/heads/main/assets/eso-round-logo.svg"></td>
         <td><a href="https://external-secrets.io/">External Secrets Operator</a></td>
         <td>—</td>
-        <td>Used to sync my secrets from Bitwarden Secrets Manager to my cluster</td>
+        <td>Used to sync my secrets from Bitwarden Secrets Manager to my cluster.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/argo-cd.svg"></td>
