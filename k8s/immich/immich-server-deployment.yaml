@@ -29,12 +29,12 @@ spec:
             - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: immich-postgres-credentials
+                  name: immich-postgres-auth
                   key: username
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: immich-postgres-credentials
+                  name: immich-postgres-auth
                   key: password
             - name: DB_DATABASE_NAME
               value: "immichdb"
@@ -46,7 +46,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: immich-redis
-                  key: redis-password
+                  key: password
             - name: IMMICH_MACHINE_LEARNING_URL
               value: "http://immich-machine-learning:3003"
             - name: TZ

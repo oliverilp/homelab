@@ -15,8 +15,8 @@ spec:
     - "--default_lua_flags=allow-undeclared-keys,disable-atomicity"
   authentication:
     passwordFromSecret:
-      key: redis-password
-      name: immich-redis
+      name: immich-redis-auth
+      key: password
   resources:
     requests:
       cpu: 500m
