@@ -45,7 +45,7 @@ spec:
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: immich-redis
+                  name: immich-redis-auth
                   key: password
             - name: IMMICH_MACHINE_LEARNING_URL
               value: "http://immich-machine-learning:3003"
