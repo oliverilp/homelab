@@ -89,7 +89,7 @@ talosctl kubeconfig -n 10.1.1.31
 
 ## Kubernetes Setup
 
-### NFS CSI Snapshotter
+### 1. NFS CSI Snapshotter
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml
@@ -124,6 +124,102 @@ Install the Dragonfly operator for Redis-compatible caching:
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/dragonflydb/dragonfly-operator/main/manifests/dragonfly-operator.yaml
 ```
+
+### 5. Install External Secrets Operator
+
+Deploy External Secrets Operator with Bitwarden Secrets Manager integration:
+
+#### 5.1. Create Bitwarden Access Token Secret
+
+First, create the Bitwarden access token secret. Create a temporary manifest file:
+
+```bash
+cat > /tmp/bitwarden-token.yaml << 'EOF'
+apiVersion: v1
+kind: Secret
+metadata:
+  name: bitwarden-access-token
+  namespace: external-secrets
+type: Opaque
+stringData:
+  token: bws_YOUR_ACCESS_TOKEN_HERE
+EOF
+```
+
+Apply the secret and remove the temporary file:
+
+```bash
+kubectl apply -f /tmp/bitwarden-token.yaml
+rm -f /tmp/bitwarden-token.yaml
+```
+
+> **Security Note**: We use a temporary file instead of a one-liner kubectl command to avoid storing the access token in bash history.
+
+#### 5.2. Deploy External Secrets Operator
+
+```bash
+kubectl apply -f k8s/external-secrets
+```
+
+Wait for ESO pods to be ready:
+
+```bash
+kubectl wait --for=condition=available --timeout=300s deployment/external-secrets -n external-secrets
+kubectl wait --for=condition=available --timeout=300s deployment/bitwarden-sdk-server -n external-secrets
+```
+
+### 6. Install ArgoCD
+
+Deploy ArgoCD with external Redis (Dragonfly) and secret management:
+
+#### 6.1. Deploy Redis Secret
+
+```bash
+kubectl apply -f k8s/argocd/argocd-external-secrets.yaml
+```
+
+Wait for the secret to be created:
+
+```bash
+kubectl wait --for=condition=ready externalsecret/argocd-redis-auth-es -n argocd --timeout=60s
+```
+
+#### 6.2. Deploy Dragonfly Redis
+
+```bash
+kubectl apply -f k8s/argocd/argocd-redis.yaml
+```
+
+Wait for Dragonfly to be ready:
+
+```bash
+kubectl wait --for=condition=ready dragonfly/argocd-dragonfly -n argocd --timeout=300s
+```
+
+#### 6.3. Deploy ArgoCD
+
+```bash
+helmfile -f k8s/argocd/argocd-helmfile.yaml apply
+```
+
+Wait for ArgoCD to be ready:
+
+```bash
+kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
+```
+
+#### 6.4. Configure Git Repository
+
+Add your Git repository to ArgoCD. See the [ArgoCD documentation](https://argo-cd.readthedocs.io/en/stable/user-guide/private-repositories) for detailed instructions.
+
+#### 6.5. Deploy Gateway and Applications
+
+```bash
+kubectl apply -f k8s/argocd/argocd-gateway.yaml
+kubectl apply -f k8s/argocd/argocd-applications.yaml
+```
+
+Access ArgoCD UI at: [https://argocd.oliverilp.ee](https://argocd.oliverilp.ee)
 
 ## Post-Bootstrap
 
