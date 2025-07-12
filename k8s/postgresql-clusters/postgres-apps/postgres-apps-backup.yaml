@@ -1,0 +1,64 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: postgres-apps-b2-auth-es
+  namespace: postgresql
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: bitwarden-secrets-manager
+    kind: ClusterSecretStore
+  target:
+    name: postgres-apps-b2-auth
+    creationPolicy: Owner
+    template:
+      type: Opaque
+  data:
+    - secretKey: application-key-id
+      remoteRef:
+        key: "aff66806-666d-41be-b090-b318012a3a9a"
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: Fetch
+    - secretKey: application-key
+      remoteRef:
+        key: "111841ed-5072-4ac3-a73a-b318012a7a5b"
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: Fetch
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: postgres-apps-b2-store
+  namespace: postgresql
+spec:
+  configuration:
+    destinationPath: s3://postgres-apps-backups-oliverilp-ee
+    endpointURL: https://s3.us-west-004.backblazeb2.com
+    s3Credentials:
+      accessKeyId:
+        name: postgres-apps-b2-auth
+        key: application-key-id
+      secretAccessKey:
+        name: postgres-apps-b2-auth
+        key: application-key
+    data:
+      compression: gzip
+    wal:
+      compression: gzip
+  retentionPolicy: "14d"
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: postgres-apps-scheduled-backup
+  namespace: postgresql
+spec:
+  schedule: "0 3 * * *" # Daily at 2 AM
+  backupOwnerReference: self
+  cluster:
+    name: postgres-apps
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
