@@ -14,7 +14,7 @@ spec:
   authentication:
     passwordFromSecret:
       name: argocd-redis-auth
-      key: password
+      key: redis-password
   resources:
     requests:
       cpu: 500m

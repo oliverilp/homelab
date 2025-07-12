@@ -72,7 +72,7 @@ externalRedis:
   host: argocd-dragonfly.argocd.svc.cluster.local
   port: 6379
   existingSecret: argocd-redis-auth
-  existingSecretPasswordKey: password
+  existingSecretPasswordKey: redis-password
 
 # Disable dex (OIDC) for now - use admin user
 dex:
