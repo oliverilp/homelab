@@ -43,3 +43,32 @@ spec:
               - key: node-role.kubernetes.io/control-plane
                 operator: DoesNotExist
     podAntiAffinityType: preferred
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: postgres-immich-superuser-auth-es
+  namespace: postgresql
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: bitwarden-secrets-manager
+    kind: ClusterSecretStore
+  target:
+    name: postgres-immich-superuser-auth
+    creationPolicy: Owner
+    template:
+      type: kubernetes.io/basic-auth
+  data:
+    - secretKey: username
+      remoteRef:
+        key: "112fd54f-68ca-4ae7-9f74-b31800d1b531"
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: Fetch
+    - secretKey: password
+      remoteRef:
+        key: "a0645cd2-1926-4859-a6f0-b31800d1def6"
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: Fetch
