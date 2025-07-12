@@ -1,5 +1,5 @@
 global:
-  domain: argocd.local.k8s.oliverilp.ee
+  domain: argocd.oliverilp.ee
 
 server:
   replicas: 2
@@ -10,7 +10,7 @@ server:
     - --insecure
 
   config:
-    url: "https://argocd.local.k8s.oliverilp.ee"
+    url: "https://argocd.oliverilp.ee"
     application.instanceLabelKey: argocd.argoproj.io/instance
 
     resource.exclusions: |
@@ -71,8 +71,8 @@ redis-ha:
 externalRedis:
   host: argocd-dragonfly.argocd.svc.cluster.local
   port: 6379
-  existingSecret: argocd-redis
-  existingSecretPasswordKey: redis-password
+  existingSecret: argocd-redis-auth
+  existingSecretPasswordKey: password
 
 # Disable dex (OIDC) for now - use admin user
 dex:
