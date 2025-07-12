@@ -13,41 +13,41 @@ authentik:
 
 server:
   env:
-    - name: AUTHENTIK_POSTGRESQL__PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: authentik-postgres-credentials
-          key: password
     - name: AUTHENTIK_SECRET_KEY
       valueFrom:
         secretKeyRef:
-          name: authentik-secret
-          key: secret-key
+          name: authentik-secret-key
+          key: key
+    - name: AUTHENTIK_POSTGRESQL__PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: authentik-postgres-auth
+          key: password
     - name: AUTHENTIK_REDIS__PASSWORD
       valueFrom:
         secretKeyRef:
-          name: authentik-redis
-          key: redis-password
+          name: authentik-redis-auth
+          key: password
   ingress:
     enabled: false
 
 worker:
   env:
-    - name: AUTHENTIK_POSTGRESQL__PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: authentik-postgres-credentials
-          key: password
     - name: AUTHENTIK_SECRET_KEY
       valueFrom:
         secretKeyRef:
-          name: authentik-secret
-          key: secret-key
+          name: authentik-secret-key
+          key: key
+    - name: AUTHENTIK_POSTGRESQL__PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: authentik-postgres-auth
+          key: password
     - name: AUTHENTIK_REDIS__PASSWORD
       valueFrom:
         secretKeyRef:
-          name: authentik-redis
-          key: redis-password
+          name: authentik-redis-auth
+          key: password
 
 postgresql:
   enabled: false

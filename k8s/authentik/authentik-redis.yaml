@@ -13,8 +13,8 @@ spec:
   replicas: 2
   authentication:
     passwordFromSecret:
-      key: redis-password
-      name: authentik-redis
+      name: authentik-redis-auth
+      key: password
   resources:
     requests:
       cpu: 500m
