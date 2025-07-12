@@ -17,7 +17,7 @@ spec:
         createdb: false
         createrole: false
         passwordSecret:
-          name: memos-postgres-credentials
+          name: postgres-apps-memos-auth
       - name: linkwarden
         ensure: present
         comment: "Linkwarden application user"
@@ -26,7 +26,7 @@ spec:
         createdb: false
         createrole: false
         passwordSecret:
-          name: linkwarden-postgres-credentials
+          name: postgres-apps-linkwarden-auth
       - name: authentik
         ensure: present
         comment: "Authentik application user"
@@ -35,7 +35,7 @@ spec:
         createdb: false
         createrole: false
         passwordSecret:
-          name: authentik-postgres-credentials
+          name: postgres-apps-authentik-auth
 
   superuserSecret:
     name: postgres-apps-superuser-auth

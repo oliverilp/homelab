@@ -1,19 +1,19 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
-  name: memos-database
+  name: immich-database
   namespace: postgresql
 spec:
   cluster:
-    name: postgres-apps
-  name: memosdb
-  owner: memos
+    name: postgres-immich
+  name: immichdb
+  owner: immich
   databaseReclaimPolicy: retain
 ---
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
-  name: postgres-apps-memos-auth-es
+  name: postgres-immich-auth-es
   namespace: postgresql
 spec:
   refreshInterval: 1h
@@ -21,20 +21,20 @@ spec:
     name: bitwarden-secrets-manager
     kind: ClusterSecretStore
   target:
-    name: postgres-apps-memos-auth
+    name: postgres-immich-auth
     creationPolicy: Owner
     template:
       type: kubernetes.io/basic-auth
   data:
     - secretKey: username
       remoteRef:
-        key: "94c53cf6-453b-4de3-bd9f-b31800d7cb29"
+        key: "2b50d212-6109-4371-ba00-b31800d860aa"
         conversionStrategy: Default
         decodingStrategy: None
         metadataPolicy: Fetch
     - secretKey: password
       remoteRef:
-        key: "b26308a3-a0f5-4779-8a87-b31800d7f130"
+        key: "c83391b6-f92e-431e-9c94-b31800d88691"
         conversionStrategy: Default
         decodingStrategy: None
         metadataPolicy: Fetch

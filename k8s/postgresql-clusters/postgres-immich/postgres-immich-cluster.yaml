@@ -17,7 +17,7 @@ spec:
         createdb: false
         createrole: false
         passwordSecret:
-          name: immich-postgres-credentials
+          name: postgres-immich-auth
 
   bootstrap:
     initdb:
@@ -29,7 +29,7 @@ spec:
       - "vchord.so"
 
   superuserSecret:
-    name: postgres-immich-superuser-credentials
+    name: postgres-immich-superuser-auth
 
   storage:
     size: 10Gi

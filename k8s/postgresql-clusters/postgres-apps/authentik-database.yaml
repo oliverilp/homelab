@@ -9,3 +9,32 @@ spec:
   name: authentikdb
   owner: authentik
   databaseReclaimPolicy: retain
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: postgres-apps-authentik-auth-es
+  namespace: postgresql
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: bitwarden-secrets-manager
+    kind: ClusterSecretStore
+  target:
+    name: postgres-apps-authentik-auth
+    creationPolicy: Owner
+    template:
+      type: kubernetes.io/basic-auth
+  data:
+    - secretKey: username
+      remoteRef:
+        key: "e81f141c-4e15-43f8-834e-b31800d6227f"
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: Fetch
+    - secretKey: password
+      remoteRef:
+        key: "c17ac11a-53a7-4687-a590-b31800d651fc"
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: Fetch

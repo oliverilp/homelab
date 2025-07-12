@@ -9,3 +9,32 @@ spec:
   name: linkwardendb
   owner: linkwarden
   databaseReclaimPolicy: retain
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: postgres-apps-linkwarden-auth-es
+  namespace: postgresql
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: bitwarden-secrets-manager
+    kind: ClusterSecretStore
+  target:
+    name: postgres-apps-linkwarden-auth
+    creationPolicy: Owner
+    template:
+      type: kubernetes.io/basic-auth
+  data:
+    - secretKey: username
+      remoteRef:
+        key: "4c6cc8f3-ed7b-40bb-b3af-b31800d707ab"
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: Fetch
+    - secretKey: password
+      remoteRef:
+        key: "b4f292ef-101e-4162-9c9a-b31800d73200"
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: Fetch
