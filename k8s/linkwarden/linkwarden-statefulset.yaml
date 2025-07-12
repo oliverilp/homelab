@@ -27,12 +27,12 @@ spec:
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: linkwarden-secrets
-                  key: database-url
+                  name: linkwarden-postgres-auth
+                  key: uri
             - name: NEXTAUTH_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: linkwarden-secrets
+                  name: linkwarden-app-secrets
                   key: nextauth-secret
             - name: NEXTAUTH_URL
               value: "https://linkwarden.k8s.oliverilp.ee/api/v1/auth"
@@ -45,25 +45,25 @@ spec:
             - name: AUTHENTIK_ISSUER
               valueFrom:
                 secretKeyRef:
-                  name: linkwarden-secrets
+                  name: linkwarden-app-secrets
                   key: auth-issuer
             - name: AUTHENTIK_CLIENT_ID
               valueFrom:
                 secretKeyRef:
-                  name: linkwarden-secrets
+                  name: linkwarden-app-secrets
                   key: auth-client-id
             - name: AUTHENTIK_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: linkwarden-secrets
+                  name: linkwarden-app-secrets
                   key: auth-client-secret
             - name: MEILI_ADDR
               value: "http://meilisearch:7700"
             - name: MEILI_MASTER_KEY
               valueFrom:
                 secretKeyRef:
-                  name: meilisearch-secret
-                  key: master-key
+                  name: linkwarden-meilisearch-master-key
+                  key: key
           resources:
             requests:
               memory: "512Mi"
