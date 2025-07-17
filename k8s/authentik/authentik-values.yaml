@@ -12,6 +12,7 @@ authentik:
     host: authentik-dragonfly.authentik.svc.cluster.local
 
 server:
+  replicas: 2
   env:
     - name: AUTHENTIK_SECRET_KEY
       valueFrom:
@@ -32,6 +33,7 @@ server:
     enabled: false
 
 worker:
+  replicas: 2
   env:
     - name: AUTHENTIK_SECRET_KEY
       valueFrom:
