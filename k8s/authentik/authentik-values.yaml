@@ -31,6 +31,14 @@ server:
           key: password
   ingress:
     enabled: false
+  livenessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 15
+  readinessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 15
 
 worker:
   replicas: 2
