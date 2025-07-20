@@ -12,27 +12,10 @@ spec:
   hostnames:
     - "qbittorrent.oliverilp.ee"
   rules:
-    # Authentication endpoint - embedded outpost on authentik-server:9000
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /outpost.goauthentik.io/
-      backendRefs:
-        - name: authentik-server
-          namespace: authentik
-          port: 80
-    # Main application - lower priority (comes second)
     - matches:
         - path:
             type: PathPrefix
             value: /
-      filters:
-        - type: ExtensionRef
-          extensionRef:
-            group: traefik.io
-            kind: Middleware
-            name: authentik
-            namespace: qbittorrent
       backendRefs:
         - name: qbittorrent
           port: 9092
