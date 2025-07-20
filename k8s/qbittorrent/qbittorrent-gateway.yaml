@@ -32,7 +32,7 @@ spec:
             group: traefik.io
             kind: Middleware
             name: authentik
-            namespace: traefik
+            namespace: qbittorrent
       backendRefs:
         - name: qbittorrent
           port: 9092
