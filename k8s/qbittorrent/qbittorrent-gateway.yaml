@@ -20,7 +20,7 @@ spec:
       backendRefs:
         - name: authentik-server
           namespace: authentik
-          port: 9000
+          port: 80
     # Main application - lower priority (comes second)
     - matches:
         - path:

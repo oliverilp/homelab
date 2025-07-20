@@ -5,8 +5,7 @@ metadata:
   namespace: traefik
 spec:
   forwardAuth:
-    # Embedded outpost runs on authentik-server port 9000
-    address: http://authentik-server.authentik.svc.cluster.local:9000/outpost.goauthentik.io/auth/traefik
+    address: http://authentik-server.authentik.svc.cluster.local/outpost.goauthentik.io/auth/traefik
     trustForwardHeader: true
     authResponseHeaders:
       - X-authentik-username
