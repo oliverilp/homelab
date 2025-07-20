@@ -89,7 +89,25 @@ talosctl kubeconfig -n 10.1.1.31
 
 ## Kubernetes Setup
 
-### 1. NFS CSI Snapshotter
+### 1. Install Cilium CNI
+
+Since Talos is configured with CNI disabled, Cilium must be installed first to enable networking functionality.
+
+Apply the Cilium configuration and wait for it to be ready:
+
+```bash
+kubectl apply -f k8s/cilium/
+```
+
+Wait for Cilium to be ready:
+
+```bash
+kubectl wait --for=condition=ready pod -l k8s-app=cilium -n kube-system --timeout=300s
+```
+
+### 2. Install NFS CSI Snapshotter
+
+Install the NFS CSI Snapshotter Custom Resource Definitions:
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml
@@ -97,7 +115,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snaps
 kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml
 ```
 
-### 2. Install Gateway API CRDs
+### 3. Install Gateway API CRDs
 
 Install the Gateway API Custom Resource Definitions:
 
@@ -109,7 +127,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v
 kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/standard/gateway.networking.k8s.io_grpcroutes.yaml
 ```
 
-### 3. Install CloudNative-PG Operator
+### 4. Install CloudNative-PG Operator
 
 Install the PostgreSQL operator for database management:
 
@@ -117,7 +135,15 @@ Install the PostgreSQL operator for database management:
 kubectl apply --server-side -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.26/releases/cnpg-1.26.0.yaml
 ```
 
-### 4. Install Dragonfly Operator
+#### 4.1. Install Barman Plugin for Backups
+
+Install the Barman Cloud plugin for PostgreSQL backup functionality:
+
+```bash
+kubectl apply -f https://github.com/cloudnative-pg/plugin-barman-cloud/releases/download/v0.5.0/manifest.yaml
+```
+
+### 5. Install Dragonfly Operator
 
 Install the Dragonfly operator for Redis-compatible caching:
 
@@ -125,13 +151,16 @@ Install the Dragonfly operator for Redis-compatible caching:
 kubectl apply -f https://raw.githubusercontent.com/dragonflydb/dragonfly-operator/main/manifests/dragonfly-operator.yaml
 ```
 
-### 5. Install External Secrets Operator
+### 6. Install External Secrets Operator
 
 Deploy External Secrets Operator with Bitwarden Secrets Manager integration:
 
-#### 5.1. Create Bitwarden Access Token Secret
+#### 6.1. Create Bitwarden Access Token Secret
 
-First, create the Bitwarden access token secret. Create a temporary manifest file:
+> [!WARNING]  
+> We use a temporary file instead of a one-liner kubectl command to avoid storing the access token in bash history.
+
+First, create the Bitwarden access token secret. Create a temporary manifest file and then edit it with a text editor such as Vim or nano:
 
 ```bash
 cat > /tmp/bitwarden-token.yaml << 'EOF'
@@ -153,9 +182,7 @@ kubectl apply -f /tmp/bitwarden-token.yaml
 rm -f /tmp/bitwarden-token.yaml
 ```
 
-> **Security Note**: We use a temporary file instead of a one-liner kubectl command to avoid storing the access token in bash history.
-
-#### 5.2. Deploy External Secrets Operator
+#### 6.2. Deploy External Secrets Operator
 
 ```bash
 kubectl apply -f k8s/external-secrets
@@ -168,11 +195,11 @@ kubectl wait --for=condition=available --timeout=300s deployment/external-secret
 kubectl wait --for=condition=available --timeout=300s deployment/bitwarden-sdk-server -n external-secrets
 ```
 
-### 6. Install ArgoCD
+### 7. Install ArgoCD
 
 Deploy ArgoCD with external Redis (Dragonfly) and secret management:
 
-#### 6.1. Deploy Redis Secret
+#### 7.1. Deploy Redis Secret
 
 ```bash
 kubectl apply -f k8s/argocd/argocd-external-secrets.yaml
@@ -184,7 +211,7 @@ Wait for the secret to be created:
 kubectl wait --for=condition=ready externalsecret/argocd-redis-auth-es -n argocd --timeout=60s
 ```
 
-#### 6.2. Deploy Dragonfly Redis
+#### 7.2. Deploy Dragonfly Redis
 
 ```bash
 kubectl apply -f k8s/argocd/argocd-redis.yaml
@@ -196,7 +223,7 @@ Wait for Dragonfly to be ready:
 kubectl wait --for=condition=ready dragonfly/argocd-dragonfly -n argocd --timeout=300s
 ```
 
-#### 6.3. Deploy ArgoCD
+#### 7.3. Deploy ArgoCD
 
 ```bash
 helmfile -f k8s/argocd/argocd-helmfile.yaml apply
@@ -208,18 +235,41 @@ Wait for ArgoCD to be ready:
 kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
 ```
 
-#### 6.4. Configure Git Repository
+#### 7.4. Configure Git Repository
 
 Add your Git repository to ArgoCD. See the [ArgoCD documentation](https://argo-cd.readthedocs.io/en/stable/user-guide/private-repositories) for detailed instructions.
 
-#### 6.5. Deploy Gateway and Applications
+#### 7.5. Deploy Applications
 
 ```bash
-kubectl apply -f k8s/argocd/argocd-gateway.yaml
 kubectl apply -f k8s/argocd/argocd-applications.yaml
 ```
 
+#### 7.6. Configure ArgoCD Access
+
+Initially, access ArgoCD using kubectl port-forward:
+
+```bash
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+```
+
+Then access the UI at: [https://localhost:8080](https://localhost:8080)
+
+After Traefik and cert-manager are deployed by ArgoCD, apply the gateway configuration:
+
+```bash
+kubectl apply -f k8s/argocd/argocd-gateway.yaml
+```
+
 Access ArgoCD UI at: [https://argocd.oliverilp.ee](https://argocd.oliverilp.ee)
+
+#### 7.7. Configure OIDC Authentication
+
+Apply the ArgoCD configuration map for OIDC login via Authentik:
+
+```bash
+kubectl apply -f k8s/argocd/argocd-config-map.yaml
+```
 
 ## Post-Bootstrap
 
