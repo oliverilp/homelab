@@ -39,6 +39,11 @@ variable "vm_count" {
   description = "Number of VMs to create"
   type        = number
   default     = 1
+  
+  validation {
+    condition     = var.vm_count <= 3
+    error_message = "vm_count cannot exceed 3 due to NVME storage limitations (nvme0, nvme1, nvme2)."
+  }
 }
 
 variable "ip_offset" {
@@ -51,4 +56,15 @@ variable "onboot" {
   description = "Whether the VM should start on boot"
   type        = bool
   default     = true
+}
+
+variable "storage_offset" {
+  description = "Storage offset for NVME naming to avoid conflicts between modules (e.g., 0 for nvme0, 3 for nvme3)"
+  type        = number
+  default     = 0
+  
+  validation {
+    condition     = var.storage_offset >= 0 && var.storage_offset <= 2
+    error_message = "storage_offset must be between 0 and 2 to match available NVME drives (nvme0, nvme1, nvme2)."
+  }
 }

@@ -42,7 +42,7 @@ resource "proxmox_vm_qemu" "vm" {
     scsi {
       scsi0 {
         disk {
-          storage = "local-zfs"
+          storage = "nvme${(var.storage_offset + count.index) % 3}-lvm"
           size = var.disk_size
         }
       }

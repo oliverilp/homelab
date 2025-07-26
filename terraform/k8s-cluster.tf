@@ -10,6 +10,7 @@ module "k8s_master" {
   ip_base     = "10.1.1.3"
   ip_offset   = 1
   onboot      = true
+  storage_offset = 0  # Uses nvme0, nvme1, nvme2
 }
 
 module "k8s_worker" {
@@ -25,4 +26,5 @@ module "k8s_worker" {
   ip_base     = "10.1.1.4"
   ip_offset   = 1
   onboot      = false
+  storage_offset = 0  # Uses nvme0, nvme1, nvme2 (cycling with masters)
 }
