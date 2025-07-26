@@ -20,9 +20,9 @@ module "k8s_worker" {
   vmid_prefix = "41"
   name_prefix = "k8s-worker"
   vm_state    = "running"
-  memory      = 12288
-  balloon     = 8192
-  disk_size   = 30
+  memory      = 20480
+  balloon     = 10240
+  disk_size   = 500
   ip_base     = "10.1.1.4"
   ip_offset   = 1
   onboot      = false
