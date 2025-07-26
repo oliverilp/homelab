@@ -9,7 +9,7 @@ terraform {
 
 resource "proxmox_vm_qemu" "vm" {
   target_node = "ramiel"
-  desc = "Kubernetes VM"
+  description = "Kubernetes VM"
   agent = 1
   automatic_reboot = false
   vm_state = var.vm_state

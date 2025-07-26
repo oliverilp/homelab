@@ -9,7 +9,7 @@ terraform {
 
 resource "proxmox_vm_qemu" "vm" {
   target_node = "ramiel"
-  desc = "Docker VM"
+  description = "Docker VM"
   agent = 0
   automatic_reboot = false
   vm_state = var.vm_state
