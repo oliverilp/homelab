@@ -1,5 +1,7 @@
 global:
   domain: argocd.oliverilp.ee
+  image:
+    tag: v3.0.12
 
 server:
   replicas: 2
