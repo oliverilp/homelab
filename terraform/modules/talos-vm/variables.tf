@@ -14,6 +14,12 @@ variable "vm_state" {
   default     = "running"
 }
 
+variable "cpu_cores" {
+  description = "Number of CPU cores to allocate to each VM"
+  type        = number
+  default     = 4
+}
+
 variable "memory" {
   description = "Memory in MB (maximum when using ballooning)"
   type        = number

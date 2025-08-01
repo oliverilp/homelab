@@ -5,6 +5,7 @@ module "k8s_master" {
   vmid_prefix = "40"
   name_prefix = "k8s-master"
   vm_state    = "running"
+  cpu_cores   = 4
   memory      = 8192
   disk_size   = 20
   ip_base     = "10.1.1.3"
@@ -20,6 +21,7 @@ module "k8s_worker" {
   vmid_prefix = "41"
   name_prefix = "k8s-worker"
   vm_state    = "running"
+  cpu_cores   = 6
   memory      = 20480
   balloon     = 10240
   disk_size   = 500

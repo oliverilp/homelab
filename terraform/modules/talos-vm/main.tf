@@ -23,7 +23,7 @@ resource "proxmox_vm_qemu" "vm" {
   skip_ipv6 = true
   
   cpu {
-    cores = 4
+    cores = var.cpu_cores
     type = "host"
   }
 
