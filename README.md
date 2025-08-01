@@ -22,6 +22,11 @@ End user applications.
         <td>Netflix alternative.</td>
     </tr>
     <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/vaultwarden.svg"></td>
+        <td><a href="https://github.com/dani-garcia/vaultwarden">Vaultwarden</a></td>
+        <td>Self-hosted, Bitwarden-compatible password manager.</td>
+    </tr>
+    <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/memos.png"></td>
         <td><a href="https://www.usememos.com/">Memos</a></td>
         <td>Personal note-taking app.</td>
