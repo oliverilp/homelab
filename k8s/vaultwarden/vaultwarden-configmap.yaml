@@ -6,7 +6,7 @@ metadata:
 data:
   DOMAIN: "https://vault.oliverilp.ee"
 
-  SIGNUPS_ALLOWED: "true"
+  SIGNUPS_ALLOWED: "false"
   INVITATIONS_ALLOWED: "true"
 
   DATA_FOLDER: "/data"
