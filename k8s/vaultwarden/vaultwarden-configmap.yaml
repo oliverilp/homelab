@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vaultwarden-config
+  namespace: vaultwarden
+data:
+  DOMAIN: "https://vault.oliverilp.ee"
+
+  SIGNUPS_ALLOWED: "true"
+  INVITATIONS_ALLOWED: "true"
+
+  DATA_FOLDER: "/data"
+
+  TZ: "Europe/Tallinn"

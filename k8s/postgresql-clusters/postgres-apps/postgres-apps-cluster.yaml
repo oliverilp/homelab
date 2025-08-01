@@ -42,6 +42,15 @@ spec:
         createrole: false
         passwordSecret:
           name: postgres-apps-authentik-auth
+      - name: vaultwarden
+        ensure: present
+        comment: "Vaultwarden application user"
+        login: true
+        superuser: false
+        createdb: false
+        createrole: false
+        passwordSecret:
+          name: postgres-apps-vaultwarden-auth
 
   superuserSecret:
     name: postgres-apps-superuser-auth
