@@ -22,6 +22,11 @@ End user applications.
         <td>Netflix alternative.</td>
     </tr>
     <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/home-assistant.svg"></td>
+        <td><a href="https://www.home-assistant.io/">Home Assistant</a></td>
+        <td>Open-source home automation platform for smart device control and monitoring.</td>
+    </tr>
+    <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/vaultwarden.svg"></td>
         <td><a href="https://github.com/dani-garcia/vaultwarden">Vaultwarden</a></td>
         <td>Self-hosted, Bitwarden-compatible password manager.</td>
@@ -74,7 +79,7 @@ Everything needed to run my cluster and deploy my applications.
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/cilium.svg"></td>
         <td><a href="https://cilium.io/">Cilium</a></td>
         <td>AWS VPC & NLB</td>
-        <td>Overlay network that also provides L2/L3-level load balancing, which replaces MetalLB. Features fast eBPF-based networking which replaces legacy Linux iptables.</td>
+        <td>Overlay network that also provides L2/L3-level load balancing, which replaces MetalLB. Features fast eBPF-based networking which replaces very old Linux iptables.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/postgresql.svg"></td>
@@ -87,6 +92,18 @@ Everything needed to run my cluster and deploy my applications.
         <td><a href="https://www.dragonflydb.io/">Dragonfly Operator</a></td>
         <td>AWS ElastiCache</td>
         <td>Dragonfly database operator for running highly available Redis-compatible clusters.</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/mosquitto.svg"></td>
+        <td><a href="https://mosquitto.org/">Eclipse Mosquitto</a></td>
+        <td>AWS IoT Core</td>
+        <td>Lightweight MQTT broker for IoT device communication and message routing.</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/zigbee2mqtt.svg"></td>
+        <td><a href="https://www.zigbee2mqtt.io/">Zigbee2MQTT</a></td>
+        <td>—</td>
+        <td>Zigbee to MQTT bridge enabling Home Assistant integration with Zigbee devices.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://raw.githubusercontent.com/kubernetes-sigs/external-dns/refs/heads/master/docs/img/external-dns.png"></td>
@@ -140,7 +157,7 @@ Everything needed to run my cluster and deploy my applications.
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/truenas.svg"></td>
         <td><a href="https://www.truenas.com/">TrueNAS</a></td>
         <td>AWS EBS</td>
-        <td>Used to provision block storage with the NFS CSI driver on my TrueNAS server. I'm planning to migrate to Longhorn in the near future.</td>
+        <td>Used to provision block storage with the NFS CSI driver on my TrueNAS server. I'm planning to migrate to Rook Ceph in the near future.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/proxmox.svg"></td>
