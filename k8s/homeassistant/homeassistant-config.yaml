@@ -14,9 +14,3 @@ data:
       trusted_proxies:
         - 10.244.0.0/16     # Pod CIDR (where Traefik runs)
       server_port: 8123
-      
-    # MQTT configuration
-    mqtt:
-      broker: mqtt
-      port: 1883
-      discovery: true
