@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homeassistant-config
+  namespace: homeassistant
+data:
+  configuration.yaml: |
+    # Default config for Home Assistant
+    default_config:
+
+    # HTTP configuration for reverse proxy support
+    http:
+      use_x_forwarded_for: true
+      trusted_proxies:
+        - 10.244.0.0/16     # Pod CIDR (where Traefik runs)
+      server_port: 8123
+      
+    # MQTT configuration
+    mqtt:
+      broker: mqtt
+      port: 1883
+      discovery: true
