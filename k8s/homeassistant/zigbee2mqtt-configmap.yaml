@@ -14,7 +14,7 @@ data:
       baudrate: 115200
       adapter: zstack
     advanced:
-      channel: 0
+      channel: 11
       network_key: GENERATE
       pan_id: GENERATE
       ext_pan_id: GENERATE
