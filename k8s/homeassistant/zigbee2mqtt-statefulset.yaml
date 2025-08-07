@@ -29,8 +29,6 @@ spec:
           value: "1000"
         - name: PGID
           value: "1000"
-        - name: MQTT_SERVER
-          value: "mqtt://emqx-listeners.emqx.svc.cluster.local:1883"
           volumeMounts:
             - name: zigbee2mqtt-data
               mountPath: /app/data

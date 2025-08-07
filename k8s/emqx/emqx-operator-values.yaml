@@ -1,5 +1,5 @@
 replicaCount: 3
-# Let the chart use its default image
-# image:
-#   repository: emqx/emqx-operator
-#   tag: "latest"
+
+image:
+  repository: emqx/emqx-operator-controller
+  tag: "2.2.29"

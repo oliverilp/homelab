@@ -12,7 +12,7 @@ spec:
   sources:
     - repoURL: https://repos.emqx.io/charts
       chart: emqx-operator
-      targetRevision: "*"
+      targetRevision: "2.2.29"
       helm:
         valueFiles:
           - $values/k8s/emqx/emqx-operator-values.yaml
