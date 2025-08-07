@@ -4,13 +4,13 @@ metadata:
   name: zigbee2mqtt-route
   namespace: homeassistant
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: zigbee2mqtt.oliverilp.ee
+    external-dns.alpha.kubernetes.io/hostname: z2m.oliverilp.ee
 spec:
   parentRefs:
     - name: traefik-internal-gateway
       namespace: traefik
   hostnames:
-    - zigbee2mqtt.oliverilp.ee
+    - z2m.oliverilp.ee
   rules:
     - matches:
         - path:
