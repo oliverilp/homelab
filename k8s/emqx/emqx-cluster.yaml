@@ -22,15 +22,6 @@ spec:
         - name: TZ
           value: "Europe/Tallinn"
 
-  # Replicant template with 3 replicas for load balancing
-  replicantTemplate:
-    spec:
-      replicas: 3
-
-      env:
-        - name: TZ
-          value: "Europe/Tallinn"
-
   # Dashboard service configuration
   dashboardServiceTemplate:
     metadata:
