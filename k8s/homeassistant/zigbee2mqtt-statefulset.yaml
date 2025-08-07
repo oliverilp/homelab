@@ -16,6 +16,25 @@ spec:
       labels:
         app: zigbee2mqtt
     spec:
+      initContainers:
+        - name: config-init
+          image: busybox:1.37
+          command: ["sh", "-c"]
+          args:
+            - |
+              # Copy config from ConfigMap to writable location if it doesn't exist
+              if [ ! -f /app/data/configuration.yaml ]; then
+                cp /tmp/config/configuration.yaml /app/data/configuration.yaml
+                echo "Configuration copied from ConfigMap"
+              else
+                echo "Configuration already exists, skipping copy"
+              fi
+          volumeMounts:
+            - name: zigbee2mqtt-data
+              mountPath: /app/data
+            - name: zigbee2mqtt-config
+              mountPath: /tmp/config
+              readOnly: true
       containers:
         - name: zigbee2mqtt
           image: koenkk/zigbee2mqtt:2.6.0
@@ -32,10 +51,6 @@ spec:
           volumeMounts:
             - name: zigbee2mqtt-data
               mountPath: /app/data
-            - name: zigbee2mqtt-config
-              mountPath: /app/data/configuration.yaml
-              subPath: configuration.yaml
-              readOnly: true
       volumes:
         - name: zigbee2mqtt-data
           persistentVolumeClaim:
