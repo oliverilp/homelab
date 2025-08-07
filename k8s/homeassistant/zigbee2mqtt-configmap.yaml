@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zigbee2mqtt-config
+  namespace: homeassistant
+data:
+  configuration.yaml: |
+    version: 4
+    mqtt:
+      base_topic: zigbee2mqtt
+      server: mqtt://emqx-listeners.emqx.svc.cluster.local:1883
+    serial:
+      port: tcp://10.1.1.12:7638
+      baudrate: 115200
+      adapter: zstack
+    advanced:
+      channel: 0
+      network_key: GENERATE
+      pan_id: GENERATE
+      ext_pan_id: GENERATE
+    frontend:
+      enabled: true
+    homeassistant:
+      enabled: true
