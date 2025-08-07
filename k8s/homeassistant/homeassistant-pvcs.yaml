@@ -14,19 +14,6 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: mqtt-data-pvc
-  namespace: homeassistant
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: nfs-app-data
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
   name: zigbee2mqtt-data-pvc
   namespace: homeassistant
 spec:

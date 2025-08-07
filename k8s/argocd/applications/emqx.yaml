@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: emqx
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  project: default
+  sources:
+    - repoURL: https://repos.emqx.io/charts
+      chart: emqx-operator
+      targetRevision: "5.8.7"
+      helm:
+        valueFiles:
+          - $values/k8s/emqx/emqx-operator-values.yaml
+    - repoURL: "git@github.com:oliverilp/homelab.git"
+      targetRevision: HEAD
+      ref: values
+    - repoURL: "git@github.com:oliverilp/homelab.git"
+      path: k8s/emqx
+      targetRevision: HEAD
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: emqx-operator-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - Replace=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 2m

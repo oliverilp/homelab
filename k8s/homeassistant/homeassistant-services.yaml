@@ -18,27 +18,6 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: mqtt
-  namespace: homeassistant
-  labels:
-    app: mqtt
-spec:
-  selector:
-    app: mqtt
-  ports:
-    - port: 1883
-      targetPort: 1883
-      protocol: TCP
-      name: mqtt
-    - port: 9001
-      targetPort: 9001
-      protocol: TCP
-      name: websocket
-  type: ClusterIP
----
-apiVersion: v1
-kind: Service
-metadata:
   name: zigbee2mqtt
   namespace: homeassistant
   labels:
