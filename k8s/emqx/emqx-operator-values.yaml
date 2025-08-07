@@ -2,3 +2,4 @@ replicaCount: 3
 
 image:
   repository: emqx/emqx-operator
+  tag: "latest"
