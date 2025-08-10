@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: filestash
+  namespace: filestash
+  labels:
+    app: filestash
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: filestash
+  template:
+    metadata:
+      labels:
+        app: filestash
+    spec:
+      containers:
+        - name: filestash
+          image: machines/filestash:latest
+          ports:
+            - containerPort: 8334
+              name: http
+          env:
+            - name: APPLICATION_URL
+              value: "files.oliverilp.ee"
+            - name: CANARY
+              value: "true"
+          volumeMounts:
+            - name: filestash-data
+              mountPath: /app/data/state
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8334
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8334
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      volumes:
+        - name: filestash-data
+          persistentVolumeClaim:
+            claimName: filestash-data-pvc

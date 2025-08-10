@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: filestash
+  namespace: filestash
+  labels:
+    app: filestash
+spec:
+  selector:
+    app: filestash
+  ports:
+    - port: 8334
+      targetPort: 8334
+      protocol: TCP
+      name: http
+  type: ClusterIP
