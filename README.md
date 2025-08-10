@@ -14,7 +14,7 @@ End user applications.
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/filestash.svg"></td>
         <td><a href="https://www.filestash.app/">Filestash</a></td>
-        <td>Google Drive alternative. Web UI for my SMB shares. Lightweight and more reliable than Nextcloud.</td>
+        <td>Google Drive alternative. Web UI for my TrueNAS SMB shares. Lightweight and more reliable than Nextcloud.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/immich.svg"></td>
