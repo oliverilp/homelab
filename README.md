@@ -12,6 +12,11 @@ End user applications.
         <th>Description</th>
     </tr>
     <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/filestash.svg"></td>
+        <td><a href="https://www.filestash.app/">Filestash</a></td>
+        <td>Google Drive alternative. Web UI for my SMB shares. Lightweight and more reliable than Nextcloud.</td>
+    </tr>
+    <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/immich.svg"></td>
         <td><a href="https://immich.app/">Immich</a></td>
         <td>Google Photos alternative.</td>
@@ -34,7 +39,7 @@ End user applications.
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/memos.png"></td>
         <td><a href="https://www.usememos.com/">Memos</a></td>
-        <td>Personal note-taking app.</td>
+        <td>Google Keep alternative for personal note-taking.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/linkwarden.png"></td>
@@ -44,12 +49,12 @@ End user applications.
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/authentik.svg"></td>
         <td><a href="https://goauthentik.io/">Authentik</a></td>
-        <td>Provides single sign-on functionality with OIDC for other apps.</td>
+        <td>Provides single sign-on functionality with OIDC for other apps. Superior to Keycloak.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qbittorrent.svg"></td>
         <td><a href="https://www.qbittorrent.org/">qBittorrent</a></td>
-        <td>Used for legally downloading Linux ISOs.</td>
+        <td>Used for legally downloading Linux ISOs with the VueTorrent web UI.</td>
     </tr>
 </table>
 
@@ -67,7 +72,7 @@ Everything needed to run my cluster and deploy my applications.
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/traefik-proxy.svg"></td>
         <td><a href="https://traefik.io/traefik/">Traefik</a></td>
         <td>AWS ALB</td>
-        <td>Reverse proxy, also known as an ingress and gateway controller in Kubernetes jargon.</td>
+        <td>Reverse proxy, also known as an ingress and gateway controller in Kubernetes jargon. Lightyears ahead of nginx.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/cert-manager.svg"></td>
@@ -79,7 +84,7 @@ Everything needed to run my cluster and deploy my applications.
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/cilium.svg"></td>
         <td><a href="https://cilium.io/">Cilium</a></td>
         <td>AWS VPC & NLB</td>
-        <td>Overlay network that also provides L2/L3-level load balancing, which replaces MetalLB. Features fast eBPF-based networking which replaces very old Linux iptables.</td>
+        <td>Overlay network that also provides L2/L3-level load balancing, which replaces MetalLB. Features fast eBPF-based networking which replaces ancient Linux iptables.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/postgresql.svg"></td>
@@ -149,7 +154,7 @@ Everything needed to run my cluster and deploy my applications.
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/talos.svg"></td>
-        <td><a href="https://www.talos.dev/">Talos</a></td>
+        <td><a href="https://www.talos.dev/">Talos Linux</a></td>
         <td>AWS EKS & Bottlerocket</td>
         <td>Modern and lightweight Linux distribution built for Kubernetes that provides production-grade security right out of the box.</td>
     </tr>
