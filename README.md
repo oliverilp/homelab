@@ -56,6 +56,11 @@ End user applications.
         <td><a href="https://www.qbittorrent.org/">qBittorrent</a></td>
         <td>Used for legally downloading Linux ISOs with the VueTorrent web UI.</td>
     </tr>
+    <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/librespeed.svg"></td>
+        <td><a href="https://github.com/librespeed/speedtest/">LibreSpeed</a></td>
+        <td>A self-hosted HTML5 speed test primarily used to measure my local network’s speed across different devices.</td>
+    </tr>
 </table>
 
 ### :hammer: Infrastructure
