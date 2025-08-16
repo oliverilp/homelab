@@ -30,7 +30,7 @@ spec:
             - name: PGID
               value: "1000"
             - name: MQTT_BROKER_URL
-              value: "emqx-listeners.emqx.svc.cluster.local:1883"
+              value: "mqtt:1883"
           volumeMounts:
             - name: homeassistant-config
               mountPath: /config

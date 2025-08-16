@@ -104,10 +104,10 @@ Everything needed to run my cluster and deploy my applications.
         <td>Dragonfly database operator for running highly available Redis-compatible clusters.</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/emqx.svg"></td>
-        <td><a href="https://www.emqx.io/">EMQX Operator</a></td>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/mosquitto.svg"></td>
+        <td><a href="https://mosquitto.org/">Eclipse Mosquitto</a></td>
         <td>AWS IoT Core</td>
-        <td>MQTT broker operator for running highly available MQTT clusters for IoT device communication and message routing.</td>
+        <td>Lightweight MQTT broker for IoT device communication and message routing.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/zigbee2mqtt.svg"></td>

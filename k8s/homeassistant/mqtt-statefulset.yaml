@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mqtt
+  namespace: homeassistant
+  labels:
+    app: mqtt
+spec:
+  serviceName: mqtt
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mqtt
+  template:
+    metadata:
+      labels:
+        app: mqtt
+    spec:
+      containers:
+        - name: mqtt
+          image: eclipse-mosquitto:2.0.22
+          ports:
+            - containerPort: 1883
+              name: mqtt
+            - containerPort: 9001
+              name: websocket
+          command: ["mosquitto", "-c", "/mosquitto-no-auth.conf"]
+          volumeMounts:
+            - name: mqtt-data
+              mountPath: /mosquitto
+      volumes:
+        - name: mqtt-data
+          persistentVolumeClaim:
+            claimName: mqtt-data-pvc
