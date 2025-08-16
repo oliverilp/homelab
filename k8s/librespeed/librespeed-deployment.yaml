@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: librespeed
+  namespace: librespeed
+  labels:
+    app: librespeed
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: librespeed
+  template:
+    metadata:
+      labels:
+        app: librespeed
+    spec:
+      containers:
+        - name: librespeed
+          image: ghcr.io/librespeed/speedtest:latest@sha256:96eeeb4bad3d25f46636bef672eebf52a34ac967c6cd66644294cc585ab799b9
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: MODE
+              value: "standalone"
+            - name: TELEMETRY
+              value: "false"
