@@ -8,7 +8,7 @@ data:
     version: 4
     mqtt:
       base_topic: zigbee2mqtt
-      server: mqtt://emqx-listeners.emqx.svc.cluster.local:1883
+      server: mqtt://mqtt:1883
     serial:
       port: tcp://10.1.1.12:7638
       baudrate: 115200
