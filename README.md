@@ -59,7 +59,7 @@ End user applications.
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/librespeed.svg"></td>
         <td><a href="https://github.com/librespeed/speedtest/">LibreSpeed</a></td>
-        <td>A self-hosted HTML5 speed test primarily used to measure my local network’s speed across different devices.</td>
+        <td>A self-hosted speed test primarily used to measure the performance of my local network across different devices.</td>
     </tr>
 </table>
 
