@@ -45,6 +45,15 @@ spec:
         createrole: false
         passwordSecret:
           name: postgres-apps-vaultwarden-auth
+      - name: homeassistant
+        ensure: present
+        comment: "Home Assistant application user"
+        login: true
+        superuser: false
+        createdb: false
+        createrole: false
+        passwordSecret:
+          name: postgres-apps-homeassistant-auth
 
   superuserSecret:
     name: postgres-apps-superuser-auth
