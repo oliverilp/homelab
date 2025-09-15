@@ -7,7 +7,7 @@ metadata:
   labels:
     gateway-type: public
   annotations:
-    external-dns.alpha.kubernetes.io/target: hgc09j4m350.sn.mynetname.net
+    external-dns.alpha.kubernetes.io/target: dc1.oliverilp.ee
 spec:
   addresses:
     - type: IPAddress
