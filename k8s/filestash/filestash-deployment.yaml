@@ -31,7 +31,7 @@ spec:
               mountPath: /app/data/state
       containers:
         - name: filestash
-          image: machines/filestash@sha256:d20ffb49915d0f9694e0a60df7f7c8b5d58de73b93ac0a2b9bf8eb0c5ba32df1
+          image: machines/filestash@sha256:8f861a43f90ed23bddec31385a3b759229c693629a63766bdbd9384d645a57df
           ports:
             - containerPort: 8334
               name: http
