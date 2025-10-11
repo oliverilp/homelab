@@ -74,3 +74,9 @@ variable "storage_offset" {
     error_message = "storage_offset must be between 0 and 2 to match available NVME drives (nvme0, nvme1, nvme2)."
   }
 }
+
+variable "target_node" {
+  description = "Proxmox node hostname where the VM should be created"
+  type        = string
+  default     = "ramiel"
+}

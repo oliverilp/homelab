@@ -8,7 +8,7 @@ terraform {
 }
 
 resource "proxmox_vm_qemu" "vm" {
-  target_node = "ramiel"
+  target_node = var.target_node
   description = "Kubernetes VM"
   agent = 1
   automatic_reboot = false
@@ -42,7 +42,7 @@ resource "proxmox_vm_qemu" "vm" {
     scsi {
       scsi0 {
         disk {
-          storage = "nvme${(var.storage_offset + count.index) % 3}-lvm"
+          storage = var.target_node == "ramiel" ? "nvme${(var.storage_offset + count.index) % 3}-lvm" : "${var.target_node}-nvme"
           size = var.disk_size
         }
       }
@@ -55,7 +55,7 @@ resource "proxmox_vm_qemu" "vm" {
       }
       ide3 {
         cloudinit {
-          storage = "local-zfs"
+          storage = var.target_node == "ramiel" ? "local-zfs" : "local"
         }
       }
     }
