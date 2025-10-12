@@ -11,7 +11,7 @@ metadata:
 spec:
   addresses:
     - type: IPAddress
-      value: 10.1.1.110
+      value: 10.1.1.100
   gatewayClassName: traefik-public
   listeners:
     - name: http
