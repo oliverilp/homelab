@@ -42,7 +42,7 @@ resource "proxmox_vm_qemu" "vm" {
     scsi {
       scsi0 {
         disk {
-          storage = var.target_node == "ramiel" ? "nvme${(var.storage_offset + count.index) % 3}-lvm" : "${var.target_node}-nvme"
+          storage = "${var.target_node}-nvme"
           size = var.disk_size
         }
       }
@@ -55,15 +55,15 @@ resource "proxmox_vm_qemu" "vm" {
       }
       ide3 {
         cloudinit {
-          storage = var.target_node == "ramiel" ? "local-zfs" : "local"
+          storage = "${var.target_node}-nvme"
         }
       }
     }
   }
   
   count = var.vm_count
-  vmid = "${var.vmid_prefix}${count.index + 1}"
-  name = "${var.name_prefix}-0${count.index + 1}"
+  vmid = var.vmid
+  name = "${var.name_prefix}-0${var.ip_offset}"
   memory = var.memory
   balloon = var.balloon
   ipconfig0 = "ip=${var.ip_base}${count.index + var.ip_offset}/24,gw=10.1.1.1"

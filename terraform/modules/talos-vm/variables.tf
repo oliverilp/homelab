@@ -78,5 +78,11 @@ variable "storage_offset" {
 variable "target_node" {
   description = "Proxmox node hostname where the VM should be created"
   type        = string
-  default     = "ramiel"
+  default     = "melchior"
+}
+
+variable "vmid" {
+  description = "Specific VM ID to use (overrides vmid_prefix calculation)"
+  type        = number
+  default     = null
 }

@@ -25,34 +25,40 @@ locals {
   
   vms = {
     "master-01" = merge(local.master_defaults, {
-      target_node     = "ramiel"
+      target_node     = "melchior"
       ip_offset       = 1
       storage_offset  = 0
+      vmid            = 401
     })
     "master-02" = merge(local.master_defaults, {
       target_node     = "casper"
       ip_offset       = 2
       storage_offset  = 0
+      vmid            = 402
     })
     "master-03" = merge(local.master_defaults, {
-      target_node     = "ramiel"
+      target_node     = "balthasar"
       ip_offset       = 3
-      storage_offset  = 1
+      storage_offset  = 0
+      vmid            = 403
     })
     "worker-01" = merge(local.worker_defaults, {
-      target_node     = "ramiel"
+      target_node     = "melchior"
       ip_offset       = 1
-      storage_offset  = 2
+      storage_offset  = 0
+      vmid            = 411
     })
     "worker-02" = merge(local.worker_defaults, {
       target_node     = "casper"
       ip_offset       = 2
       storage_offset  = 0
+      vmid            = 412
     })
     "worker-03" = merge(local.worker_defaults, {
-      target_node     = "ramiel"
+      target_node     = "balthasar"
       ip_offset       = 3
       storage_offset  = 0
+      vmid            = 413
     })
   }
 }
@@ -73,5 +79,6 @@ module "k8s_vms" {
   ip_offset       = each.value.ip_offset
   onboot          = each.value.onboot
   storage_offset  = each.value.storage_offset
+  vmid            = each.value.vmid
   vm_count        = 1
 }
