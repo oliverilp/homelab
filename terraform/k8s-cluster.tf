@@ -4,7 +4,7 @@ locals {
     name_prefix     = "k8s-master"
     vm_state        = "running"
     cpu_cores       = 4
-    memory          = 6144
+    memory          = 8192
     disk_size       = 20
     ip_base         = "10.1.1.3"
     onboot          = true
@@ -16,8 +16,8 @@ locals {
     name_prefix     = "k8s-worker"
     vm_state        = "running"
     cpu_cores       = 6
-    memory          = 15360
-    balloon         = 10240
+    memory          = 20480
+    balloon         = 15360
     disk_size       = 500
     ip_base         = "10.1.1.4"
     onboot          = false
