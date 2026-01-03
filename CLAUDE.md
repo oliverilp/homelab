@@ -16,7 +16,7 @@ This is a GitOps-managed Kubernetes homelab infrastructure running on Talos Linu
 - **GitOps**: ArgoCD with app-of-apps pattern
 - **Networking**: Cilium CNI with eBPF (kube-proxy disabled), L2 load balancing
 - **Ingress**: Dual Traefik gateways (public on 10.1.1.100, internal on 10.1.1.101)
-- **Storage**: NFS CSI driver connected to TrueNAS server at 10.1.1.22
+- **Storage**: NFS CSI driver connected to TrueNAS server at 10.1.30.10
 - **DNS**: External-DNS syncing with Cloudflare
 - **TLS**: cert-manager with Let's Encrypt
 - **Secrets**: External Secrets Operator with Bitwarden Secrets Manager backend
@@ -28,7 +28,7 @@ This is a GitOps-managed Kubernetes homelab infrastructure running on Talos Linu
 - Control plane nodes: 10.1.1.31-33
 - Worker nodes: 10.1.1.41-43
 - LoadBalancer IP pool: 10.1.1.100-120
-- NFS server: 10.1.1.22
+- NFS server: 10.1.30.10
 
 ### Key Applications
 
@@ -310,7 +310,7 @@ When bootstrapping from scratch, follow BOOTSTRAP.MD strictly. Key dependencies:
 
 ### Storage
 
-- All persistent storage uses NFS CSI driver pointing to TrueNAS at 10.1.1.22
+- All persistent storage uses NFS CSI driver pointing to TrueNAS at 10.1.30.10
 - Storage class: `nfs-csi`
 - Some applications (Jellyfin, Immich) use PersistentVolumes with specific NFS paths for large media
 - Snapshots are supported via NFS CSI Snapshotter CRDs

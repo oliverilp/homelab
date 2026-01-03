@@ -6,7 +6,7 @@ metadata:
     storageclass.kubernetes.io/is-default-class: "false"
 provisioner: nfs.csi.k8s.io
 parameters:
-  server: "10.1.1.22"
+  server: "10.1.30.10"
   share: "/mnt/seagate/k8s"
   subDir: "${pvc.metadata.name}"
 reclaimPolicy: Retain

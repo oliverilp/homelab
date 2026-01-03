@@ -9,7 +9,7 @@ spec:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
   nfs:
-    server: 10.1.1.22
+    server: 10.1.30.10
     path: /mnt/seagate/media
 ---
 apiVersion: v1
