@@ -10,7 +10,7 @@ data:
       base_topic: zigbee2mqtt
       server: mqtt://mqtt:1883
     serial:
-      port: tcp://10.1.1.12:7638
+      port: tcp://10.1.50.10:7638
       baudrate: 115200
       adapter: zstack
     advanced:
