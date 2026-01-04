@@ -28,19 +28,23 @@ brew install siderolabs/tap/talosctl kubectl helm helmfile
 Before proceeding, ensure your Proxmox infrastructure is provisioned using Terraform:
 - 3x control plane nodes (k8s-master-01, k8s-master-02, k8s-master-03)
 - 3x worker nodes (k8s-worker-01, k8s-worker-02, k8s-worker-03)
-- NFS server at 10.1.1.22 with shared storage
+- NFS server at 10.1.30.10 with shared storage
 
 ## Talos Configuration
 
 ### 1. Generate Talos Configuration
 
+Generate image from (update version):
+https://factory.talos.dev/?arch=amd64&cmdline-set=true&extensions=-&extensions=siderolabs%2Fqemu-guest-agent&platform=nocloud&target=cloud&version=1.11.2
+
 Generate the initial cluster configuration with custom patches:
 
 ```bash
-talosctl gen config ramiel-cluster https://10.1.1.30:6443 \
+talosctl gen config magi https://10.1.20.10:6443 \
 --install-image factory.talos.dev/nocloud-installer/88d1f7a5c4f1d3aba7df787c448c1d3d008ed29cfb34af53fa0df4336a56040b:v1.10.4 \
 --with-secrets secrets.yaml \
 --config-patch @patches/cni.yaml \
+--config-patch @patches/dns.yaml \
 --config-patch @patches/disable-kube-proxy.yaml \
 --config-patch @patches/install-disk.yaml \
 --config-patch @patches/interface-names.yaml \
@@ -52,7 +56,7 @@ talosctl gen config ramiel-cluster https://10.1.1.30:6443 \
 ### 2. Setup Talos Client Configuration
 
 ```bash
-mkdir -p ~/.talos cp out/talosconfig ~/.talos/config
+mkdir -p ~/.talos && cp out/talosconfig ~/.talos/config
 ```
 
 ## Cluster Bootstrap
@@ -62,20 +66,20 @@ mkdir -p ~/.talos cp out/talosconfig ~/.talos/config
 Apply configurations to control plane nodes:
 
 ```bash
-talosctl apply-config --insecure -n 10.1.1.31,10.1.1.32,10.1.1.33 -f out/controlplane.yaml
+talosctl apply-config --insecure -n 10.1.20.11,10.1.20.12,10.1.20.13 -f out/controlplane.yaml
 ```
 
 Apply configurations to worker nodes:
 
 ```bash
-talosctl apply-config --insecure -n 10.1.1.41,10.1.1.42,10.1.1.43 -f out/worker.yaml
+talosctl apply-config --insecure -n 10.1.20.21,10.1.20.22,10.1.20.23 -f out/worker.yaml
 ```
 
 ### 2. Configure Talos Client
 
 ```bash
-talosctl config endpoint 10.1.1.31 10.1.1.32 10.1.1.33
-talosctl config node 10.1.1.31
+talosctl config endpoint 10.1.20.11 10.1.20.12 10.1.20.13
+talosctl config node 10.1.20.11
 talosctl config contexts
 ```
 
@@ -83,8 +87,8 @@ talosctl config contexts
 
 ```bash
 talosctl bootstrap
-talosctl get members -n 10.1.1.31
-talosctl kubeconfig -n 10.1.1.31
+talosctl get members -n 10.1.20.11
+talosctl kubeconfig -n 10.1.20.11
 ```
 
 ## Kubernetes Setup
@@ -105,7 +109,15 @@ Wait for Cilium to be ready:
 kubectl wait --for=condition=ready pod -l k8s-app=cilium -n kube-system --timeout=300s
 ```
 
-### 2. Install NFS CSI Snapshotter
+### 2. Install Local Path Provisioner
+
+The local-path-provisioner provides dynamic provisioning of local storage on each node. This is useful for applications that need fast local storage or as a fallback storage class.
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.32/deploy/local-path-storage.yaml
+```
+
+### 3. Install NFS CSI Snapshotter
 
 Install the NFS CSI Snapshotter Custom Resource Definitions:
 
@@ -115,7 +127,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snaps
 kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml
 ```
 
-### 3. Install Gateway API CRDs
+### 4. Install Gateway API CRDs
 
 Install the Gateway API Custom Resource Definitions:
 
@@ -127,7 +139,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v
 kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/standard/gateway.networking.k8s.io_grpcroutes.yaml
 ```
 
-### 4. Install CloudNative-PG Operator
+### 5. Install CloudNative-PG Operator
 
 Install the PostgreSQL operator for database management:
 
@@ -135,7 +147,7 @@ Install the PostgreSQL operator for database management:
 kubectl apply --server-side -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.26/releases/cnpg-1.26.0.yaml
 ```
 
-#### 4.1. Install Barman Plugin for Backups
+#### 5.1. Install Barman Plugin for Backups
 
 Install the Barman Cloud plugin for PostgreSQL backup functionality:
 
@@ -143,7 +155,7 @@ Install the Barman Cloud plugin for PostgreSQL backup functionality:
 kubectl apply -f https://github.com/cloudnative-pg/plugin-barman-cloud/releases/download/v0.5.0/manifest.yaml
 ```
 
-### 5. Install Dragonfly Operator
+### 6. Install Dragonfly Operator
 
 Install the Dragonfly operator for Redis-compatible caching:
 
@@ -151,11 +163,11 @@ Install the Dragonfly operator for Redis-compatible caching:
 kubectl apply -f https://raw.githubusercontent.com/dragonflydb/dragonfly-operator/main/manifests/dragonfly-operator.yaml
 ```
 
-### 6. Install External Secrets Operator
+### 7. Install External Secrets Operator
 
 Deploy External Secrets Operator with Bitwarden Secrets Manager integration:
 
-#### 6.1. Create Bitwarden Access Token Secret
+#### 7.1. Create Bitwarden Access Token Secret
 
 > [!WARNING]  
 > We use a temporary file instead of a one-liner kubectl command to avoid storing the access token in bash history.
@@ -182,7 +194,7 @@ kubectl apply -f /tmp/bitwarden-token.yaml
 rm -f /tmp/bitwarden-token.yaml
 ```
 
-#### 6.2. Deploy External Secrets Operator
+#### 7.2. Deploy External Secrets Operator
 
 ```bash
 kubectl apply -f k8s/external-secrets
@@ -195,11 +207,11 @@ kubectl wait --for=condition=available --timeout=300s deployment/external-secret
 kubectl wait --for=condition=available --timeout=300s deployment/bitwarden-sdk-server -n external-secrets
 ```
 
-### 7. Install ArgoCD
+### 8. Install ArgoCD
 
 Deploy ArgoCD with external Redis (Dragonfly) and secret management:
 
-#### 7.1. Deploy Redis Secret
+#### 8.1. Deploy Redis Secret
 
 ```bash
 kubectl apply -f k8s/argocd/argocd-external-secrets.yaml
@@ -211,7 +223,7 @@ Wait for the secret to be created:
 kubectl wait --for=condition=ready externalsecret/argocd-redis-auth-es -n argocd --timeout=60s
 ```
 
-#### 7.2. Deploy Dragonfly Redis
+#### 8.2. Deploy Dragonfly Redis
 
 ```bash
 kubectl apply -f k8s/argocd/argocd-redis.yaml
@@ -223,7 +235,7 @@ Wait for Dragonfly to be ready:
 kubectl wait --for=condition=ready dragonfly/argocd-dragonfly -n argocd --timeout=300s
 ```
 
-#### 7.3. Deploy ArgoCD
+#### 8.3. Deploy ArgoCD
 
 ```bash
 helmfile -f k8s/argocd/argocd-helmfile.yaml apply
@@ -235,17 +247,17 @@ Wait for ArgoCD to be ready:
 kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
 ```
 
-#### 7.4. Configure Git Repository
+#### 8.4. Configure Git Repository
 
 Add your Git repository to ArgoCD. See the [ArgoCD documentation](https://argo-cd.readthedocs.io/en/stable/user-guide/private-repositories) for detailed instructions.
 
-#### 7.5. Deploy Applications
+#### 8.5. Deploy Applications
 
 ```bash
 kubectl apply -f k8s/argocd/argocd-applications.yaml
 ```
 
-#### 7.6. Configure ArgoCD Access
+#### 8.6. Configure ArgoCD Access
 
 Initially, access ArgoCD using kubectl port-forward:
 
@@ -263,7 +275,7 @@ kubectl apply -f k8s/argocd/argocd-gateway.yaml
 
 Access ArgoCD UI at: [https://argocd.oliverilp.ee](https://argocd.oliverilp.ee)
 
-#### 7.7. Configure OIDC Authentication
+#### 8.7. Configure OIDC Authentication
 
 Apply the ArgoCD configuration map for OIDC login via Authentik:
 
@@ -286,10 +298,10 @@ All subsequent deployments are automated through ArgoCD applications defined in 
 
 ## Network Architecture
 
-- **VIP**: 10.1.1.30 (Kubernetes API)
-- **Control Plane**: 10.1.1.31-33
-- **Workers**: 10.1.1.41-43
-- **LoadBalancer Pool**: 10.1.1.100-120
-- **Public Traefik**: 10.1.1.100
-- **Internal Traefik**: 10.1.1.101
-- **NFS Server**: 10.1.1.22
+- **VIP**: 10.1.20.30 (Kubernetes API)
+- **Control Plane**: 10.1.20.11-13
+- **Workers**: 10.1.20.21-23
+- **LoadBalancer Pool**: 10.1.20.100-120
+- **Public Traefik**: 10.1.20.100
+- **Internal Traefik**: 10.1.20.101
+- **NFS Server**: 10.1.30.10

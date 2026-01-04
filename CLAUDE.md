@@ -15,7 +15,7 @@ This is a GitOps-managed Kubernetes homelab infrastructure running on Talos Linu
 - **Provisioning**: Terraform modules for VM creation
 - **GitOps**: ArgoCD with app-of-apps pattern
 - **Networking**: Cilium CNI with eBPF (kube-proxy disabled), L2 load balancing
-- **Ingress**: Dual Traefik gateways (public on 10.1.1.100, internal on 10.1.1.101)
+- **Ingress**: Dual Traefik gateways (public on 10.1.20.100, internal on 10.1.20.101)
 - **Storage**: NFS CSI driver connected to TrueNAS server at 10.1.30.10
 - **DNS**: External-DNS syncing with Cloudflare
 - **TLS**: cert-manager with Let's Encrypt
@@ -24,10 +24,10 @@ This is a GitOps-managed Kubernetes homelab infrastructure running on Talos Linu
 
 ### Network Configuration
 
-- Kubernetes API VIP: 10.1.1.30
-- Control plane nodes: 10.1.1.31-33
-- Worker nodes: 10.1.1.41-43
-- LoadBalancer IP pool: 10.1.1.100-120
+- Kubernetes API VIP: 10.1.20.10
+- Control plane nodes: 10.1.20.11-13
+- Worker nodes: 10.1.20.21-23
+- LoadBalancer IP pool: 10.1.20.100-120
 - NFS server: 10.1.30.10
 
 ### Key Applications
@@ -85,10 +85,10 @@ Applications include Immich (photos), Jellyfin (media), Vaultwarden (passwords),
 
 ```bash
 # Configure kubectl context (after bootstrap)
-talosctl kubeconfig -n 10.1.1.31
+talosctl kubeconfig -n 10.1.20.11
 
 # Access Talos API
-talosctl --nodes 10.1.1.31,10.1.1.32,10.1.1.33 dashboard
+talosctl dashboard -n 10.1.20.11
 
 # Port-forward to ArgoCD (initial setup)
 kubectl port-forward svc/argocd-server -n argocd 8080:443
@@ -131,10 +131,11 @@ terraform show
 
 ```bash
 # Generate new cluster configuration (from talos/ directory)
-talosctl gen config ramiel-cluster https://10.1.1.30:6443 \
+talosctl gen config magi https://10.1.20.10:6443 \
   --install-image factory.talos.dev/nocloud-installer/[image-id]:v1.10.4 \
   --with-secrets secrets.yaml \
   --config-patch @patches/cni.yaml \
+  --config-patch @patches/dns.yaml \
   --config-patch @patches/disable-kube-proxy.yaml \
   --config-patch @patches/install-disk.yaml \
   --config-patch @patches/interface-names.yaml \
@@ -143,8 +144,8 @@ talosctl gen config ramiel-cluster https://10.1.1.30:6443 \
   --output out/
 
 # Apply configuration updates
-talosctl apply-config -n [node-ip] -f out/controlplane.yaml
-talosctl apply-config -n [node-ip] -f out/worker.yaml
+talosctl apply-config --insecure -n 10.1.20.11,10.1.20.12,10.1.20.13 -f out/controlplane.yaml
+talosctl apply-config --insecure -n 10.1.20.21,10.1.20.22,10.1.20.23 -f out/worker.yaml
 
 # Upgrade Talos
 talosctl upgrade --nodes [node-ip] --image factory.talos.dev/[image-id]:v1.10.x
@@ -303,8 +304,8 @@ When bootstrapping from scratch, follow BOOTSTRAP.MD strictly. Key dependencies:
 
 ### Traefik Gateways
 
-- **Public gateway** (10.1.1.100): Exposed to internet, uses external-dns for Cloudflare
-- **Internal gateway** (10.1.1.101): Local network only, used for internal services
+- **Public gateway** (10.1.20.100): Exposed to internet, uses external-dns for Cloudflare
+- **Internal gateway** (10.1.20.101): Local network only, used for internal services
 - Both gateways use Gateway API, not legacy Ingress resources
 - TLS certificates are centrally managed in cert-manager namespace and referenced via certificateRefs
 
