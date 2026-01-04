@@ -31,7 +31,7 @@ variable "disk_size" {
 }
 
 variable "ip" {
-  description = "IP address (e.g., '10.1.1.3' for 10.1.1.31, 10.1.1.32, etc.)"
+  description = "IP address (e.g., '10.1.20.1' for 10.1.20.11, 10.1.20.12, etc.)"
   type        = string
 }
 
