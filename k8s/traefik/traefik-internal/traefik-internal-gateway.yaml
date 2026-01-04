@@ -7,11 +7,11 @@ metadata:
   labels:
     gateway-type: internal
   annotations:
-    external-dns.alpha.kubernetes.io/target: 10.1.1.101
+    external-dns.alpha.kubernetes.io/target: 10.1.20.51
 spec:
   addresses:
     - type: IPAddress
-      value: 10.1.1.101
+      value: 10.1.20.51
   gatewayClassName: traefik-internal
   listeners:
     - name: http
