@@ -36,6 +36,7 @@ resource "proxmox_vm_qemu" "vm" {
     bridge = "vmbr0"
     model = "virtio"
     link_down = false
+    tag = var.network_tag
   }
 
   disks {
@@ -66,5 +67,5 @@ resource "proxmox_vm_qemu" "vm" {
   name = "${var.name_prefix}-0${var.ip_offset}"
   memory = var.memory
   balloon = var.balloon
-  ipconfig0 = "ip=${var.ip_base}${count.index + var.ip_offset}/24,gw=10.1.1.1"
+  ipconfig0 = "ip=${var.ip_base}${count.index + var.ip_offset}/24,gw=${var.gateway}"
 }

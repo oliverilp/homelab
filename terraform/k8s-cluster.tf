@@ -2,11 +2,12 @@ locals {
   master_defaults = {
     vmid_prefix     = "40"
     name_prefix     = "k8s-master"
-    vm_state        = "running"
     cpu_cores       = 4
     memory          = 8192
     disk_size       = 20
-    ip_base         = "10.1.1.3"
+    gateway         = "10.1.20.1"
+    ip_base         = "10.1.20.1"
+    network_tag     = 20
     onboot          = true
     balloon         = 0
   }
@@ -14,12 +15,13 @@ locals {
   worker_defaults = {
     vmid_prefix     = "41"
     name_prefix     = "k8s-worker"
-    vm_state        = "running"
     cpu_cores       = 6
     memory          = 20480
     balloon         = 15360
     disk_size       = 500
-    ip_base         = "10.1.1.4"
+    gateway         = "10.1.20.1"
+    ip_base         = "10.1.20.2"
+    network_tag     = 20
     onboot          = false
   }
   
@@ -47,6 +49,7 @@ locals {
       ip_offset       = 1
       storage_offset  = 0
       vmid            = 411
+      cpu_cores       = 4
     })
     "worker-02" = merge(local.worker_defaults, {
       target_node     = "casper"
@@ -64,19 +67,20 @@ locals {
 }
 module "k8s_vms" {
   source = "./modules/talos-vm"
-  
+
   for_each = local.vms
-  
+
   target_node     = each.value.target_node
   vmid_prefix     = each.value.vmid_prefix
   name_prefix     = each.value.name_prefix
-  vm_state        = each.value.vm_state
   cpu_cores       = each.value.cpu_cores
   memory          = each.value.memory
   balloon         = each.value.balloon
   disk_size       = each.value.disk_size
+  gateway         = each.value.gateway
   ip_base         = each.value.ip_base
   ip_offset       = each.value.ip_offset
+  network_tag     = each.value.network_tag
   onboot          = each.value.onboot
   storage_offset  = each.value.storage_offset
   vmid            = each.value.vmid

@@ -11,7 +11,7 @@ variable "name_prefix" {
 variable "vm_state" {
   description = "VM state (running, stopped, etc.)"
   type        = string
-  default     = "running"
+  default     = "started"
 }
 
 variable "cpu_cores" {
@@ -85,4 +85,16 @@ variable "vmid" {
   description = "Specific VM ID to use (overrides vmid_prefix calculation)"
   type        = number
   default     = null
+}
+
+variable "network_tag" {
+  description = "VLAN tag for the network interface"
+  type        = number
+  default     = 1
+}
+
+variable "gateway" {
+  description = "Gateway IP address for the network"
+  type        = string
+  default     = "10.1.1.1"
 }
