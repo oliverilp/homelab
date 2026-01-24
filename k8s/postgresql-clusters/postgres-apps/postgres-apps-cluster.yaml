@@ -58,9 +58,10 @@ spec:
   superuserSecret:
     name: postgres-apps-superuser-auth
 
-  bootstrap:
-    recovery:
-      source: postgres-apps-recovery
+  # For disaster recovery: uncomment bootstrap.recovery, comment out plugins
+  # bootstrap:
+  #   recovery:
+  #     source: postgres-apps-recovery
 
   externalClusters:
     - name: postgres-apps-recovery
@@ -69,13 +70,11 @@ spec:
         parameters:
           barmanObjectName: s3-apps
 
-  # NOTE: WAL archiving temporarily disabled during recovery
-  # Re-enable after cluster is healthy:
-  # plugins:
-  #   - name: barman-cloud.cloudnative-pg.io
-  #     isWALArchiver: true
-  #     parameters:
-  #       barmanObjectName: s3-apps
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: s3-apps
 
   storage:
     size: 10Gi

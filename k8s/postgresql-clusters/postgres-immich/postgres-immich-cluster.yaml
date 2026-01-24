@@ -19,9 +19,17 @@ spec:
         passwordSecret:
           name: postgres-immich-auth
 
-  bootstrap:
-    recovery:
-      source: postgres-immich-recovery
+  postgresql:
+    shared_preload_libraries:
+      - "vchord.so"
+
+  superuserSecret:
+    name: postgres-immich-superuser-auth
+
+  # For disaster recovery: uncomment bootstrap.recovery, comment out plugins
+  # bootstrap:
+  #   recovery:
+  #     source: postgres-immich-recovery
 
   externalClusters:
     - name: postgres-immich-recovery
@@ -30,20 +38,11 @@ spec:
         parameters:
           barmanObjectName: s3-immich
 
-  postgresql:
-    shared_preload_libraries:
-      - "vchord.so"
-
-  superuserSecret:
-    name: postgres-immich-superuser-auth
-
-  # NOTE: WAL archiving temporarily disabled during recovery
-  # Re-enable after cluster is healthy:
-  # plugins:
-  #   - name: barman-cloud.cloudnative-pg.io
-  #     isWALArchiver: true
-  #     parameters:
-  #       barmanObjectName: s3-immich
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: s3-immich
 
   storage:
     size: 10Gi
