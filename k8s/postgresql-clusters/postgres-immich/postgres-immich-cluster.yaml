@@ -20,9 +20,15 @@ spec:
           name: postgres-immich-auth
 
   bootstrap:
-    initdb:
-      postInitSQL:
-        - CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
+    recovery:
+      source: postgres-immich-recovery
+
+  externalClusters:
+    - name: postgres-immich-recovery
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: s3-immich
 
   postgresql:
     shared_preload_libraries:
@@ -39,7 +45,7 @@ spec:
 
   storage:
     size: 10Gi
-    storageClass: nfs-app-data
+    storageClass: local-path
 
   affinity:
     nodeAffinity:

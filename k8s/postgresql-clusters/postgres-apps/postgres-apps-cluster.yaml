@@ -58,6 +58,17 @@ spec:
   superuserSecret:
     name: postgres-apps-superuser-auth
 
+  bootstrap:
+    recovery:
+      source: postgres-apps-recovery
+
+  externalClusters:
+    - name: postgres-apps-recovery
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: s3-apps
+
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
@@ -66,7 +77,7 @@ spec:
 
   storage:
     size: 10Gi
-    storageClass: nfs-app-data
+    storageClass: local-path
 
   affinity:
     nodeAffinity:
