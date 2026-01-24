@@ -14,4 +14,3 @@ spec:
     name: barman-cloud.cloudnative-pg.io
     parameters:
       barmanObjectName: s3-immich
-  immediate: true

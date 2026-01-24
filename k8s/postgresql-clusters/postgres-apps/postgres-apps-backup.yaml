@@ -43,4 +43,3 @@ spec:
     name: barman-cloud.cloudnative-pg.io
     parameters:
       barmanObjectName: s3-apps
-  immediate: true
