@@ -10,11 +10,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/cloudnative-pg/plugin-barman-cloud.git'
-    path: .
-    targetRevision: v0.10.0
-    directory:
-      include: 'manifest.yaml'
+    repoURL: 'git@github.com:oliverilp/homelab.git'
+    path: k8s/cnpg-barman-cloud
+    targetRevision: HEAD
   destination:
     server: 'https://kubernetes.default.svc'
   syncPolicy:
@@ -25,6 +23,7 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - PrunePropagationPolicy=foreground
+      - ServerSideApply=true
     retry:
       limit: 5
       backoff:
