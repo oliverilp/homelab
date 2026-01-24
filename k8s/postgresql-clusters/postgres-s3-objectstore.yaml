@@ -1,0 +1,47 @@
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: s3-immich
+  namespace: postgresql
+spec:
+  configuration:
+    destinationPath: s3://oliverilp-postgresql/immich/
+    endpointURL: https://s3.eu-north-1.amazonaws.com
+    s3Credentials:
+      accessKeyId:
+        name: postgresql-s3-credentials
+        key: access-key-id
+      secretAccessKey:
+        name: postgresql-s3-credentials
+        key: secret-access-key
+    wal:
+      compression: gzip
+      maxParallel: 2
+    data:
+      compression: gzip
+      jobs: 2
+  retentionPolicy: "30d"
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: s3-apps
+  namespace: postgresql
+spec:
+  configuration:
+    destinationPath: s3://oliverilp-postgresql/apps/
+    endpointURL: https://s3.eu-north-1.amazonaws.com
+    s3Credentials:
+      accessKeyId:
+        name: postgresql-s3-credentials
+        key: access-key-id
+      secretAccessKey:
+        name: postgresql-s3-credentials
+        key: secret-access-key
+    wal:
+      compression: gzip
+      maxParallel: 2
+    data:
+      compression: gzip
+      jobs: 2
+  retentionPolicy: "30d"

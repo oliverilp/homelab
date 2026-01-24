@@ -58,6 +58,12 @@ spec:
   superuserSecret:
     name: postgres-apps-superuser-auth
 
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: s3-apps
+
   storage:
     size: 10Gi
     storageClass: nfs-app-data

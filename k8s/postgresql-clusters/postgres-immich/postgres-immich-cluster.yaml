@@ -31,6 +31,12 @@ spec:
   superuserSecret:
     name: postgres-immich-superuser-auth
 
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: s3-immich
+
   storage:
     size: 10Gi
     storageClass: nfs-app-data

@@ -1,0 +1,17 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: postgres-immich-backup
+  namespace: postgresql
+spec:
+  # Weekly backup on Sunday at 5:00 AM UTC
+  schedule: "0 0 5 * * 0"
+  backupOwnerReference: cluster
+  cluster:
+    name: postgres-immich
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+    parameters:
+      barmanObjectName: s3-immich
+  immediate: true
