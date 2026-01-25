@@ -27,10 +27,9 @@ metrics:
 
 deployment:
   replicas: 2
-
-podLabels:
-  gateway-type: public
-  traefik-instance: public
+  podLabels:
+    gateway-type: public
+    traefik-instance: public
 
 affinity:
   nodeAffinity:

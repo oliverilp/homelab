@@ -27,10 +27,9 @@ metrics:
 
 deployment:
   replicas: 2
-
-podLabels:
-  gateway-type: internal
-  traefik-instance: internal
+  podLabels:
+    gateway-type: internal
+    traefik-instance: internal
 
 affinity:
   nodeAffinity:
