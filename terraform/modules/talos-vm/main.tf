@@ -51,7 +51,7 @@ resource "proxmox_vm_qemu" "vm" {
     ide {
       ide2 {
         cdrom {
-          iso = "local:iso/nocloud-amd64-qemu-guest-agent-longhorn-compatible.iso"
+          iso = "truenas-nfs:iso/nocloud-amd64-qemu-guest-agent-v1.11.2.iso"
         }
       }
       ide3 {
