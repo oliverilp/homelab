@@ -35,13 +35,13 @@ Before proceeding, ensure your Proxmox infrastructure is provisioned using Terra
 ### 1. Generate Talos Configuration
 
 Generate image from (update version):
-https://factory.talos.dev/?arch=amd64&cmdline-set=true&extensions=-&extensions=siderolabs%2Fqemu-guest-agent&platform=nocloud&target=cloud&version=1.11.2
+https://factory.talos.dev/?arch=amd64&cmdline-set=true&extensions=-&extensions=siderolabs%2Fqemu-guest-agent&platform=nocloud&target=cloud&version=v1.12.2
 
 Generate the initial cluster configuration with custom patches:
 
 ```bash
 talosctl gen config magi https://10.1.20.10:6443 \
---install-image factory.talos.dev/nocloud-installer/88d1f7a5c4f1d3aba7df787c448c1d3d008ed29cfb34af53fa0df4336a56040b:v1.10.4 \
+--install-image factory.talos.dev/nocloud-installer/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515:v1.12.2 \
 --with-secrets secrets.yaml \
 --config-patch @patches/cni.yaml \
 --config-patch @patches/dns.yaml \
