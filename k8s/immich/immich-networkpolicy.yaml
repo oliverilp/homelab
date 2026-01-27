@@ -1,0 +1,40 @@
+---
+# Default deny all ingress traffic except from same namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: immich
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+
+---
+# Allow traffic from within the same namespace (immich-server to immich-machine-learning)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-same-namespace
+  namespace: immich
+spec:
+  podSelector: {}
+  ingress:
+  - from:
+    - podSelector: {}
+
+---
+# Allow ingress from Traefik (for web access)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-traefik
+  namespace: immich
+spec:
+  podSelector: {}
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: traefik
+
