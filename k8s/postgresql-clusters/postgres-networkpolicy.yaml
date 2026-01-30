@@ -44,24 +44,23 @@ spec:
       port: 5432  # Backup, replication, failover
 
 ---
-# Allow health checks from Kubernetes nodes and API server proxy on metrics/health port only
-# Includes node IPs and pod CIDR (API server proxy uses pod CIDR as source IP)
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
+# Allow health checks from Kubernetes nodes (kubelet + API server proxy) on metrics/health port
+# Uses CiliumNetworkPolicy because vanilla NetworkPolicy cannot match Cilium's remote-node identity
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
 metadata:
   name: allow-health-checks
   namespace: postgresql
 spec:
-  podSelector: {}
+  endpointSelector: {}
   ingress:
-  - from:
-    - ipBlock:
-        cidr: 10.1.20.0/24  # Kubernetes nodes subnet
-    - ipBlock:
-        cidr: 10.244.0.0/16  # Pod CIDR (API server proxy source)
-    ports:
-    - protocol: TCP
-      port: 8000  # PostgreSQL metrics/health port
+  - fromEntities:
+    - host
+    - remote-node
+    toPorts:
+    - ports:
+      - port: "8000"
+        protocol: TCP
 
 ---
 # Allow ingress from applications that use PostgreSQL (port 5432 only)
