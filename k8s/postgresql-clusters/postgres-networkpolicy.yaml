@@ -44,7 +44,8 @@ spec:
       port: 5432  # Backup, replication, failover
 
 ---
-# Allow health checks from Kubernetes nodes (kubelet) on metrics/health port only
+# Allow health checks from Kubernetes nodes and API server proxy on metrics/health port only
+# Includes node IPs and pod CIDR (API server proxy uses pod CIDR as source IP)
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -56,6 +57,8 @@ spec:
   - from:
     - ipBlock:
         cidr: 10.1.20.0/24  # Kubernetes nodes subnet
+    - ipBlock:
+        cidr: 10.244.0.0/16  # Pod CIDR (API server proxy source)
     ports:
     - protocol: TCP
       port: 8000  # PostgreSQL metrics/health port
