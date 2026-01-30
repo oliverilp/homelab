@@ -28,6 +28,10 @@ spec:
     - namespaceSelector:
         matchLabels:
           kubernetes.io/metadata.name: postgresql
+  # Allow Proxmox management VLAN for OIDC login
+  - to:
+    - ipBlock:
+        cidr: 10.1.10.0/24
   # Allow internet (block all RFC1918 private ranges)
   - to:
     - ipBlock:
