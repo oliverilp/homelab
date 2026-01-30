@@ -31,3 +31,23 @@ spec:
         - 10.0.0.0/8       # Block all 10.x
         - 172.16.0.0/12    # Block private range
         - 192.168.0.0/16   # Block private range
+
+---
+# Allow egress to Kubernetes API server (CNPG instance manager needs API access)
+# Uses CiliumNetworkPolicy because API server runs on host network and Cilium
+# DNATs service ClusterIP to node IPs before egress policy evaluation
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-apiserver-egress
+  namespace: postgresql
+spec:
+  endpointSelector: {}
+  egress:
+  - toEntities:
+    - host
+    - remote-node
+    toPorts:
+    - ports:
+      - port: "6443"
+        protocol: TCP
