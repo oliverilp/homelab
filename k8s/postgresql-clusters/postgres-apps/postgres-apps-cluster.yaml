@@ -54,6 +54,15 @@ spec:
         createrole: false
         passwordSecret:
           name: postgres-apps-homeassistant-auth
+      - name: grafana
+        ensure: present
+        comment: "Grafana application user"
+        login: true
+        superuser: false
+        createdb: false
+        createrole: false
+        passwordSecret:
+          name: postgres-apps-grafana-auth
 
   superuserSecret:
     name: postgres-apps-superuser-auth

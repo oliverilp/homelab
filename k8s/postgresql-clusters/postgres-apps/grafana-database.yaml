@@ -1,0 +1,40 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: grafana-database
+  namespace: postgresql
+spec:
+  cluster:
+    name: postgres-apps
+  name: grafanadb
+  owner: grafana
+  databaseReclaimPolicy: retain
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: postgres-apps-grafana-auth-es
+  namespace: postgresql
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: bitwarden-secrets-manager
+    kind: ClusterSecretStore
+  target:
+    name: postgres-apps-grafana-auth
+    creationPolicy: Owner
+    template:
+      type: kubernetes.io/basic-auth
+  data:
+    - secretKey: username
+      remoteRef:
+        key: "3ef8cc7d-8ca2-4c0b-9262-b3e300ab1b75"
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: Fetch
+    - secretKey: password
+      remoteRef:
+        key: "d9c34dfb-58d1-40b2-bc3c-b3e300ab76e3"
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: Fetch
