@@ -50,6 +50,7 @@ talosctl gen config magi https://10.1.20.10:6443 \
 --config-patch @patches/interface-names.yaml \
 --config-patch @patches/kubelet-certificates.yaml \
 --config-patch-control-plane @patches/vip.yaml \
+--config-patch-control-plane @patches/metrics.yaml \
 --output out/
 ```
 
