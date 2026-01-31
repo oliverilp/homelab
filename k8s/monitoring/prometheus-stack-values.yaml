@@ -34,10 +34,22 @@ alertmanager:
   enabled: true
   ingress:
     enabled: false
+  alertmanagerSpec:
+    replicas: 2
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi
+    podAntiAffinity: "hard"
 
 grafana:
   enabled: true
   fullnameOverride: grafana
+  replicas: 2
   forceDeployDatasources: false
   forceDeployDashboards: false
   defaultDashboardsEnabled: true
@@ -48,6 +60,14 @@ grafana:
     existingSecret: grafana-admin-credentials
     userKey: admin-user
     passwordKey: admin-password
+  grafana.ini:
+    database:
+      type: postgres
+      host: postgres-apps-rw.postgresql.svc.cluster.local:5432
+      name: grafanadb
+      user: grafana
+      ssl_mode: disable
+  envFromSecret: grafana-postgres-auth
 
 kubeApiServer:
   enabled: true
@@ -163,17 +183,26 @@ prometheusOperator:
 prometheus:
   enabled: true
   prometheusSpec:
-    replicas: 1
+    replicas: 3
     replicaExternalLabelName: "replica"
     ruleSelectorNilUsesHelmValues: false
     serviceMonitorSelectorNilUsesHelmValues: false
     podMonitorSelectorNilUsesHelmValues: false
     probeSelectorNilUsesHelmValues: false
-    retention: 6h
+    retention: 365d
     enableAdminAPI: true
     walCompression: true
     scrapeInterval: 30s
     evaluationInterval: 30s
+    podAntiAffinity: "hard"
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 150Gi
 
 thanosRuler:
   enabled: false
