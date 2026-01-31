@@ -17,5 +17,5 @@ spec:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: alertmanager
+        - name: prometheus-alertmanager
           port: 9093
