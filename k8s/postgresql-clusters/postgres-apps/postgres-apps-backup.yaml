@@ -1,32 +1,3 @@
-apiVersion: external-secrets.io/v1
-kind: ExternalSecret
-metadata:
-  name: postgres-apps-b2-auth-es
-  namespace: postgresql
-spec:
-  refreshInterval: 1h
-  secretStoreRef:
-    name: bitwarden-secrets-manager
-    kind: ClusterSecretStore
-  target:
-    name: postgres-apps-b2-auth
-    creationPolicy: Owner
-    template:
-      type: Opaque
-  data:
-    - secretKey: application-key-id
-      remoteRef:
-        key: "aff66806-666d-41be-b090-b318012a3a9a"
-        conversionStrategy: Default
-        decodingStrategy: None
-        metadataPolicy: Fetch
-    - secretKey: application-key
-      remoteRef:
-        key: "111841ed-5072-4ac3-a73a-b318012a7a5b"
-        conversionStrategy: Default
-        decodingStrategy: None
-        metadataPolicy: Fetch
----
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
 metadata:
