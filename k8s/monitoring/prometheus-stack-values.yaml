@@ -188,6 +188,17 @@ prometheus:
       runAsUser: 1000
       runAsGroup: 1000
       fsGroup: 1000
+    initContainers:
+      - name: fix-permissions
+        image: busybox:1.37
+        command: ["sh", "-c", "chown -R 1000:1000 /prometheus"]
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 0
+        volumeMounts:
+          - name: prometheus-prometheus-prometheus-db
+            mountPath: /prometheus
+            subPath: prometheus-db
     replicas: 3
     replicaExternalLabelName: "replica"
     ruleSelectorNilUsesHelmValues: false
