@@ -7,7 +7,9 @@ metadata:
     external-dns.alpha.kubernetes.io/hostname: prometheus.oliverilp.ee
 spec:
   parentRefs:
-    - name: traefik-internal-gateway
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: traefik-internal-gateway
       namespace: traefik
   hostnames:
     - prometheus.oliverilp.ee
@@ -17,5 +19,8 @@ spec:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: prometheus-prometheus
+        - group: ""
+          kind: Service
+          name: prometheus-prometheus
           port: 9090
+          weight: 1
