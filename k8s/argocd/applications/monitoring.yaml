@@ -33,11 +33,10 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - PrunePropagationPolicy=foreground
-      - Replace=true
       - ServerSideApply=true
       - RespectIgnoreDifferences=true
     retry:
-      limit: 3
+      limit: 5
       backoff:
         duration: 5s
         factor: 2
