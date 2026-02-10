@@ -1,5 +1,7 @@
 # :house: Homelab
 
+A GitOps-managed Kubernetes homelab built for learning, experimentation, and independence from big cloud providers. Everything runs on self-hosted infrastructure with declarative configuration and automated deployments.
+
 ## :rocket: Installed Apps & Tools
 
 ### :globe_with_meridians: Apps
@@ -98,6 +100,12 @@ Everything needed to run my cluster and deploy my applications.
         <td>Database operator for running highly available PostgreSQL clusters.</td>
     </tr>
     <tr>
+        <td><img width="32" src="https://cloudnative-pg.io/plugin-barman-cloud/img/logo.svg"></td>
+        <td><a href="https://pgbarman.org/">Barman Cloud</a></td>
+        <td>AWS RDS Backups</td>
+        <td>PostgreSQL backup and recovery tool integrated with CloudNativePG for automated backups to S3.</td>
+    </tr>
+    <tr>
         <td><img width="32" src="https://www.dragonflydb.io/favicon.ico"></td>
         <td><a href="https://www.dragonflydb.io/">Dragonfly Operator</a></td>
         <td>AWS ElastiCache</td>
@@ -146,6 +154,12 @@ Everything needed to run my cluster and deploy my applications.
         <td>Collects metrics from applications and infrastructure for monitoring and alerting.</td>
     </tr>
     <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/alertmanager.svg"></td>
+        <td><a href="https://prometheus.io/docs/alerting/latest/alertmanager/">Alertmanager</a></td>
+        <td>AWS SNS</td>
+        <td>Bundled with Prometheus Operator. Currently unused, alerting to be implemented in the future.</td>
+    </tr>
+    <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/terraform.svg"></td>
         <td><a href="https://www.hashicorp.com/en/products/terraform/">Terraform</a></td>
         <td>—</td>
@@ -176,6 +190,129 @@ Everything needed to run my cluster and deploy my applications.
         <td>Virtualization layer.</td>
     </tr>
 </table>
+
+### :cloud: External Cloud Dependencies
+
+While the goal is self-reliance, a few external services are used where self-hosting isn't practical:
+
+| Service | Purpose | Tier |
+|---------|---------|------|
+| Bitwarden Secrets Manager | Secret storage for External Secrets Operator | Free |
+| Cloudflare | DNS records for non-.ee domains | Free |
+| Zone.ee | Domain registrar for .ee domains | Paid |
+| AWS S3 | Off-site backups (see Backup Strategy below) | Pay-as-you-go |
+
+**Why these services?**
+- **Bitwarden Secrets Manager**: Self-hosting secrets (e.g., HashiCorp Vault) creates a chicken-and-egg problem when running in the same cluster, and maintaining HA Vault is significant overhead.
+- **Cloudflare**: Required for ACME DNS-01 challenges (Let's Encrypt). High availability with global DNS caching minimizes risk.
+- **Zone.ee**: Best Estonian registrar for .ee domains.
+- **AWS S3**: Near-universal backup tool support. Minio was considered but has compatibility issues, and backups need to be offsite anyway.
+
+## :desktop_computer: Physical Infrastructure
+
+Three bare-metal servers form the foundation of this homelab: **Melchior**, **Balthasar**, and **Casper**.
+
+| Node | Hardware | CPU | RAM | Storage |
+|------|----------|-----|-----|---------|
+| **Melchior** | Custom server | Intel Xeon E-2324G (4C/4T) | 128GB DDR4 ECC | 1TB NVMe + 2×500GB SSD + 3×10TB HDD |
+| **Balthasar** | Minisforum MS-01 | Intel i5-12600H (12C/16T) | 32GB DDR5 | 1TB NVMe |
+| **Casper** | Minisforum MS-01 | Intel i5-12600H (12C/16T) | 32GB DDR5 | 1TB NVMe |
+
+All nodes run Proxmox VE in a cluster. Each node hosts Kubernetes control plane and worker VMs. Melchior additionally runs TrueNAS (storage) and a Windows 11 VM for game servers. Each server uses **dual network cables** in active/backup bond mode for fault tolerance against cable or switch failures.
+
+## :globe_with_meridians: Network Topology
+
+### VLAN Segmentation
+
+Traffic isolation using 802.1Q VLANs across the network:
+
+| VLAN | Name | Subnet | Purpose |
+|------|------|--------|---------|
+| 1 | Default | 10.1.1.0/24 | Network infrastructure (router, switches) |
+| 10 | Management | 10.1.10.0/24 | Proxmox hosts, IPMI/BMC interfaces |
+| 20 | Kubernetes | 10.1.20.0/24 | K8s nodes and LoadBalancer services |
+| 30 | Storage | 10.1.30.0/24 | NFS and SMB traffic to TrueNAS |
+| 40 | VM Services | 10.1.40.0/24 | Non-Kubernetes VMs and Docker hosts |
+| 50 | IoT | 10.1.50.0/24 | Smart home devices (Zigbee coordinator, sensors) |
+| 80 | Trusted Clients | 10.1.80.0/24 | Personal devices (laptops, phones) |
+| 100 | Isolated | 10.1.100.0/24 | Untrusted or guest devices |
+
+### Network Hardware
+
+| Device | Model | Role |
+|--------|-------|------|
+| Router | UniFi Express 7 | Main gateway with IDS/IPS and WiFi 7 AP |
+| Primary Switch | USW Flex 2.5G 8 PoE | 2.5GbE backbone for servers |
+| Secondary Switch | USW Flex Mini | Backup switch for redundancy |
+
+### Kubernetes Network
+
+- **API VIP**: 10.1.20.10 (virtual IP for HA control plane)
+- **Control Plane**: 10.1.20.11-13
+- **Workers**: 10.1.20.21-23
+- **LoadBalancer Pool**: 10.1.20.100-120 (Cilium L2)
+- **CNI**: Cilium with eBPF (kube-proxy replacement)
+
+## :floppy_disk: Storage Architecture
+
+### Kubernetes Storage
+
+| Storage Class | Backend | Use Case |
+|--------------|---------|----------|
+| `nfs-csi` | TrueNAS NFS | Application data, media libraries |
+| `local-path` | Node NVMe | Prometheus metrics, PostgreSQL databases |
+
+**TrueNAS** (10.1.30.10) serves as the primary storage backend:
+
+- **NFS shares** for Kubernetes persistent volumes via CSI driver
+- **SMB shares** for macOS Time Machine backups and file access from personal devices
+- **ZFS pools** with snapshots and scheduled scrubbing to prevent bitrot
+
+Performance-sensitive workloads (Prometheus, CloudNativePG clusters) use local NVMe storage to avoid network latency.
+
+## :shield: Security Hardening
+
+### Network Security
+
+- **Geo-blocking**: WAN access restricted to Estonian IP addresses only
+- **IPv6 disabled**: ISP lacks support; also avoids geo-blocking bypass vectors
+- **VLAN isolation**: Inter-VLAN traffic blocked by default, explicit firewall rules for exceptions
+- **UniFi IDS/IPS**: Active threat detection and prevention for WAN and LAN traffic
+- **Honeypots**: Deployed to detect and alert on network scanning attempts
+- **Minimal public exposure**: Only Authentik, Immich, Memos, Linkwarden, and Jellyfin are internet-accessible; all other services require WireGuard VPN
+
+### Kubernetes Security
+
+- **Talos Linux**: Immutable OS with minimal attack surface—no SSH, no shell, API-only management
+- **Network Policies**: Default-deny egress to LAN; pods isolated to their namespace unless explicitly allowed
+- **External Secrets Operator**: Secrets synced from Bitwarden Secrets Manager — no secrets in git
+- **Namespace isolation**: Each application deployed in its own namespace
+
+### Application Security
+
+- **HTTPS everywhere**: All services (public and internal) use trusted Let's Encrypt certificates via DNS-01 challenge
+- **Authentik SSO**: Centralized authentication with passwordless WebAuthn (Apple Touch/Face ID) or password + TOTP 2FA
+- **Unique credentials**: All passwords randomly generated and stored in Bitwarden
+- **Full disk encryption**: Data at rest encrypted on all storage devices
+- **Automated updates**: Renovate bot maintains weekly dependency updates; UniFi firmware auto-updates enabled
+- **Cluster upgrades**: [talos-upgrade.sh](talos-upgrade.sh) performs rolling Talos and Kubernetes upgrades with health checks and automatic rollback detection
+
+> **Note on public documentation**: Publishing detailed infrastructure information is an intentional trade-off. It eliminates security through obscurity as a crutch and enforces rigorous security practices by design.
+
+## :floppy_disk: Backup Strategy
+
+Off-site backups to AWS S3 in `eu-north-1` (Stockholm), all client-side encrypted:
+
+| Bucket | Storage Class | Contents |
+|--------|---------------|----------|
+| `oliverilp-postgresql` | S3 Standard | CloudNativePG continuous WAL backups via Barman |
+| `oliverilp-truenas-k8s` | S3 Glacier | Kubernetes persistent volume snapshots |
+| `oliverilp-truenas-files` | S3 Glacier | Personal files and documents |
+| `oliverilp-synology` | S3 Glacier | Offsite Synology NAS for manual backups |
+
+**PostgreSQL backups**: CloudNativePG handles continuous automated WAL backups. Additionally, [postgresql_backup.sh](postgresql_backup.sh) creates logical `pg_dump` exports for backup redundancy.
+
+Each backup client authenticates with a dedicated IAM user and least-privilege policy scoped to its specific bucket only.
 
 ## :construction: Bootstrapping
 
