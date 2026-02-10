@@ -56,7 +56,7 @@ End user applications.
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qbittorrent.svg"></td>
         <td><a href="https://www.qbittorrent.org/">qBittorrent</a></td>
-        <td>Used for legally downloading Linux ISOs with the VueTorrent web UI.</td>
+        <td>Used for legally downloading Linux ISOs with the <a href="https://github.com/VueTorrent/VueTorrent">VueTorrent</a> web UI.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/librespeed.svg"></td>
@@ -163,7 +163,7 @@ Everything needed to run my cluster and deploy my applications.
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/terraform.svg"></td>
         <td><a href="https://www.hashicorp.com/en/products/terraform/">Terraform</a></td>
         <td>—</td>
-        <td>Used for automating and provisioning virtual machines. I plan to start using it for IaC configuration of network devices (Mikrotik switches and router).</td>
+        <td>Used for automating and provisioning virtual machines.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://www.svgrepo.com/download/374041/renovate.svg"></td>
@@ -266,7 +266,7 @@ Traffic isolation using 802.1Q VLANs across the network:
 
 - **NFS shares** for Kubernetes persistent volumes via CSI driver
 - **SMB shares** for macOS Time Machine backups and file access from personal devices
-- **ZFS pools** with snapshots and scheduled scrubbing to prevent bitrot
+- **ZFS RAIDZ1** with snapshots and scheduled scrubbing — tolerates one disk failure without downtime or data loss
 
 Performance-sensitive workloads (Prometheus, CloudNativePG clusters) use local NVMe storage to avoid network latency.
 
@@ -283,7 +283,7 @@ Performance-sensitive workloads (Prometheus, CloudNativePG clusters) use local N
 
 ### Kubernetes Security
 
-- **Talos Linux**: Immutable OS with minimal attack surface—no SSH, no shell, API-only management
+- **Talos Linux**: Immutable OS with minimal attack surface — no SSH, no shell, API-only management
 - **Network Policies**: Default-deny egress to LAN; pods isolated to their namespace unless explicitly allowed
 - **External Secrets Operator**: Secrets synced from Bitwarden Secrets Manager — no secrets in git
 - **Namespace isolation**: Each application deployed in its own namespace
