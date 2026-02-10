@@ -172,6 +172,12 @@ Everything needed to run my cluster and deploy my applications.
         <td>Automated dependency updates.</td>
     </tr>
     <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/helm.svg"></td>
+        <td><a href="https://helm.sh/">Helm</a></td>
+        <td>—</td>
+        <td>Package manager for deploying third-party operators and applications. No custom charts since single environment.</td>
+    </tr>
+    <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/talos.svg"></td>
         <td><a href="https://www.talos.dev/">Talos Linux</a></td>
         <td>AWS EKS & Bottlerocket</td>
