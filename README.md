@@ -226,6 +226,10 @@ Three bare-metal servers form the foundation of this homelab: **Melchior**, **Ba
 
 All nodes run Proxmox VE in a cluster. Each node hosts Kubernetes control plane and worker VMs. Melchior additionally runs TrueNAS (storage) and a Windows 11 VM for game servers. Each server uses **dual network cables** in active/backup bond mode for fault tolerance against cable or switch failures.
 
+**Why ECC memory on Melchior?** ECC (Error-Correcting Code) memory detects and fixes random bit flips in RAM that would otherwise cause crashes or silent data corruption. Since TrueNAS is a single point of failure for most storage, ECC is essential for both uptime and data integrity.
+
+**Why NVMe on all nodes?** Both etcd (Kubernetes cluster state) and PostgreSQL databases require sub-millisecond disk latency. Slow storage causes cluster timeouts and poor database performance.
+
 ## :globe_with_meridians: Network Topology
 
 ### VLAN Segmentation
