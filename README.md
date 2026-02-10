@@ -26,7 +26,7 @@ End user applications.
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyfin.svg"></td>
         <td><a href="https://jellyfin.org/">Jellyfin</a></td>
-        <td>Netflix alternative.</td>
+        <td>Netflix alternative. Uses <a href="https://firecore.com/infuse">Infuse</a> as the client on Apple devices.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/home-assistant.svg"></td>
