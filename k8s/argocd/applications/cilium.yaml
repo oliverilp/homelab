@@ -9,6 +9,17 @@ metadata:
     argocd.argoproj.io/sync-wave: "-30"
 spec:
   project: default
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: cilium-ca
+      jsonPointers:
+        - /data
+    - group: ""
+      kind: Secret
+      name: hubble-server-certs
+      jsonPointers:
+        - /data
   sources:
     - repoURL: https://helm.cilium.io/
       chart: cilium
