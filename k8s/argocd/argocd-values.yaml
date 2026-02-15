@@ -1,18 +1,10 @@
 global:
   domain: argocd.oliverilp.ee
 
-server:
-  replicas: 2
-  service:
-    type: ClusterIP
-
-  extraArgs:
-    - --insecure
-
-  config:
+configs:
+  cm:
     url: "https://argocd.oliverilp.ee"
     application.instanceLabelKey: argocd.argoproj.io/instance
-
     resource.exclusions: |
       - apiGroups:
         - ""
@@ -27,6 +19,21 @@ server:
         - "*"
         clusters:
         - "*"
+    oidc.config: |
+      name: Authentik
+      issuer: https://auth.oliverilp.ee/application/o/argo-cd/
+      clientID: $oidc.authentik.clientID
+      clientSecret: $oidc.authentik.clientSecret
+      requestedScopes: ["openid", "profile", "email", "groups"]
+      requestedIDTokenClaims: {"groups": {"essential": true}}
+
+server:
+  replicas: 2
+  service:
+    type: ClusterIP
+
+  extraArgs:
+    - --insecure
 
   metrics:
     enabled: true
