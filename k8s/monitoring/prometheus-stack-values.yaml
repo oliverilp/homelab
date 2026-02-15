@@ -35,9 +35,9 @@ alertmanager:
   ingress:
     enabled: false
   alertmanagerSpec:
-    disableMountSubPath: true
     replicas: 2
     storage:
+      disableMountSubPath: true
       volumeClaimTemplate:
         spec:
           storageClassName: local-path
@@ -189,7 +189,6 @@ prometheus:
       runAsUser: 1000
       runAsGroup: 1000
       fsGroup: 1000
-    disableMountSubPath: true
     initContainers:
       - name: fix-permissions
         image: busybox:1.37
@@ -213,6 +212,7 @@ prometheus:
     evaluationInterval: 30s
     podAntiAffinity: "hard"
     storageSpec:
+      disableMountSubPath: true
       volumeClaimTemplate:
         spec:
           storageClassName: local-path
