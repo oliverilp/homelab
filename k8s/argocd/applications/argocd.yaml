@@ -42,3 +42,12 @@ spec:
         duration: 5s
         factor: 2
         maxDuration: 3m
+  ignoreDifferences:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      jsonPointers:
+        - /spec/parentRefs/0/group
+        - /spec/parentRefs/0/kind
+        - /spec/rules/0/backendRefs/0/group
+        - /spec/rules/0/backendRefs/0/kind
+        - /spec/rules/0/backendRefs/0/weight
