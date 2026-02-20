@@ -7,7 +7,6 @@ controller:
 node:
   livenessProbe:
     enabled: true
-    healthPort: 19809
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
