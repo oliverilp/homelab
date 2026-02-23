@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: librespeed
-          image: ghcr.io/librespeed/speedtest:latest@sha256:e86212417fa624182d0f41ea8936bf5f778bb51c6d12f6ab45506f03b418461c
+          image: ghcr.io/librespeed/speedtest:latest@sha256:99d8a690056c83cc51f47aefd994778c5f26a0935d578416b65289d6fd236702
           ports:
             - containerPort: 8080
               name: http
