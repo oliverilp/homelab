@@ -203,6 +203,7 @@ While the goal is self-reliance, a few external services are used where self-hos
 
 | Service | Purpose | Tier |
 |---------|---------|------|
+| GitHub | Single source of truth for GitOps | Free |
 | Bitwarden Secrets Manager | Secret storage for External Secrets Operator | Free |
 | Cloudflare | DNS records for non-.ee domains | Free |
 | Zone.ee | Domain registrar for .ee domains | Paid |
