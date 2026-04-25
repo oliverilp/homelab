@@ -24,16 +24,23 @@ spec:
     limits:
       cpu: 600m
       memory: 512Mi
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-          - matchExpressions:
-              - key: node-role.kubernetes.io/control-plane
-                operator: DoesNotExist
-    podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        - labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: dragonfly
-          topologyKey: kubernetes.io/hostname
+  podTemplate:
+    metadata:
+      labels:
+        app: immich-dragonfly
+        app.kubernetes.io/name: dragonfly
+        app.kubernetes.io/part-of: dragonfly
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: dragonfly
+              topologyKey: kubernetes.io/hostname
