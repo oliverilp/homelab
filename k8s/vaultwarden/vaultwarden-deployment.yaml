@@ -14,6 +14,8 @@ spec:
     metadata:
       labels:
         app: vaultwarden
+      annotations:
+        configmap.reloader.stakater.com/reload: "vaultwarden-config"
     spec:
       containers:
         - name: vaultwarden

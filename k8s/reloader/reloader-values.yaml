@@ -1,0 +1,4 @@
+reloader:
+  watchGlobally: true
+  autoReloadAll: false
+  logFormat: json
