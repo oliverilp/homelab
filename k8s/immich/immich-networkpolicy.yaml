@@ -38,3 +38,25 @@ spec:
         matchLabels:
           kubernetes.io/metadata.name: traefik
 
+---
+# Allow Dragonfly operator to configure the Immich Dragonfly pods
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dragonfly-operator
+  namespace: immich
+spec:
+  podSelector:
+    matchLabels:
+      app: immich-dragonfly
+      app.kubernetes.io/name: dragonfly
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: dragonfly-operator-system
+    ports:
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 9999
