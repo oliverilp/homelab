@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - jobs/mkv-strip/**
+      - k8s/mkv-strip/mkv-strip-cronjob.yaml
+      - k8s/mkv-strip/mkv-strip-job.yaml
       - .github/workflows/mkv-strip-image.yaml
   workflow_dispatch:
 
@@ -22,6 +24,7 @@ env:
 
 jobs:
   build:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -35,6 +38,9 @@ jobs:
           image_ref="${IMAGE_NAME}:sha-${short_sha}"
           echo "tag=sha-${short_sha}" >> "$GITHUB_OUTPUT"
           echo "ref=${image_ref}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -51,6 +57,7 @@ jobs:
         with:
           context: jobs/mkv-strip
           file: jobs/mkv-strip/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ${{ steps.image.outputs.ref }}
@@ -61,7 +68,19 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Check Kubernetes manifests
+        id: manifests
+        shell: bash
+        run: |
+          if [[ -f k8s/mkv-strip/mkv-strip-cronjob.yaml && -f k8s/mkv-strip/mkv-strip-job.yaml ]]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "Kubernetes manifests are not present on this commit; skipping image reference update."
+          fi
+
       - name: Update Kubernetes image references
+        if: steps.manifests.outputs.present == 'true'
         uses: mikefarah/yq@v4
         env:
           IMAGE_REF: ${{ steps.image.outputs.ref }}
@@ -71,6 +90,7 @@ jobs:
             yq -i '(.spec.template.spec.containers[] | select(.name == "mkv-strip").image) = strenv(IMAGE_REF)' k8s/mkv-strip/mkv-strip-job.yaml
 
       - name: Commit manifest update
+        if: steps.manifests.outputs.present == 'true'
         env:
           IMAGE_REF: ${{ steps.image.outputs.ref }}
         shell: bash
