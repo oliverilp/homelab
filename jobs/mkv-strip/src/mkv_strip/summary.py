@@ -29,6 +29,7 @@ def display_path(path: Path, config: Config) -> str:
 def print_summary(
     *,
     config: Config,
+    cleaned_files: list[Path],
     changed_files: list[FileResult],
     modified: int,
     skipped: int,
@@ -38,6 +39,15 @@ def print_summary(
     total_saved = sum(result.saved_bytes for result in changed_files)
     print()
     print("========== mkv-strip summary ==========")
+
+    if cleaned_files:
+        print(f"Deleted leftover files: {len(cleaned_files)}")
+        for path in cleaned_files:
+            print(f"  {display_path(path, config)}")
+    else:
+        print("Deleted leftover files: none")
+
+    print()
 
     if changed_files:
         print("Changed files:")
@@ -49,10 +59,10 @@ def print_summary(
         print("Changed files: none")
 
     print("---------------------------------------")
+    print(f"Startup cleanup deleted: {len(cleaned_files)}")
     print(f"Total files scanned: {total}")
     print(f"Modified: {modified}")
     print(f"Ignored/skipped: {skipped}")
     print(f"Failed: {failed}")
     print(f"Total saved: {format_size(total_saved)}")
     print("=======================================", flush=True)
-

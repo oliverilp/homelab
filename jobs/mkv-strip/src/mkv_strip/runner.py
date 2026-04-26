@@ -22,13 +22,14 @@ def run(config: Config) -> int:
         config.dry_run,
     )
 
-    cleanup_leftovers(config)
+    cleaned_files = cleanup_leftovers(config)
 
     files = collect_files(config)
     if not files:
-        runtime.LOGGER.info("done modified=0 skipped=0 failed=0 total=0")
+        runtime.LOGGER.info("done cleanup_deleted=%s modified=0 skipped=0 failed=0 total=0", len(cleaned_files))
         print_summary(
             config=config,
+            cleaned_files=cleaned_files,
             changed_files=[],
             modified=0,
             skipped=0,
@@ -73,7 +74,8 @@ def run(config: Config) -> int:
                 break
 
     runtime.LOGGER.info(
-        "done modified=%s skipped=%s failed=%s total=%s",
+        "done cleanup_deleted=%s modified=%s skipped=%s failed=%s total=%s",
+        len(cleaned_files),
         modified,
         skipped,
         failed,
@@ -81,6 +83,7 @@ def run(config: Config) -> int:
     )
     print_summary(
         config=config,
+        cleaned_files=cleaned_files,
         changed_files=changed_files,
         modified=modified,
         skipped=skipped,
@@ -93,4 +96,3 @@ def run(config: Config) -> int:
     if failed and config.fail_on_file_errors:
         return 1
     return 0
-

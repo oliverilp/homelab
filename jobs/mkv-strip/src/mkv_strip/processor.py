@@ -328,14 +328,14 @@ def iter_stripped_leftovers(input_path: Path, recursive: bool) -> list[Path]:
     return sorted(path for path in candidates if is_stripped_leftover(path))
 
 
-def cleanup_leftovers(config: Config) -> int:
+def cleanup_leftovers(config: Config) -> list[Path]:
     if not config.cleanup_leftovers:
-        return 0
+        return []
     if config.dry_run or not config.in_place:
         runtime.LOGGER.info("skip startup cleanup dry_run=%s in_place=%s", config.dry_run, config.in_place)
-        return 0
+        return []
 
-    cleaned = 0
+    cleaned: list[Path] = []
     seen: set[Path] = set()
 
     for directory in config.directories:
@@ -346,7 +346,7 @@ def cleanup_leftovers(config: Config) -> int:
             seen.add(resolved)
             try:
                 path.unlink()
-                cleaned += 1
+                cleaned.append(path)
                 runtime.LOGGER.info("removed leftover stripped output path=%s", path)
             except OSError as error:
                 runtime.LOGGER.warning(
@@ -356,7 +356,7 @@ def cleanup_leftovers(config: Config) -> int:
                 )
 
     if cleaned:
-        runtime.LOGGER.info("startup cleanup removed leftover_count=%s", cleaned)
+        runtime.LOGGER.info("startup cleanup removed leftover_count=%s", len(cleaned))
     else:
         runtime.LOGGER.info("startup cleanup found no leftover stripped outputs")
 
@@ -376,4 +376,3 @@ def collect_files(config: Config) -> list[Path]:
             files.append(path)
 
     return sorted(files)
-
