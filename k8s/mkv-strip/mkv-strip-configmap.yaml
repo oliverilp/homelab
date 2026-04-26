@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mkv-strip-config
+  namespace: mkv-strip
+data:
+  config.json: |
+    {
+      "directories": [
+        "/media"
+      ],
+      "remove_languages": [
+        "rus",
+        "ukr"
+      ],
+      "recursive": true,
+      "keep_going": true,
+      "in_place": true,
+      "dry_run": false,
+      "fail_on_file_errors": true,
+      "min_output_size_ratio": 0.3
+    }
+

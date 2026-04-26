@@ -1,0 +1,72 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mkv-strip
+  namespace: mkv-strip
+  labels:
+    app: mkv-strip
+spec:
+  schedule: "30 0 * * *"
+  timeZone: Europe/Tallinn
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: mkv-strip
+        spec:
+          restartPolicy: Never
+          terminationGracePeriodSeconds: 60
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+            fsGroupChangePolicy: OnRootMismatch
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: mkv-strip
+              image: ghcr.io/oliverilp/mkv-strip:latest
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: TZ
+                  value: Europe/Tallinn
+                - name: MKV_STRIP_CONFIG
+                  value: /etc/mkv-strip/config.json
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 256Mi
+                limits:
+                  cpu: "2"
+                  memory: 512Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop:
+                    - ALL
+              volumeMounts:
+                - name: config
+                  mountPath: /etc/mkv-strip
+                  readOnly: true
+                - name: media
+                  mountPath: /media
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: config
+              configMap:
+                name: mkv-strip-config
+            - name: media
+              persistentVolumeClaim:
+                claimName: mkv-strip-media-pvc
+            - name: tmp
+              emptyDir: {}
+
