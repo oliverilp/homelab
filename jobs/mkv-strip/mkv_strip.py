@@ -43,6 +43,20 @@ class Outcome(Enum):
     FAILED = "failed"
 
 
+@dataclass(frozen=True)
+class FileResult:
+    path: Path
+    outcome: Outcome
+    original_bytes: int | None = None
+    new_bytes: int | None = None
+
+    @property
+    def saved_bytes(self) -> int:
+        if self.original_bytes is None or self.new_bytes is None:
+            return 0
+        return max(self.original_bytes - self.new_bytes, 0)
+
+
 class ShutdownRequested(Exception):
     """Raised when Kubernetes or a user asks the process to stop."""
 
@@ -358,21 +372,21 @@ def stripped_output_path(path: Path) -> Path:
     return path.with_name(f"{path.stem}{STRIPPED_SUFFIX}{path.suffix}")
 
 
-def process_file(path: Path, config: Config) -> Outcome:
+def process_file(path: Path, config: Config) -> FileResult:
     global CURRENT_OUTPUT
 
     if path.stem.endswith(STRIPPED_SUFFIX):
         LOGGER.info("skip stripped-output path=%s", path)
-        return Outcome.SKIPPED
+        return FileResult(path=path, outcome=Outcome.SKIPPED)
 
     LOGGER.info("processing path=%s", path)
 
     streams = probe(path)
     if streams is None:
-        return Outcome.FAILED
+        return FileResult(path=path, outcome=Outcome.FAILED)
     if not streams:
         LOGGER.warning("skip no-streams path=%s", path)
-        return Outcome.FAILED
+        return FileResult(path=path, outcome=Outcome.FAILED)
 
     keep: list[dict[str, Any]] = []
     remove: list[dict[str, Any]] = []
@@ -387,12 +401,12 @@ def process_file(path: Path, config: Config) -> Outcome:
 
     if not remove:
         LOGGER.info("skip no-matching-tracks path=%s", path)
-        return Outcome.SKIPPED
+        return FileResult(path=path, outcome=Outcome.SKIPPED)
 
     kept_audio = [stream for stream in keep if stream.get("codec_type") == "audio"]
     if not kept_audio:
         LOGGER.warning("skip would-remove-all-audio path=%s", path)
-        return Outcome.SKIPPED
+        return FileResult(path=path, outcome=Outcome.SKIPPED)
 
     kept_video = [
         stream
@@ -402,7 +416,7 @@ def process_file(path: Path, config: Config) -> Outcome:
     ]
     if not kept_video:
         LOGGER.warning("skip would-remove-all-video path=%s", path)
-        return Outcome.SKIPPED
+        return FileResult(path=path, outcome=Outcome.SKIPPED)
 
     removed_types = ",".join(sorted({str(stream.get("codec_type")) for stream in remove}))
     LOGGER.info(
@@ -413,7 +427,7 @@ def process_file(path: Path, config: Config) -> Outcome:
     )
 
     if config.dry_run:
-        return Outcome.MODIFIED
+        return FileResult(path=path, outcome=Outcome.MODIFIED)
 
     remove_indices = {int(stream["index"]) for stream in remove}
     map_args = ["-map", "0"]
@@ -454,18 +468,18 @@ def process_file(path: Path, config: Config) -> Outcome:
     except OSError as error:
         LOGGER.error("ffmpeg launch failed path=%s error=%s", path, error)
         cleanup(output_path)
-        return Outcome.FAILED
+        return FileResult(path=path, outcome=Outcome.FAILED)
     finally:
         CURRENT_OUTPUT = None
 
     if return_code != 0:
         LOGGER.error("ffmpeg failed path=%s returncode=%s", path, return_code)
         cleanup(output_path)
-        return Outcome.FAILED
+        return FileResult(path=path, outcome=Outcome.FAILED)
 
     if not output_path.exists():
         LOGGER.error("ffmpeg succeeded but output missing path=%s output=%s", path, output_path)
-        return Outcome.FAILED
+        return FileResult(path=path, outcome=Outcome.FAILED)
 
     original_size = path.stat().st_size
     new_size = output_path.stat().st_size
@@ -473,7 +487,7 @@ def process_file(path: Path, config: Config) -> Outcome:
     if new_size == 0:
         LOGGER.error("output is empty path=%s output=%s", path, output_path)
         cleanup(output_path)
-        return Outcome.FAILED
+        return FileResult(path=path, outcome=Outcome.FAILED)
 
     if new_size < original_size * config.min_output_size_ratio:
         LOGGER.error(
@@ -483,7 +497,7 @@ def process_file(path: Path, config: Config) -> Outcome:
             new_size,
         )
         cleanup(output_path)
-        return Outcome.FAILED
+        return FileResult(path=path, outcome=Outcome.FAILED)
 
     saved_mb = (original_size - new_size) / 1_048_576
     LOGGER.info(
@@ -496,16 +510,26 @@ def process_file(path: Path, config: Config) -> Outcome:
 
     if not config.in_place:
         LOGGER.info("kept output path=%s", output_path)
-        return Outcome.MODIFIED
+        return FileResult(
+            path=path,
+            outcome=Outcome.MODIFIED,
+            original_bytes=original_size,
+            new_bytes=new_size,
+        )
 
     try:
         output_path.replace(path)
     except OSError as error:
         LOGGER.error("replace failed path=%s output=%s error=%s", path, output_path, error)
-        return Outcome.FAILED
+        return FileResult(path=path, outcome=Outcome.FAILED)
 
     LOGGER.info("replaced original path=%s", path)
-    return Outcome.MODIFIED
+    return FileResult(
+        path=path,
+        outcome=Outcome.MODIFIED,
+        original_bytes=original_size,
+        new_bytes=new_size,
+    )
 
 
 def iter_mkv_files(input_path: Path, recursive: bool) -> list[Path]:
@@ -542,6 +566,58 @@ def collect_files(config: Config) -> list[Path]:
     return sorted(files)
 
 
+def format_size(num_bytes: int) -> str:
+    units = ("B", "KiB", "MiB", "GiB", "TiB")
+    value = float(num_bytes)
+    for unit in units:
+        if value < 1024 or unit == units[-1]:
+            if unit == "B":
+                return f"{int(value)} {unit}"
+            return f"{value:.1f} {unit}"
+        value /= 1024
+    return f"{value:.1f} TiB"
+
+
+def display_path(path: Path, config: Config) -> str:
+    for directory in config.directories:
+        try:
+            return str(path.relative_to(directory))
+        except ValueError:
+            continue
+    return str(path)
+
+
+def print_summary(
+    *,
+    config: Config,
+    changed_files: list[FileResult],
+    modified: int,
+    skipped: int,
+    failed: int,
+    total: int,
+) -> None:
+    total_saved = sum(result.saved_bytes for result in changed_files)
+    print()
+    print("========== mkv-strip summary ==========")
+
+    if changed_files:
+        print("Changed files:")
+        for result in changed_files:
+            print(f"  {display_path(result.path, config)}")
+            original = result.original_bytes or 0
+            print(f"    original: {format_size(original)} | saved: {format_size(result.saved_bytes)}")
+    else:
+        print("Changed files: none")
+
+    print("---------------------------------------")
+    print(f"Total files scanned: {total}")
+    print(f"Modified: {modified}")
+    print(f"Ignored/skipped: {skipped}")
+    print(f"Failed: {failed}")
+    print(f"Total saved: {format_size(total_saved)}")
+    print("=======================================", flush=True)
+
+
 def run(config: Config) -> int:
     check_tools()
 
@@ -558,11 +634,20 @@ def run(config: Config) -> int:
     files = collect_files(config)
     if not files:
         LOGGER.info("done modified=0 skipped=0 failed=0 total=0")
+        print_summary(
+            config=config,
+            changed_files=[],
+            modified=0,
+            skipped=0,
+            failed=0,
+            total=0,
+        )
         return 0
 
     modified = 0
     skipped = 0
     failed = 0
+    changed_files: list[FileResult] = []
 
     LOGGER.info("found files=%s", len(files))
 
@@ -572,7 +657,7 @@ def run(config: Config) -> int:
             break
 
         try:
-            outcome = process_file(path, config)
+            result = process_file(path, config)
         except ShutdownRequested:
             failed += 1
             break
@@ -584,9 +669,10 @@ def run(config: Config) -> int:
                 break
             continue
 
-        if outcome == Outcome.MODIFIED:
+        if result.outcome == Outcome.MODIFIED:
             modified += 1
-        elif outcome == Outcome.SKIPPED:
+            changed_files.append(result)
+        elif result.outcome == Outcome.SKIPPED:
             skipped += 1
         else:
             failed += 1
@@ -599,6 +685,14 @@ def run(config: Config) -> int:
         skipped,
         failed,
         len(files),
+    )
+    print_summary(
+        config=config,
+        changed_files=changed_files,
+        modified=modified,
+        skipped=skipped,
+        failed=failed,
+        total=len(files),
     )
 
     if SHUTDOWN_REQUESTED:
@@ -624,4 +718,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-
