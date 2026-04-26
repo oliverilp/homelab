@@ -6,7 +6,7 @@ metadata:
   labels:
     app: mkv-strip
 spec:
-  backoffLimit: 0
+  backoffLimit: 1
   ttlSecondsAfterFinished: 604800
   template:
     metadata:
@@ -50,10 +50,10 @@ spec:
           resources:
             requests:
               cpu: 500m
-              memory: 256Mi
+              memory: 1Gi
             limits:
               cpu: "2"
-              memory: 512Mi
+              memory: 2Gi
           securityContext:
             allowPrivilegeEscalation: false
             privileged: false
