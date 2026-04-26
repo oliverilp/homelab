@@ -7,7 +7,8 @@ data:
   config.json: |
     {
       "directories": [
-        "/media"
+        "/media/la-movies",
+        "/media/la-tv"
       ],
       "remove_languages": [
         "rus",
