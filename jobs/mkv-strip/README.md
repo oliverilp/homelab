@@ -6,10 +6,10 @@ The container uses the official Debian-based Python slim image plus `ffmpeg`. Th
 
 Runtime configuration lives in the Kubernetes ConfigMap at `k8s/mkv-strip/mkv-strip-configmap.yaml`. The CronJob and manual Job both read the same config file.
 
-Manual local run:
+Container entrypoint:
 
 ```bash
-python3 jobs/mkv-strip/mkv_strip.py --recursive --keep-going --in-place /path/to/media
+python3 -m mkv_strip --config /etc/mkv-strip/config.json
 ```
 
 Manual Kubernetes run:

@@ -9,14 +9,14 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 ENV MKV_STRIP_CONFIG=/etc/mkv-strip/config.json \
+    PYTHONPATH=/app/src \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 WORKDIR /app
-COPY mkv_strip.py /app/mkv_strip.py
-RUN chmod 0755 /app/mkv_strip.py
+COPY src /app/src
 
 USER 1000:1000
 
-ENTRYPOINT ["python3", "/app/mkv_strip.py"]
+ENTRYPOINT ["python3", "-m", "mkv_strip"]
 CMD ["--config", "/etc/mkv-strip/config.json"]

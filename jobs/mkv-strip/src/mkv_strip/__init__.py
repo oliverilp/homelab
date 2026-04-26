@@ -1,0 +1,2 @@
+"""mkv-strip package."""
+
