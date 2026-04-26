@@ -20,6 +20,16 @@ spec:
           labels:
             app: mkv-strip
         spec:
+          affinity:
+            nodeAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  preference:
+                    matchExpressions:
+                      - key: kubernetes.io/hostname
+                        operator: In
+                        values:
+                          - k8s-worker-01
           automountServiceAccountToken: false
           enableServiceLinks: false
           hostIPC: false
