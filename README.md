@@ -160,6 +160,12 @@ Everything needed to run my cluster and deploy my applications.
         <td>Bundled with Prometheus Operator. Currently unused, alerting to be implemented in the future.</td>
     </tr>
     <tr>
+        <td><img width="32" src="https://raw.githubusercontent.com/stakater/Reloader/refs/heads/master/assets/web/reloader.jpg"></td>
+        <td><a href="https://github.com/stakater/Reloader">Reloader</a></td>
+        <td>—</td>
+        <td>Triggers Kubernetes rollouts for annotated Deployments and StatefulSets when referenced Secrets or ConfigMaps change.</td>
+    </tr>
+    <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/terraform.svg"></td>
         <td><a href="https://www.hashicorp.com/en/products/terraform/">Terraform</a></td>
         <td>—</td>
