@@ -1,4 +1,4 @@
-FROM python:3.14-slim-trixie
+FROM python:3.14-slim-trixie AS base
 
 SHELL ["/bin/sh", "-euxc"]
 
@@ -15,6 +15,16 @@ ENV MKV_STRIP_CONFIG=/etc/mkv-strip/config.json \
 
 WORKDIR /app
 COPY src /app/src
+
+FROM base AS test
+
+COPY tests /app/tests
+
+USER 1000:1000
+
+RUN python3 -m unittest discover -s tests
+
+FROM base AS runtime
 
 USER 1000:1000
 
