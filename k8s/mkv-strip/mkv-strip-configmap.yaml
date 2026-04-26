@@ -18,7 +18,7 @@ data:
       "keep_going": true,
       "in_place": true,
       "dry_run": false,
+      "cleanup_leftovers": true,
       "fail_on_file_errors": true,
       "min_output_size_ratio": 0.3
     }
-

@@ -72,6 +72,7 @@ class Config:
     dry_run: bool = False
     min_output_size_ratio: float = MIN_OUTPUT_SIZE_RATIO
     fail_on_file_errors: bool = True
+    cleanup_leftovers: bool = True
 
 
 def parse_args() -> argparse.Namespace:
@@ -245,6 +246,11 @@ def load_config(args: argparse.Namespace) -> Config:
         fail_on_file_errors=as_bool(
             raw.get("fail_on_file_errors"),
             "fail_on_file_errors",
+            True,
+        ),
+        cleanup_leftovers=as_bool(
+            raw.get("cleanup_leftovers"),
+            "cleanup_leftovers",
             True,
         ),
     )
@@ -551,6 +557,52 @@ def iter_mkv_files(input_path: Path, recursive: bool) -> list[Path]:
     )
 
 
+def is_stripped_leftover(path: Path) -> bool:
+    return path.is_file() and path.suffix.lower() == ".mkv" and path.stem.endswith(STRIPPED_SUFFIX)
+
+
+def iter_stripped_leftovers(input_path: Path, recursive: bool) -> list[Path]:
+    if input_path.is_file():
+        return [input_path] if is_stripped_leftover(input_path) else []
+
+    if not input_path.is_dir():
+        raise FileNotFoundError(f"configured path is not a file or directory: {input_path}")
+
+    candidates = input_path.rglob("*") if recursive else input_path.glob("*")
+    return sorted(path for path in candidates if is_stripped_leftover(path))
+
+
+def cleanup_leftovers(config: Config) -> int:
+    if not config.cleanup_leftovers:
+        return 0
+    if config.dry_run or not config.in_place:
+        LOGGER.info("skip startup cleanup dry_run=%s in_place=%s", config.dry_run, config.in_place)
+        return 0
+
+    cleaned = 0
+    seen: set[Path] = set()
+
+    for directory in config.directories:
+        for path in iter_stripped_leftovers(directory, config.recursive):
+            resolved = path.resolve()
+            if resolved in seen:
+                continue
+            seen.add(resolved)
+            try:
+                path.unlink()
+                cleaned += 1
+                LOGGER.info("removed leftover stripped output path=%s", path)
+            except OSError as error:
+                LOGGER.warning("could not remove leftover stripped output path=%s error=%s", path, error)
+
+    if cleaned:
+        LOGGER.info("startup cleanup removed leftover_count=%s", cleaned)
+    else:
+        LOGGER.info("startup cleanup found no leftover stripped outputs")
+
+    return cleaned
+
+
 def collect_files(config: Config) -> list[Path]:
     files: list[Path] = []
     seen: set[Path] = set()
@@ -630,6 +682,8 @@ def run(config: Config) -> int:
         config.keep_going,
         config.dry_run,
     )
+
+    cleanup_leftovers(config)
 
     files = collect_files(config)
     if not files:
