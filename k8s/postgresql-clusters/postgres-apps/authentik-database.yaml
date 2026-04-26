@@ -32,9 +32,11 @@ spec:
         conversionStrategy: Default
         decodingStrategy: None
         metadataPolicy: Fetch
+        nullBytePolicy: Ignore
     - secretKey: password
       remoteRef:
         key: "c17ac11a-53a7-4687-a590-b31800d651fc"
         conversionStrategy: Default
         decodingStrategy: None
         metadataPolicy: Fetch
+        nullBytePolicy: Ignore
