@@ -34,9 +34,10 @@ jobs:
         id: image
         shell: bash
         run: |
-          short_sha="${GITHUB_SHA::12}"
-          image_ref="${IMAGE_NAME}:sha-${short_sha}"
-          echo "tag=sha-${short_sha}" >> "$GITHUB_OUTPUT"
+          calver="$(TZ=Europe/Tallinn date '+%Y.%-m.%-d')"
+          image_tag="${calver}"
+          image_ref="${IMAGE_NAME}:${image_tag}"
+          echo "tag=${image_tag}" >> "$GITHUB_OUTPUT"
           echo "ref=${image_ref}" >> "$GITHUB_OUTPUT"
 
       - name: Set up QEMU
@@ -53,6 +54,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and publish image
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: jobs/mkv-strip
@@ -61,12 +63,18 @@ jobs:
           push: true
           tags: |
             ${{ steps.image.outputs.ref }}
-            ${{ env.IMAGE_NAME }}:latest
           labels: |
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ steps.image.outputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Set pinned image reference
+        id: pinned-image
+        shell: bash
+        run: |
+          echo "ref=${{ steps.image.outputs.ref }}@${{ steps.build.outputs.digest }}" >> "$GITHUB_OUTPUT"
 
       - name: Check Kubernetes manifests
         id: manifests
@@ -83,7 +91,7 @@ jobs:
         if: steps.manifests.outputs.present == 'true'
         uses: mikefarah/yq@v4
         env:
-          IMAGE_REF: ${{ steps.image.outputs.ref }}
+          IMAGE_REF: ${{ steps.pinned-image.outputs.ref }}
         with:
           cmd: |
             yq -i '(.spec.jobTemplate.spec.template.spec.containers[] | select(.name == "mkv-strip").image) = strenv(IMAGE_REF)' k8s/mkv-strip/mkv-strip-cronjob.yaml
@@ -92,7 +100,7 @@ jobs:
       - name: Commit manifest update
         if: steps.manifests.outputs.present == 'true'
         env:
-          IMAGE_REF: ${{ steps.image.outputs.ref }}
+          IMAGE_TAG: ${{ steps.image.outputs.tag }}
         shell: bash
         run: |
           if git diff --quiet -- k8s/mkv-strip/mkv-strip-cronjob.yaml k8s/mkv-strip/mkv-strip-job.yaml; then
@@ -103,5 +111,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add k8s/mkv-strip/mkv-strip-cronjob.yaml k8s/mkv-strip/mkv-strip-job.yaml
-          git commit -m "chore(mkv-strip): update image to ${IMAGE_REF##*:}"
+          git commit -m "chore(mkv-strip): update image to ${IMAGE_TAG}"
           git push
