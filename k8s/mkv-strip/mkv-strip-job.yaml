@@ -30,7 +30,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: mkv-strip
-          image: ghcr.io/oliverilp/mkv-strip:2026.4.26@sha256:2794cb5e9a95157f5a6477242ee045137b2369ae93dd0375f475d02ff3ef5244
+          image: ghcr.io/oliverilp/mkv-strip:2026.4.26@sha256:d825097ea032b4cb3548b4541712b0ad774d07569c4e59e39388d24273b1c1d1
           imagePullPolicy: IfNotPresent
           env:
             - name: TZ
