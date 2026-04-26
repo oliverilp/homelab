@@ -20,7 +20,13 @@ spec:
           labels:
             app: mkv-strip
         spec:
+          automountServiceAccountToken: false
+          enableServiceLinks: false
+          hostIPC: false
+          hostNetwork: false
+          hostPID: false
           restartPolicy: Never
+          shareProcessNamespace: false
           terminationGracePeriodSeconds: 60
           securityContext:
             runAsUser: 0
@@ -47,7 +53,13 @@ spec:
                   memory: 512Mi
               securityContext:
                 allowPrivilegeEscalation: false
+                privileged: false
                 readOnlyRootFilesystem: true
+                capabilities:
+                  drop:
+                    - ALL
+                  add:
+                    - DAC_OVERRIDE
               volumeMounts:
                 - name: config
                   mountPath: /etc/mkv-strip
