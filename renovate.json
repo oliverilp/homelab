@@ -3,6 +3,10 @@
   "extends": [
     "config:recommended"
   ],
+  "ignorePaths": [
+    "k8s/mkv-strip/mkv-strip-cronjob.yaml",
+    "k8s/mkv-strip/mkv-strip-job.yaml"
+  ],
   "kubernetes": {
     "fileMatch": ["^k8s/.*\\.yaml$"]
   },
