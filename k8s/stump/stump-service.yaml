@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: stump
+  namespace: stump
+  labels:
+    app: stump
+spec:
+  selector:
+    app: stump
+  ports:
+    - port: 10801
+      targetPort: 10801
+      protocol: TCP
+      name: http
+  type: ClusterIP

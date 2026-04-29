@@ -1,0 +1,21 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: stump-route
+  namespace: stump
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: manga.crunchyroll.ee
+spec:
+  parentRefs:
+    - name: traefik-public-gateway
+      namespace: traefik
+  hostnames:
+    - manga.crunchyroll.ee
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: stump
+          port: 10801

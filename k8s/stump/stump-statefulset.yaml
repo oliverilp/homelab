@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: stump
+  namespace: stump
+  labels:
+    app: stump
+spec:
+  serviceName: stump
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stump
+  template:
+    metadata:
+      labels:
+        app: stump
+      annotations:
+        configmap.reloader.stakater.com/reload: "stump-config"
+    spec:
+      containers:
+        - name: stump
+          image: aaronleopold/stump:latest
+          ports:
+            - name: http
+              containerPort: 10801
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: stump-config
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+          volumeMounts:
+            - name: stump-data
+              mountPath: /config
+            - name: stump-media
+              mountPath: /data
+          startupProbe:
+            httpGet:
+              path: /
+              port: 10801
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 10801
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 10801
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 3
+      volumes:
+        - name: stump-data
+          persistentVolumeClaim:
+            claimName: stump-data-pvc
+        - name: stump-media
+          persistentVolumeClaim:
+            claimName: stump-shared-media-pvc

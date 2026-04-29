@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stump-config
+  namespace: stump
+data:
+  TZ: "Europe/Tallinn"
+
+  PUID: "0"
+  PGID: "0"
+
+  STUMP_CONFIG_DIR: "/config"

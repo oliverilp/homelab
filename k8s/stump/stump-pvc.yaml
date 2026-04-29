@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: stump-data-pvc
+  namespace: stump
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nfs-app-data
+  resources:
+    requests:
+      storage: 10Gi
