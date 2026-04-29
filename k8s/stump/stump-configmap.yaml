@@ -11,3 +11,9 @@ data:
 
   STUMP_CONFIG_DIR: "/config"
   STUMP_PORT: "10801"
+
+  STUMP_OIDC_ENABLED: "true"
+  STUMP_OIDC_ISSUER_URL: "https://auth.oliverilp.ee/application/o/stump/"
+  STUMP_OIDC_SCOPES: "openid,email,profile"
+  STUMP_OIDC_ALLOW_REGISTRATION: "true"
+  STUMP_OIDC_DISABLE_LOCAL_AUTH: "false"

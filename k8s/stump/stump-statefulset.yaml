@@ -17,6 +17,7 @@ spec:
         app: stump
       annotations:
         configmap.reloader.stakater.com/reload: "stump-config"
+        secret.reloader.stakater.com/reload: "stump-app-secrets"
     spec:
       enableServiceLinks: false
       containers:
@@ -29,6 +30,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: stump-config
+            - secretRef:
+                name: stump-app-secrets
           resources:
             requests:
               memory: 256Mi
