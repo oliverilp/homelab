@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: stump-shared-media-pv
+  name: stump-shared-manga-pv
 spec:
   capacity:
     storage: 10Ti
@@ -15,7 +15,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: stump-shared-media-pvc
+  name: stump-shared-manga-pvc
   namespace: stump
 spec:
   accessModes:
@@ -23,4 +23,4 @@ spec:
   resources:
     requests:
       storage: 10Ti
-  volumeName: stump-shared-media-pv
+  volumeName: stump-shared-manga-pv

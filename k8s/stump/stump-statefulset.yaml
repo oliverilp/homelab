@@ -39,8 +39,8 @@ spec:
           volumeMounts:
             - name: stump-data
               mountPath: /config
-            - name: stump-media
-              mountPath: /data
+            - name: stump-manga
+              mountPath: /data/manga
           startupProbe:
             httpGet:
               path: /
@@ -66,6 +66,6 @@ spec:
         - name: stump-data
           persistentVolumeClaim:
             claimName: stump-data-pvc
-        - name: stump-media
+        - name: stump-manga
           persistentVolumeClaim:
-            claimName: stump-shared-media-pvc
+            claimName: stump-shared-manga-pvc
