@@ -18,6 +18,7 @@ spec:
       annotations:
         configmap.reloader.stakater.com/reload: "stump-config"
     spec:
+      enableServiceLinks: false
       containers:
         - name: stump
           image: aaronleopold/stump:latest

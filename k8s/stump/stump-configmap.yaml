@@ -10,3 +10,4 @@ data:
   PGID: "0"
 
   STUMP_CONFIG_DIR: "/config"
+  STUMP_PORT: "10801"
