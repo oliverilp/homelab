@@ -12,6 +12,27 @@ spec:
   hostnames:
     - manga.crunchyroll.ee
   rules:
+    # Image/thumbnail routes - override caching headers
+    - matches:
+        - path:
+            type: RegularExpression
+            value: /api/v[0-9]+/.*/thumbnail
+        - path:
+            type: RegularExpression
+            value: /api/v[0-9]+/media/.*/page/[0-9]+
+      filters:
+        - type: ResponseHeaderModifier
+          responseHeaderModifier:
+            set:
+              - name: Cache-Control
+                value: "public, max-age=31536000, immutable"
+              - name: Vary
+                value: "Accept-Encoding"
+      backendRefs:
+        - name: stump
+          port: 10801
+
+    # Catch-all - no header modification
     - matches:
         - path:
             type: PathPrefix
