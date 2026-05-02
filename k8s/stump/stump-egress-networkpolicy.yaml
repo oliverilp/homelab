@@ -26,28 +26,6 @@ spec:
         - podSelector: {}
 
 ---
-# Allow DNS to CoreDNS.
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-cluster-dns-egress
-  namespace: stump
-spec:
-  podSelector: {}
-  policyTypes:
-    - Egress
-  egress:
-    - to:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: kube-system
-      ports:
-        - protocol: UDP
-          port: 53
-        - protocol: TCP
-          port: 53
-
----
 # Allow direct DNS to Cloudflare and Google public resolvers.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -73,6 +51,28 @@ spec:
           port: 53
         - protocol: TCP
           port: 53
+
+---
+# Allow and observe DNS lookups needed by Cilium FQDN egress policies.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-cilium-dns-egress
+  namespace: stump
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": kube-system
+            "k8s:k8s-app": kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: "*"
 
 ---
 # Allow OIDC discovery against the public Authentik hostname.
