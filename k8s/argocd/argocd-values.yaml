@@ -26,6 +26,10 @@ configs:
       clientSecret: $oidc.authentik.clientSecret
       requestedScopes: ["openid", "profile", "email", "groups"]
       requestedIDTokenClaims: {"groups": {"essential": true}}
+  rbac:
+    scopes: "[groups]"
+    policy.csv: |
+      g, Homelab Owners, role:admin
 
 server:
   replicas: 2
