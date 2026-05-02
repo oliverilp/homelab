@@ -1,0 +1,365 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-uptime-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  homelab-uptime.json: |
+    {
+      "title": "Homelab Uptime",
+      "uid": "homelab-uptime-v1",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "1m",
+      "tags": ["homelab", "uptime", "sla"],
+      "time": { "from": "now-7d", "to": "now" },
+      "timezone": "browser",
+      "graphTooltip": 1,
+      "annotations": { "list": [] },
+      "links": [],
+      "panels": [
+
+        {
+          "id": 100,
+          "type": "row",
+          "title": "Cluster",
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+        },
+
+        {
+          "id": 1,
+          "type": "stat",
+          "title": "Cluster Status",
+          "description": "Is the Kubernetes API server reachable right now?",
+          "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "none",
+            "textMode": "value_and_name",
+            "orientation": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "noValue": "OFFLINE",
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "0": { "text": "OFFLINE", "color": "red", "index": 0 },
+                    "1": { "text": "ONLINE", "color": "green", "index": 1 }
+                  }
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "green", "value": 1 }
+                ]
+              },
+              "color": { "mode": "thresholds" }
+            }
+          },
+          "targets": [
+            {
+              "expr": "max(max_over_time(up{job=\"apiserver\"}[2m])) or vector(0)",
+              "legendFormat": "K8s API",
+              "instant": true
+            }
+          ]
+        },
+
+        {
+          "id": 2,
+          "type": "stat",
+          "title": "Cluster Uptime %",
+          "description": "Fraction of time the K8s API was reachable over the selected range.",
+          "gridPos": { "h": 4, "w": 5, "x": 4, "y": 1 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "none",
+            "textMode": "value_and_name",
+            "orientation": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "decimals": 3,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "orange", "value": 99 },
+                  { "color": "yellow", "value": 99.9 },
+                  { "color": "green", "value": 99.95 }
+                ]
+              },
+              "color": { "mode": "thresholds" }
+            }
+          },
+          "targets": [
+            {
+              "expr": "avg_over_time((max(max_over_time(up{job=\"apiserver\"}[1m])) or vector(0))[${__range}:1m]) * 100",
+              "legendFormat": "K8s API",
+              "instant": true
+            }
+          ]
+        },
+
+        {
+          "id": 3,
+          "type": "stat",
+          "title": "Cluster Downtime",
+          "description": "Estimated total downtime over the selected range.",
+          "gridPos": { "h": 4, "w": 5, "x": 9, "y": 1 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "value_and_name",
+            "orientation": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s",
+              "decimals": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 60 },
+                  { "color": "orange", "value": 300 },
+                  { "color": "red", "value": 3600 }
+                ]
+              },
+              "color": { "mode": "thresholds" }
+            }
+          },
+          "targets": [
+            {
+              "expr": "(1 - avg_over_time((max(max_over_time(up{job=\"apiserver\"}[1m])) or vector(0))[${__range}:1m])) * ${__range_s}",
+              "legendFormat": "Downtime",
+              "instant": true
+            }
+          ]
+        },
+
+        {
+          "id": 4,
+          "type": "timeseries",
+          "title": "Cluster API Timeline",
+          "description": "1 = up, 0 = down. Missing API samples are treated as down.",
+          "gridPos": { "h": 6, "w": 24, "x": 0, "y": 5 },
+          "options": {
+            "tooltip": { "mode": "single" },
+            "legend": { "displayMode": "list", "placement": "bottom" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "fixed", "fixedColor": "green" },
+              "custom": {
+                "lineWidth": 2,
+                "fillOpacity": 15,
+                "spanNulls": false,
+                "drawStyle": "line",
+                "lineInterpolation": "stepBefore"
+              },
+              "min": 0,
+              "max": 1,
+              "unit": "short"
+            }
+          },
+          "targets": [
+            {
+              "expr": "max(max_over_time(up{job=\"apiserver\"}[2m])) or vector(0)",
+              "legendFormat": "K8s API",
+              "interval": "1m"
+            }
+          ]
+        },
+
+        {
+          "id": 101,
+          "type": "row",
+          "title": "Web Services - E2E HTTPS",
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 11 }
+        },
+
+        {
+          "id": 10,
+          "type": "table",
+          "title": "Service Uptime Summary",
+          "description": "Uptime % and estimated downtime per service. Sorted worst first. A full cluster outage counts as downtime for all services.",
+          "gridPos": { "h": 16, "w": 12, "x": 0, "y": 12 },
+          "options": {
+            "sortBy": [{ "displayName": "Uptime %", "desc": false }],
+            "footer": { "show": false }
+          },
+          "transformations": [
+            { "id": "merge", "options": {} },
+            {
+              "id": "organize",
+              "options": {
+                "renameByName": {
+                  "service": "Service",
+                  "Value #uptime": "Uptime %",
+                  "Value #downtime": "Downtime"
+                },
+                "indexByName": {
+                  "service": 0,
+                  "Value #uptime": 1,
+                  "Value #downtime": 2
+                }
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": { "align": "left", "displayMode": "auto" }
+            },
+            "overrides": [
+              {
+                "matcher": { "id": "byName", "options": "Uptime %" },
+                "properties": [
+                  { "id": "unit", "value": "percent" },
+                  { "id": "decimals", "value": 3 },
+                  { "id": "custom.displayMode", "value": "color-background" },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        { "color": "red", "value": null },
+                        { "color": "orange", "value": 99 },
+                        { "color": "yellow", "value": 99.9 },
+                        { "color": "green", "value": 99.95 }
+                      ]
+                    }
+                  },
+                  { "id": "color", "value": { "mode": "thresholds" } }
+                ]
+              },
+              {
+                "matcher": { "id": "byName", "options": "Downtime" },
+                "properties": [
+                  { "id": "unit", "value": "s" },
+                  { "id": "decimals", "value": 0 },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        { "color": "green", "value": null },
+                        { "color": "yellow", "value": 60 },
+                        { "color": "orange", "value": 300 },
+                        { "color": "red", "value": 3600 }
+                      ]
+                    }
+                  },
+                  { "id": "color", "value": { "mode": "thresholds" } }
+                ]
+              }
+            ]
+          },
+          "targets": [
+            {
+              "refId": "uptime",
+              "expr": "avg_over_time(probe_success{job=~\"probe/.*\"}[${__range}:1m]) * 100",
+              "legendFormat": "{{service}}",
+              "instant": true,
+              "format": "table"
+            },
+            {
+              "refId": "downtime",
+              "expr": "(1 - avg_over_time(probe_success{job=~\"probe/.*\"}[${__range}:1m])) * ${__range_s}",
+              "legendFormat": "{{service}}",
+              "instant": true,
+              "format": "table"
+            }
+          ]
+        },
+
+        {
+          "id": 11,
+          "type": "barchart",
+          "title": "Service Uptime % (bar chart)",
+          "gridPos": { "h": 16, "w": 12, "x": 12, "y": 12 },
+          "options": {
+            "orientation": "horizontal",
+            "legend": { "displayMode": "hidden" },
+            "tooltip": { "mode": "single" },
+            "xField": "service"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "decimals": 2,
+              "min": 98,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "orange", "value": 99 },
+                  { "color": "yellow", "value": 99.9 },
+                  { "color": "green", "value": 99.95 }
+                ]
+              },
+              "color": { "mode": "thresholds" }
+            }
+          },
+          "targets": [
+            {
+              "expr": "avg_over_time(probe_success{job=~\"probe/.*\"}[${__range}:1m]) * 100",
+              "legendFormat": "{{service}}",
+              "instant": true
+            }
+          ]
+        },
+
+        {
+          "id": 12,
+          "type": "timeseries",
+          "title": "Service Probe Timeline",
+          "description": "1 = HTTPS probe passed, 0 = failed. Gaps mean the whole cluster was offline - not a per-service outage.",
+          "gridPos": { "h": 12, "w": 24, "x": 0, "y": 28 },
+          "options": {
+            "tooltip": { "mode": "multi", "sort": "none" },
+            "legend": {
+              "displayMode": "table",
+              "placement": "right",
+              "calcs": ["mean", "min"]
+            }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "lineWidth": 1,
+                "fillOpacity": 5,
+                "spanNulls": false,
+                "drawStyle": "line",
+                "lineInterpolation": "stepBefore"
+              },
+              "min": 0,
+              "max": 1,
+              "unit": "short"
+            }
+          },
+          "targets": [
+            {
+              "expr": "probe_success{job=~\"probe/.*\"}",
+              "legendFormat": "{{service}}",
+              "interval": "1m"
+            }
+          ]
+        }
+
+      ]
+    }

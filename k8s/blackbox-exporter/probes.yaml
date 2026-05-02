@@ -1,0 +1,187 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: authentik
+  namespace: monitoring
+spec:
+  interval: 60s
+  module: http_external
+  prober:
+    url: blackbox-exporter.monitoring.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      static:
+        - https://auth.oliverilp.ee
+      labels:
+        service: authentik
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: filestash
+  namespace: monitoring
+spec:
+  interval: 60s
+  module: http_external
+  prober:
+    url: blackbox-exporter.monitoring.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      static:
+        - https://files.oliverilp.ee
+      labels:
+        service: filestash
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: homeassistant
+  namespace: monitoring
+spec:
+  interval: 60s
+  module: http_external
+  prober:
+    url: blackbox-exporter.monitoring.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      static:
+        - https://home.oliverilp.ee
+      labels:
+        service: homeassistant
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: immich
+  namespace: monitoring
+spec:
+  interval: 60s
+  module: http_external
+  prober:
+    url: blackbox-exporter.monitoring.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      static:
+        - https://photos.oliverilp.ee
+      labels:
+        service: immich
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: jellyfin
+  namespace: monitoring
+spec:
+  interval: 60s
+  module: http_external
+  prober:
+    url: blackbox-exporter.monitoring.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      static:
+        - https://crunchyroll.ee
+      labels:
+        service: jellyfin
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: librespeed
+  namespace: monitoring
+spec:
+  interval: 60s
+  module: http_external
+  prober:
+    url: blackbox-exporter.monitoring.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      static:
+        - https://speedtest.oliverilp.ee
+      labels:
+        service: librespeed
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: linkwarden
+  namespace: monitoring
+spec:
+  interval: 60s
+  module: http_external
+  prober:
+    url: blackbox-exporter.monitoring.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      static:
+        - https://linkwarden.oliverilp.ee
+      labels:
+        service: linkwarden
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: memos
+  namespace: monitoring
+spec:
+  interval: 60s
+  module: http_external
+  prober:
+    url: blackbox-exporter.monitoring.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      static:
+        - https://memos.oliverilp.ee
+      labels:
+        service: memos
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: qbittorrent
+  namespace: monitoring
+spec:
+  interval: 60s
+  module: http_external
+  prober:
+    url: blackbox-exporter.monitoring.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      static:
+        - https://qbittorrent.oliverilp.ee
+      labels:
+        service: qbittorrent
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: stump
+  namespace: monitoring
+spec:
+  interval: 60s
+  module: http_external
+  prober:
+    url: blackbox-exporter.monitoring.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      static:
+        - https://manga.crunchyroll.ee
+      labels:
+        service: stump
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: vaultwarden
+  namespace: monitoring
+spec:
+  interval: 60s
+  module: http_external
+  prober:
+    url: blackbox-exporter.monitoring.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      static:
+        - https://vault.oliverilp.ee
+      labels:
+        service: vaultwarden

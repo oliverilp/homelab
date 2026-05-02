@@ -1,0 +1,41 @@
+fullnameOverride: blackbox-exporter
+
+config:
+  modules:
+    # Remove the chart default module so the rendered config only contains
+    # the explicit internal and external modules below.
+    http_2xx: null
+
+    http_external:
+      prober: http
+      timeout: 10s
+      http:
+        valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+        valid_status_codes: []
+        method: GET
+        follow_redirects: true
+        preferred_ip_protocol: "ip4"
+        tls_config:
+          insecure_skip_verify: false
+
+    # Reserved for future internal pod-level probes.
+    http_internal:
+      prober: http
+      timeout: 10s
+      http:
+        valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+        valid_status_codes: []
+        method: GET
+        follow_redirects: true
+        preferred_ip_protocol: "ip4"
+        tls_config:
+          insecure_skip_verify: true
+
+serviceMonitor:
+  enabled: true
+  defaults:
+    interval: 60s
+    scrapeTimeout: 10s
+
+prometheusRule:
+  enabled: false

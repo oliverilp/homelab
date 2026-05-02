@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: uptime-recording-rules
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+spec:
+  groups:
+    - name: uptime.cluster
+      interval: 1m
+      rules:
+        - record: cluster:apiserver:up1m
+          expr: |
+            max(max_over_time(up{job="apiserver"}[1m])) or vector(0)
+
+    - name: uptime.probes
+      interval: 1m
+      rules:
+        - record: probe:success:rate1m
+          expr: |
+            probe_success{job=~"probe/.*"}
