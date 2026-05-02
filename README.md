@@ -44,6 +44,11 @@ End user applications.
         <td>Google Keep alternative for personal note-taking.</td>
     </tr>
     <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/stump.svg"></td>
+        <td><a href="https://www.stumpapp.dev/">Stump</a></td>
+        <td>Digital book server for comics, manga, and ebooks.</td>
+    </tr>
+    <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/linkwarden.png"></td>
         <td><a href="https://linkwarden.app/">Linkwarden</a></td>
         <td>Bookmark manager to collect and download webpages.</td>
