@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: stump-pod-limit
+  namespace: stump
+spec:
+  hard:
+    pods: "1"

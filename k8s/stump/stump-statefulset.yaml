@@ -19,7 +19,15 @@ spec:
         configmap.reloader.stakater.com/reload: "stump-config"
         secret.reloader.stakater.com/reload: "stump-app-secrets"
     spec:
+      automountServiceAccountToken: false
       enableServiceLinks: false
+      hostIPC: false
+      hostNetwork: false
+      hostPID: false
+      shareProcessNamespace: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: stump
           image: aaronleopold/stump:latest
@@ -39,11 +47,23 @@ spec:
             limits:
               memory: 512Mi
               cpu: 500m
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
           volumeMounts:
             - name: stump-data
               mountPath: /config
             - name: stump-manga
               mountPath: /data/manga
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+            - name: root-cache
+              mountPath: /root/.cache
           startupProbe:
             httpGet:
               path: /
@@ -72,3 +92,7 @@ spec:
         - name: stump-manga
           persistentVolumeClaim:
             claimName: stump-shared-manga-pvc
+        - name: tmp
+          emptyDir: {}
+        - name: root-cache
+          emptyDir: {}
