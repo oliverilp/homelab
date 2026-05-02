@@ -75,6 +75,23 @@ spec:
           port: 53
 
 ---
+# Allow OIDC discovery against the public Authentik hostname.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-authentik-fqdn-egress
+  namespace: stump
+spec:
+  endpointSelector: {}
+  egress:
+    - toFQDNs:
+        - matchName: auth.oliverilp.ee
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+
+---
 # Allow OIDC login flow to Authentik.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
