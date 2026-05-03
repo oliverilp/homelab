@@ -60,6 +60,9 @@ spec:
             - name: stump-manga
               mountPath: /data/manga
               readOnly: true
+            - name: stump-comics
+              mountPath: /data/comics
+              readOnly: true
             - name: tmp
               mountPath: /tmp
             - name: root-cache
@@ -92,6 +95,9 @@ spec:
         - name: stump-manga
           persistentVolumeClaim:
             claimName: stump-shared-manga-pvc
+        - name: stump-comics
+          persistentVolumeClaim:
+            claimName: stump-shared-comics-pvc
         - name: tmp
           emptyDir: {}
         - name: root-cache
