@@ -271,14 +271,14 @@ data:
           "targets": [
             {
               "refId": "uptime",
-              "expr": "avg_over_time(min_over_time(probe_success{job=~\"probe/.*\"}[3m])[${__range}:1m]) * 100",
+              "expr": "avg_over_time((1 - probe:down:sustained3m{job=~\"probe/.*\"})[${__range}:1m]) * 100",
               "legendFormat": "{{service}}",
               "instant": true,
               "format": "table"
             },
             {
               "refId": "downtime",
-              "expr": "(1 - avg_over_time(min_over_time(probe_success{job=~\"probe/.*\"}[3m])[${__range}:1m])) * ${__range_s}",
+              "expr": "avg_over_time(probe:down:sustained3m{job=~\"probe/.*\"}[${__range}:1m]) * ${__range_s}",
               "legendFormat": "{{service}}",
               "instant": true,
               "format": "table"
@@ -317,7 +317,7 @@ data:
           },
           "targets": [
             {
-              "expr": "avg_over_time(min_over_time(probe_success{job=~\"probe/.*\"}[3m])[${__range}:1m]) * 100",
+              "expr": "avg_over_time((1 - probe:down:sustained3m{job=~\"probe/.*\"})[${__range}:1m]) * 100",
               "legendFormat": "{{service}}",
               "instant": true
             }
@@ -354,7 +354,7 @@ data:
           },
           "targets": [
             {
-              "expr": "min_over_time(probe_success{job=~\"probe/.*\"}[3m])",
+              "expr": "1 - probe:down:sustained3m{job=~\"probe/.*\"}",
               "legendFormat": "{{service}}",
               "interval": "1m"
             }

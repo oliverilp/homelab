@@ -36,6 +36,7 @@ alertmanager:
     enabled: false
   alertmanagerSpec:
     replicas: 2
+    configSecret: alertmanager-telegram-config
     storage:
       disableMountSubPath: true
       volumeClaimTemplate:
