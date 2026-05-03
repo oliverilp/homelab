@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: stump-shared-ebooks-pv
+spec:
+  capacity:
+    storage: 10Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: 10.1.30.10
+    path: /mnt/seagate/media/ebooks
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: stump-shared-ebooks-pvc
+  namespace: stump
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Ti
+  volumeName: stump-shared-ebooks-pv

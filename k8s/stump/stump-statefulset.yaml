@@ -63,6 +63,9 @@ spec:
             - name: stump-comics
               mountPath: /data/comics
               readOnly: true
+            - name: stump-ebooks
+              mountPath: /data/ebooks
+              readOnly: true
             - name: tmp
               mountPath: /tmp
             - name: root-cache
@@ -98,6 +101,9 @@ spec:
         - name: stump-comics
           persistentVolumeClaim:
             claimName: stump-shared-comics-pvc
+        - name: stump-ebooks
+          persistentVolumeClaim:
+            claimName: stump-shared-ebooks-pvc
         - name: tmp
           emptyDir: {}
         - name: root-cache
