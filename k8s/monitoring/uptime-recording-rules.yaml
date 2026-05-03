@@ -19,4 +19,4 @@ spec:
       rules:
         - record: probe:success:rate1m
           expr: |
-            probe_success{job=~"probe/.*"}
+            min_over_time(probe_success{job=~"probe/.*"}[3m])

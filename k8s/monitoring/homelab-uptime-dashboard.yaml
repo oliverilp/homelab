@@ -11,7 +11,7 @@ data:
       "title": "Homelab Uptime",
       "uid": "homelab-uptime-v1",
       "schemaVersion": 39,
-      "version": 1,
+      "version": 2,
       "refresh": "1m",
       "tags": ["homelab", "uptime", "sla"],
       "time": { "from": "now-7d", "to": "now" },
@@ -196,7 +196,7 @@ data:
           "id": 10,
           "type": "table",
           "title": "Service Uptime Summary",
-          "description": "Uptime % and estimated downtime per service. Sorted worst first. A full cluster outage counts as downtime for all services.",
+          "description": "Uptime % and estimated downtime per service. A probe must fail for 3+ consecutive minutes to count as downtime — single blips and rolling restarts are ignored. Sorted worst first.",
           "gridPos": { "h": 16, "w": 12, "x": 0, "y": 12 },
           "options": {
             "sortBy": [{ "displayName": "Uptime %", "desc": false }],
@@ -271,14 +271,14 @@ data:
           "targets": [
             {
               "refId": "uptime",
-              "expr": "avg_over_time(probe_success{job=~\"probe/.*\"}[${__range}:1m]) * 100",
+              "expr": "avg_over_time(min_over_time(probe_success{job=~\"probe/.*\"}[3m])[${__range}:1m]) * 100",
               "legendFormat": "{{service}}",
               "instant": true,
               "format": "table"
             },
             {
               "refId": "downtime",
-              "expr": "(1 - avg_over_time(probe_success{job=~\"probe/.*\"}[${__range}:1m])) * ${__range_s}",
+              "expr": "(1 - avg_over_time(min_over_time(probe_success{job=~\"probe/.*\"}[3m])[${__range}:1m])) * ${__range_s}",
               "legendFormat": "{{service}}",
               "instant": true,
               "format": "table"
@@ -317,7 +317,7 @@ data:
           },
           "targets": [
             {
-              "expr": "avg_over_time(probe_success{job=~\"probe/.*\"}[${__range}:1m]) * 100",
+              "expr": "avg_over_time(min_over_time(probe_success{job=~\"probe/.*\"}[3m])[${__range}:1m]) * 100",
               "legendFormat": "{{service}}",
               "instant": true
             }
@@ -328,7 +328,7 @@ data:
           "id": 12,
           "type": "timeseries",
           "title": "Service Probe Timeline",
-          "description": "1 = HTTPS probe passed, 0 = failed. Gaps mean the whole cluster was offline - not a per-service outage.",
+          "description": "1 = HTTPS probe passed, 0 = sustained failure (3+ consecutive minutes). Gaps mean the whole cluster was offline - not a per-service outage.",
           "gridPos": { "h": 12, "w": 24, "x": 0, "y": 28 },
           "options": {
             "tooltip": { "mode": "multi", "sort": "none" },
@@ -354,7 +354,7 @@ data:
           },
           "targets": [
             {
-              "expr": "probe_success{job=~\"probe/.*\"}",
+              "expr": "min_over_time(probe_success{job=~\"probe/.*\"}[3m])",
               "legendFormat": "{{service}}",
               "interval": "1m"
             }
