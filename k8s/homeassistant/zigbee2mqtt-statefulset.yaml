@@ -50,6 +50,12 @@ spec:
               value: "1000"
             - name: PGID
               value: "1000"
+          resources:
+            requests:
+              cpu: 10m
+              memory: 140Mi
+            limits:
+              memory: 140Mi
           volumeMounts:
             - name: zigbee2mqtt-data
               mountPath: /app/data

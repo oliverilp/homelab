@@ -33,6 +33,12 @@ spec:
               value: "1000"
             - name: MQTT_BROKER_URL
               value: "mqtt:1883"
+          resources:
+            requests:
+              cpu: 10m
+              memory: 550Mi
+            limits:
+              memory: 550Mi
           volumeMounts:
             - name: homeassistant-config
               mountPath: /config

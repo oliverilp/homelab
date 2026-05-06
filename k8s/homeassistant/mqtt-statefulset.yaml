@@ -25,6 +25,12 @@ spec:
             - containerPort: 9001
               name: websocket
           command: ["mosquitto", "-c", "/mosquitto-no-auth.conf"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 100Mi
+            limits:
+              memory: 100Mi
           volumeMounts:
             - name: mqtt-data
               mountPath: /mosquitto
