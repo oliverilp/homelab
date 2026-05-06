@@ -39,3 +39,10 @@ serviceMonitor:
 
 prometheusRule:
   enabled: false
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 100Mi
+  limits:
+    memory: 100Mi
