@@ -78,14 +78,14 @@ grafana:
   envFromSecret: grafana-postgres-auth
   resources:
     requests:
-      cpu: 40m
+      cpu: 50m
       memory: 750Mi
     limits:
       memory: 750Mi
   sidecar:
     resources:
       requests:
-        cpu: 10m
+        cpu: 40m
         memory: 110Mi
       limits:
         memory: 110Mi
