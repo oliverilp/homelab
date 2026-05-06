@@ -1009,7 +1009,12 @@ spec:
           periodSeconds: 10
           tcpSocket:
             port: 9090
-        resources: {}
+        resources:
+          requests:
+            cpu: 10m
+            memory: 100Mi
+          limits:
+            memory: 100Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
