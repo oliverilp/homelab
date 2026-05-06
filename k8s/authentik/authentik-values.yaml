@@ -39,6 +39,12 @@ server:
     initialDelaySeconds: 30
     periodSeconds: 30
     timeoutSeconds: 15
+  resources:
+    requests:
+      cpu: 20m
+      memory: 1200Mi
+    limits:
+      memory: 1200Mi
 
 worker:
   replicas: 2
@@ -58,6 +64,12 @@ worker:
         secretKeyRef:
           name: authentik-redis-auth
           key: password
+  resources:
+    requests:
+      cpu: 50m
+      memory: 1300Mi
+    limits:
+      memory: 1300Mi
 
 postgresql:
   enabled: false
