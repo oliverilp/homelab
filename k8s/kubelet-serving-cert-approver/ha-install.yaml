@@ -228,12 +228,11 @@ spec:
               port: health
             initialDelaySeconds: 3
           resources:
-            limits:
-              cpu: 250m
-              memory: 32Mi
             requests:
-              cpu: 10m
-              memory: 18Mi
+              cpu: 60m
+              memory: 100Mi
+            limits:
+              memory: 100Mi
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
