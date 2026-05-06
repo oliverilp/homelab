@@ -116,6 +116,7 @@ Examples:
 - CPU limits should normally be unset.
 - Keep existing workload-specific intent only when a manifest comment or user instruction clearly justifies it; otherwise use the rounded KRR target.
 - Jellyfin exception: for namespace `jellyfin`, workload `jellyfin`, container `jellyfin`, use at least `2Gi` memory request and `2Gi` memory limit, even if KRR recommends around `1400Mi`. If KRR recommends less than `2Gi`, use `2Gi`, not the current larger value merely because it already exists. If KRR recommends more than `2Gi`, round up using the normal memory tiers.
+- ArgoCD exception: The controller should have minimum of `1.5Gi` of memory.
 - Do not create new special cases unless the user states one or the existing manifest clearly documents one.
 
 ## Editing Source Files
