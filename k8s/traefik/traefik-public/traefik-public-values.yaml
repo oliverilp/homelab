@@ -31,6 +31,13 @@ deployment:
     gateway-type: public
     traefik-instance: public
 
+resources:
+  requests:
+    cpu: 50m
+    memory: 200Mi
+  limits:
+    memory: 200Mi
+
 affinity:
   nodeAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
