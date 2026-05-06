@@ -35,9 +35,10 @@ spec:
         - name: TZ
           value: "Europe/Tallinn"
         resources:
-          limits:
-            memory: 4Gi
           requests:
+            cpu: 10m
+            memory: 2Gi
+          limits:
             memory: 2Gi
         volumeMounts:
         - name: jellyfin-data
