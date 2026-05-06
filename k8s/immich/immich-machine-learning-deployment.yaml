@@ -26,11 +26,10 @@ spec:
           value: "/cache"
         resources:
           requests:
-            memory: "1Gi"
-            cpu: "500m"
+            memory: "300Mi"
+            cpu: "10m"
           limits:
-            memory: "2Gi"
-            cpu: "1000m"
+            memory: "300Mi"
         volumeMounts:
         - name: model-cache
           mountPath: /cache
