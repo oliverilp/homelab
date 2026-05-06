@@ -36,6 +36,12 @@ alertmanager:
     enabled: false
   alertmanagerSpec:
     replicas: 2
+    resources:
+      requests:
+        cpu: 10m
+        memory: 100Mi
+      limits:
+        memory: 100Mi
     configSecret: alertmanager-telegram-config
     storage:
       disableMountSubPath: true
@@ -70,6 +76,19 @@ grafana:
       user: grafana
       ssl_mode: disable
   envFromSecret: grafana-postgres-auth
+  resources:
+    requests:
+      cpu: 40m
+      memory: 750Mi
+    limits:
+      memory: 750Mi
+  sidecar:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 110Mi
+      limits:
+        memory: 110Mi
 
 kubeApiServer:
   enabled: true
@@ -134,6 +153,12 @@ kube-state-metrics:
           sourceLabels:
             - __meta_kubernetes_pod_node_name
           targetLabel: kubernetes_node
+  resources:
+    requests:
+      cpu: 10m
+      memory: 110Mi
+    limits:
+      memory: 110Mi
 
 nodeExporter:
   enabled: true
@@ -167,18 +192,24 @@ prometheus-node-exporter:
           targetLabel: kubernetes_node
   resources:
     requests:
-      memory: 512Mi
-      cpu: 250m
+      cpu: 10m
+      memory: 100Mi
     limits:
-      memory: 2048Mi
+      memory: 100Mi
 
 prometheusOperator:
   enabled: true
+  resources:
+    requests:
+      cpu: 10m
+      memory: 100Mi
+    limits:
+      memory: 100Mi
   prometheusConfigReloader:
     resources:
       requests:
-        cpu: 200m
-        memory: 50Mi
+        cpu: 10m
+        memory: 100Mi
       limits:
         memory: 100Mi
 
@@ -212,6 +243,12 @@ prometheus:
     scrapeInterval: 30s
     evaluationInterval: 30s
     podAntiAffinity: "hard"
+    resources:
+      requests:
+        cpu: 110m
+        memory: 4500Mi
+      limits:
+        memory: 4500Mi
     storageSpec:
       disableMountSubPath: true
       volumeClaimTemplate:
