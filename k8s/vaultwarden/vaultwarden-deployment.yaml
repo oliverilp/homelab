@@ -39,6 +39,12 @@ spec:
                   name: vaultwarden-app-secrets
                   key: admin-token
                   optional: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 130Mi
+            limits:
+              memory: 130Mi
           volumeMounts:
             - name: vaultwarden-data
               mountPath: /data
