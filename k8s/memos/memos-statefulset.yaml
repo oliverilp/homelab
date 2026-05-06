@@ -37,11 +37,10 @@ spec:
           #       key: dsn
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "100m"
+              memory: "100Mi"
+              cpu: "10m"
             limits:
-              memory: "256Mi"
-              cpu: "200m"
+              memory: "100Mi"
           volumeMounts:
             - name: memos-data
               mountPath: /var/opt/memos
