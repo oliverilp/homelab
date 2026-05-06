@@ -37,10 +37,11 @@ spec:
             - name: PGID
               value: "0"
           resources:
-            limits:
-              memory: 1Gi
             requests:
-              memory: 512Mi
+              cpu: 10m
+              memory: 1200Mi
+            limits:
+              memory: 1200Mi
           volumeMounts:
             - name: qbittorrent-data
               mountPath: /config
