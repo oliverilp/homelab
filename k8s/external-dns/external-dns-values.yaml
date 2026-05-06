@@ -33,3 +33,10 @@ domainFilters:
 
 interval: 1m
 triggerLoopOnEvent: true
+
+resources:
+  requests:
+    cpu: 20m
+    memory: 130Mi
+  limits:
+    memory: 130Mi
