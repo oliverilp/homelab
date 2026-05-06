@@ -56,10 +56,10 @@ repoServer:
 
   resources:
     requests:
-      cpu: 50m
-      memory: 220Mi
+      cpu: 375m
+      memory: 230Mi
     limits:
-      memory: 220Mi
+      memory: 230Mi
 
 controller:
   metrics:
@@ -67,10 +67,10 @@ controller:
 
   resources:
     requests:
-      cpu: 100m
-      memory: 2Gi
+      cpu: 90m
+      memory: 1536Mi
     limits:
-      memory: 2Gi
+      memory: 1536Mi
 
 applicationSet:
   resources:
