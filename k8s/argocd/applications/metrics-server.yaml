@@ -13,6 +13,14 @@ spec:
     - repoURL: https://kubernetes-sigs.github.io/metrics-server/
       chart: metrics-server
       targetRevision: "3.13.0"
+      helm:
+        valuesObject:
+          resources:
+            requests:
+              cpu: 10m
+              memory: 100Mi
+            limits:
+              memory: 100Mi
   destination:
     server: "https://kubernetes.default.svc"
     namespace: metrics-server
