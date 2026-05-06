@@ -53,9 +53,9 @@ spec:
           resources:
             requests:
               cpu: 10m
-              memory: 140Mi
+              memory: 210Mi
             limits:
-              memory: 140Mi
+              memory: 210Mi
           volumeMounts:
             - name: zigbee2mqtt-data
               mountPath: /app/data
