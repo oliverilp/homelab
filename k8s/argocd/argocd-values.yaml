@@ -67,10 +67,10 @@ controller:
 
   resources:
     requests:
-      cpu: 90m
-      memory: 1200Mi
+      cpu: 100m
+      memory: 2Gi
     limits:
-      memory: 1200Mi
+      memory: 2Gi
 
 applicationSet:
   resources:
