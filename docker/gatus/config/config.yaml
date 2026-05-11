@@ -36,26 +36,26 @@ default-public-endpoint: &public_endpoint
     - "[RESPONSE_TIME] < 5000"
 
 endpoints:
-  - name: authentik
+  - name: Authentik
     url: "https://auth.oliverilp.ee"
     <<: *public_endpoint
 
-  - name: immich
+  - name: Immich
     url: "https://photos.oliverilp.ee"
     <<: *public_endpoint
 
-  - name: linkwarden
+  - name: Linkwarden
     url: "https://linkwarden.oliverilp.ee"
     <<: *public_endpoint
 
-  - name: memos
+  - name: Memos
     url: "https://memos.oliverilp.ee"
     <<: *public_endpoint
 
-  - name: jellyfin
+  - name: Jellyfin
     url: "https://crunchyroll.ee"
     <<: *public_endpoint
 
-  - name: stump
+  - name: Stump
     url: "https://manga.crunchyroll.ee"
     <<: *public_endpoint
