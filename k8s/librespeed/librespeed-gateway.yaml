@@ -7,7 +7,7 @@ metadata:
     external-dns.alpha.kubernetes.io/hostname: speedtest.oliverilp.ee
 spec:
   parentRefs:
-    - name: traefik-internal-gateway
+    - name: traefik-public-gateway
       namespace: traefik
   hostnames:
     - speedtest.oliverilp.ee
