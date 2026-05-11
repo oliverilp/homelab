@@ -52,6 +52,10 @@ endpoints:
     url: "https://memos.oliverilp.ee"
     <<: *public_endpoint
 
+  - name: Speedtest
+    url: "https://speedtest.oliverilp.ee"
+    <<: *public_endpoint
+
   - name: Jellyfin
     url: "https://crunchyroll.ee"
     <<: *public_endpoint

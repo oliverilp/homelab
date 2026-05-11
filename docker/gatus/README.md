@@ -54,6 +54,7 @@ This config includes only routes attached to `traefik-public-gateway`:
 - `https://photos.oliverilp.ee`
 - `https://linkwarden.oliverilp.ee`
 - `https://memos.oliverilp.ee`
+- `https://speedtest.oliverilp.ee`
 - `https://crunchyroll.ee`
 - `https://manga.crunchyroll.ee`
 
