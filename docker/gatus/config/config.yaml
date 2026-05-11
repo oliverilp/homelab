@@ -22,7 +22,7 @@ ui:
   header: "Homelab Status"
   dashboard-heading: "Public Services"
   dashboard-subheading: "External monitoring from a Docker host"
-  default-sort-by: group
+  default-sort-by: name
   dark-mode: true
 
 default-public-endpoint: &public_endpoint
@@ -37,31 +37,25 @@ default-public-endpoint: &public_endpoint
 
 endpoints:
   - name: authentik
-    group: public-identity
     url: "https://auth.oliverilp.ee"
     <<: *public_endpoint
 
   - name: immich
-    group: public-photos
     url: "https://photos.oliverilp.ee"
     <<: *public_endpoint
 
   - name: linkwarden
-    group: public-productivity
     url: "https://linkwarden.oliverilp.ee"
     <<: *public_endpoint
 
   - name: memos
-    group: public-productivity
     url: "https://memos.oliverilp.ee"
     <<: *public_endpoint
 
   - name: jellyfin
-    group: public-media
     url: "https://crunchyroll.ee"
     <<: *public_endpoint
 
   - name: stump
-    group: public-media
     url: "https://manga.crunchyroll.ee"
     <<: *public_endpoint
