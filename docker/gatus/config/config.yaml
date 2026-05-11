@@ -1,0 +1,67 @@
+web:
+  address: 0.0.0.0
+  port: 8080
+
+metrics: true
+concurrency: 6
+
+connectivity:
+  checker:
+    target: 1.1.1.1:53
+    interval: 1m
+
+storage:
+  type: sqlite
+  path: /data/data.db
+  caching: true
+  maximum-number-of-results: 263520
+  maximum-number-of-events: 1000
+
+ui:
+  title: "Homelab Status | Gatus"
+  header: "Homelab Status"
+  dashboard-heading: "Public Services"
+  dashboard-subheading: "External monitoring from a Docker host"
+  default-sort-by: group
+  dark-mode: true
+
+default-public-endpoint: &public_endpoint
+  interval: 1m
+  client:
+    timeout: 10s
+  conditions:
+    - "[CONNECTED] == true"
+    - "[STATUS] == any(200, 204, 301, 302, 303, 307, 308, 401, 403)"
+    - "[CERTIFICATE_EXPIRATION] > 240h"
+    - "[RESPONSE_TIME] < 5000"
+
+endpoints:
+  - name: authentik
+    group: public-identity
+    url: "https://auth.oliverilp.ee"
+    <<: *public_endpoint
+
+  - name: immich
+    group: public-photos
+    url: "https://photos.oliverilp.ee"
+    <<: *public_endpoint
+
+  - name: linkwarden
+    group: public-productivity
+    url: "https://linkwarden.oliverilp.ee"
+    <<: *public_endpoint
+
+  - name: memos
+    group: public-productivity
+    url: "https://memos.oliverilp.ee"
+    <<: *public_endpoint
+
+  - name: jellyfin
+    group: public-media
+    url: "https://crunchyroll.ee"
+    <<: *public_endpoint
+
+  - name: stump
+    group: public-media
+    url: "https://manga.crunchyroll.ee"
+    <<: *public_endpoint
