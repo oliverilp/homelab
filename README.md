@@ -162,7 +162,13 @@ Everything needed to run my cluster and deploy my applications.
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/alertmanager.svg"></td>
         <td><a href="https://prometheus.io/docs/alerting/latest/alertmanager/">Alertmanager</a></td>
         <td>AWS SNS</td>
-        <td>Bundled with Prometheus Operator. Currently unused, alerting to be implemented in the future.</td>
+        <td>Handles Prometheus alerts and routes notifications for cluster and application incidents.</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/gatus.svg"></td>
+        <td><a href="https://gatus.io/">Gatus</a></td>
+        <td>AWS CloudWatch Synthetics</td>
+        <td>External status dashboard that monitors public-facing services from outside the homelab.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://raw.githubusercontent.com/stakater/Reloader/refs/heads/master/assets/web/reloader.jpg"></td>
