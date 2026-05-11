@@ -14,8 +14,8 @@ storage:
   type: sqlite
   path: /data/data.db
   caching: true
-  maximum-number-of-results: 263520
-  maximum-number-of-events: 1000
+  maximum-number-of-results: 525600
+  maximum-number-of-events: 2000
 
 ui:
   title: "Homelab Status | Gatus"
