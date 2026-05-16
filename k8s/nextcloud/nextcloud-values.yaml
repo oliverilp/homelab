@@ -157,6 +157,8 @@ collabora:
       passwordKey: password
   ingress:
     enabled: false
+  startupProbe:
+    failureThreshold: 120
   resources:
     requests:
       cpu: 500m
