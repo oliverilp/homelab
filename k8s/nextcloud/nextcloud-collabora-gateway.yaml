@@ -17,5 +17,5 @@ spec:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: nextcloud-collabora-online
+        - name: nextcloud-collabora
           port: 9980
