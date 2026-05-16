@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>500 — Internal Server Error</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --accent: #f87171; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+      background: #0f172a; color: rgba(255,255,255,0.85);
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 2rem;
+      text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;
+    }
+    .scene { text-align: center; max-width: 420px; }
+    .icon-ring {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;
+    }
+    .icon-ring i { font-size: 30px; color: var(--accent); }
+    .code { font-size: 88px; font-weight: 700; line-height: 1; letter-spacing: -3px; font-variant-numeric: tabular-nums; color: var(--accent); opacity: 0.9; margin-bottom: 0.75rem; }
+    h1 { font-size: 20px; font-weight: 500; color: rgba(255,255,255,0.85); margin-bottom: 0.6rem; letter-spacing: -0.2px; }
+    p { font-size: 14px; color: rgba(255,255,255,0.42); line-height: 1.65; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px; margin-top: 1.5rem;
+      font-size: 11px; font-family: 'SF Mono', 'Fira Code', monospace; letter-spacing: 0.06em;
+      padding: 4px 10px; border-radius: 6px;
+      background: color-mix(in srgb, var(--accent) 8%, transparent);
+      color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+    .badge::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); opacity: 0.7; }
+    .retry {
+      margin-top: 1.5rem; display: inline-flex; align-items: center; gap: 8px;
+      font-size: 13px; font-family: inherit; padding: 9px 20px; border-radius: 99px;
+      border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.7); cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .retry:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); border-color: rgba(255,255,255,0.2); }
+    .retry:active { transform: scale(0.98); }
+    .divider { width: 40px; height: 1px; background: rgba(255,255,255,0.08); margin: 2rem auto; }
+    footer { font-size: 11px; font-family: 'SF Mono', 'Fira Code', monospace; color: rgba(255,255,255,0.16); letter-spacing: 0.04em; }
+  </style>
+</head>
+<body>
+  <div class="scene">
+    <div class="icon-ring" aria-hidden="true"><i class="ti ti-bug"></i></div>
+    <p class="code" aria-hidden="true">500</p>
+    <h1>Internal Server Error</h1>
+    <p>Something broke internally. Check the logs.</p>
+    <div><span class="badge">HTTP 500</span></div>
+    <button class="retry" onclick="window.location.reload()"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8.1 8.1 0 0 0 4.5 9M4 5v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg> Try again</button>
+    <div class="divider"></div>
+    <footer>traefik &middot; errors middleware</footer>
+  </div>
+</body>
+</html>

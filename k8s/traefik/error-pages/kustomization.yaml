@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: traefik
+
+resources:
+  - deployment.yaml
+  - service.yaml
+  - middleware.yaml
+  - httproute.yaml
+
+configMapGenerator:
+  - name: traefik-error-pages-html
+    files:
+      - html/400.html
+      - html/403.html
+      - html/404.html
+      - html/500.html
+      - html/502.html
+      - html/503.html
+  - name: traefik-error-pages-nginx
+    files:
+      - default.conf=nginx/default.conf
+
+generatorOptions:
+  labels:
+    app.kubernetes.io/name: traefik-error-pages
+    app.kubernetes.io/component: error-pages
+    app.kubernetes.io/part-of: traefik

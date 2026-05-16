@@ -1,0 +1,21 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: error-pages
+  labels:
+    app.kubernetes.io/name: traefik-error-pages
+    app.kubernetes.io/component: error-pages
+    app.kubernetes.io/part-of: traefik
+spec:
+  errors:
+    status:
+      - "400"
+      - "403"
+      - "404"
+      - "500"
+      - "502"
+      - "503"
+    query: "/{status}.html"
+    service:
+      name: traefik-error-pages
+      port: 80

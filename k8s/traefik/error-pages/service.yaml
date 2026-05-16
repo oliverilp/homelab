@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik-error-pages
+  labels:
+    app.kubernetes.io/name: traefik-error-pages
+    app.kubernetes.io/component: error-pages
+    app.kubernetes.io/part-of: traefik
+spec:
+  selector:
+    app.kubernetes.io/name: traefik-error-pages
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

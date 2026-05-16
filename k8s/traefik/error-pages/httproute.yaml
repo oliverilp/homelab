@@ -1,0 +1,26 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: traefik-error-pages
+  labels:
+    app.kubernetes.io/name: traefik-error-pages
+    app.kubernetes.io/component: error-pages
+    app.kubernetes.io/part-of: traefik
+spec:
+  parentRefs:
+    - name: traefik-public-gateway
+      sectionName: http
+    - name: traefik-public-gateway
+      sectionName: https
+    - name: traefik-internal-gateway
+      sectionName: http
+    - name: traefik-internal-gateway
+      sectionName: https
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: traefik-error-pages
+          port: 80
