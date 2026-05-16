@@ -1,5 +1,8 @@
 image:
-  flavor: apache
+  flavor: fpm
+
+nginx:
+  enabled: true
 
 replicaCount: 1
 
@@ -124,7 +127,7 @@ readinessProbe:
   timeoutSeconds: 10
 
 startupProbe:
-  enabled: false
+  enabled: true
   initialDelaySeconds: 30
   periodSeconds: 10
   timeoutSeconds: 10
