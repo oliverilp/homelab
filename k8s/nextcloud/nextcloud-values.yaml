@@ -92,6 +92,9 @@ cronjob:
   enabled: true
   type: cronjob
   cronjob:
+    securityContext:
+      runAsUser: 33
+      runAsGroup: 33
     resources:
       requests:
         cpu: 10m
