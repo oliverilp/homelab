@@ -4,7 +4,7 @@ image:
 nginx:
   enabled: true
 
-replicaCount: 1
+replicaCount: 2
 
 deploymentAnnotations:
   configmap.reloader.stakater.com/reload: nextcloud-homelab-config
@@ -20,6 +20,11 @@ phpClientHttpsFix:
   protocol: https
 
 nextcloud:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   host: cloud.oliverilp.ee
   trustedDomains:
     - cloud.oliverilp.ee
@@ -85,8 +90,8 @@ externalRedis:
 
 cronjob:
   enabled: true
-  type: sidecar
-  sidecar:
+  type: cronjob
+  cronjob:
     resources:
       requests:
         cpu: 10m
@@ -101,11 +106,11 @@ service:
 persistence:
   enabled: true
   existingClaim: nextcloud-html-pvc
-  accessMode: ReadWriteOnce
+  accessMode: ReadWriteMany
   nextcloudData:
     enabled: true
     existingClaim: nextcloud-data-pvc
-    accessMode: ReadWriteOnce
+    accessMode: ReadWriteMany
 
 livenessProbe:
   enabled: false
@@ -143,6 +148,7 @@ affinity:
 
 collabora:
   enabled: true
+  replicaCount: 2
   autoscaling:
     enabled: false
   collabora:
