@@ -10,7 +10,14 @@ ingress:
   enabled: false
 
 httpRoute:
-  enabled: false
+  enabled: true
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: cloud-internal.oliverilp.ee
+  parentRefs:
+    - name: traefik-internal-gateway
+      namespace: traefik
+  hostnames:
+    - cloud-internal.oliverilp.ee
 
 phpClientHttpsFix:
   enabled: true
