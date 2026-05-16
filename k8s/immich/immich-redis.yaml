@@ -10,6 +10,7 @@ metadata:
     app.kubernetes.io/part-of: immich
     app.kubernetes.io/managed-by: immich
 spec:
+  image: ghcr.io/dragonflydb/dragonfly:v1.38.1@sha256:baf70ba7ad182a992b988497cfa31a488978c8fab7712079784c2401f447e402
   replicas: 2
   args:
     - "--default_lua_flags=allow-undeclared-keys,disable-atomicity"
