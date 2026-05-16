@@ -17,6 +17,7 @@ data:
       'overwriteprotocol' => 'https',
       'maintenance_window_start' => 1,
       'default_phone_region' => 'EE',
+      'instanceid' => 'oc33k8j4gjri',
     );
   zz-homelab.ini: |-
     memory_limit=1024M
