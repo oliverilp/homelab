@@ -105,6 +105,7 @@ persistence:
     accessMode: ReadWriteOnce
 
 livenessProbe:
+  enabled: false
   initialDelaySeconds: 120
   periodSeconds: 30
   timeoutSeconds: 10
@@ -115,7 +116,7 @@ readinessProbe:
   timeoutSeconds: 10
 
 startupProbe:
-  enabled: true
+  enabled: false
   initialDelaySeconds: 30
   periodSeconds: 10
   timeoutSeconds: 10
