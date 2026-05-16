@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nextcloud-homelab-config
+  namespace: nextcloud
+data:
+  proxy.config.php: |-
+    <?php
+    $CONFIG = array (
+      'trusted_proxies' => array(
+        0 => '127.0.0.1',
+        1 => '10.0.0.0/8',
+      ),
+      'forwarded_for_headers' => array('HTTP_X_FORWARDED_FOR'),
+      'overwrite.cli.url' => 'https://cloud.oliverilp.ee',
+      'overwritehost' => 'cloud.oliverilp.ee',
+      'overwriteprotocol' => 'https',
+    );
+  zz-homelab.ini: |-
+    memory_limit=1024M
+    upload_max_filesize=16G
+    post_max_size=16G
+    max_execution_time=3600
+    max_input_time=3600

@@ -1,0 +1,134 @@
+image:
+  flavor: apache
+
+replicaCount: 1
+
+deploymentAnnotations:
+  configmap.reloader.stakater.com/reload: nextcloud-homelab-config
+
+ingress:
+  enabled: false
+
+httpRoute:
+  enabled: false
+
+phpClientHttpsFix:
+  enabled: true
+  protocol: https
+
+nextcloud:
+  host: cloud.oliverilp.ee
+  trustedDomains:
+    - cloud.oliverilp.ee
+  existingSecret:
+    enabled: true
+    secretName: nextcloud-admin-credentials
+    usernameKey: nextcloud-username
+    passwordKey: nextcloud-password
+  # The chart only renders and mounts its default config files when this map is non-empty.
+  configs:
+    defaults-enabled.config.php: |-
+      <?php
+      $CONFIG = array ();
+  extraVolumes:
+    - name: nextcloud-homelab-config
+      configMap:
+        name: nextcloud-homelab-config
+  extraVolumeMounts:
+    - name: nextcloud-homelab-config
+      mountPath: /var/www/html/config/proxy.config.php
+      subPath: proxy.config.php
+      readOnly: true
+    - name: nextcloud-homelab-config
+      mountPath: /usr/local/etc/php/conf.d/zz-homelab.ini
+      subPath: zz-homelab.ini
+      readOnly: true
+
+internalDatabase:
+  enabled: false
+
+externalDatabase:
+  enabled: true
+  type: postgresql
+  host: postgres-apps-rw.postgresql.svc.cluster.local:5432
+  database: nextclouddb
+  user: nextcloud
+  existingSecret:
+    enabled: true
+    secretName: nextcloud-postgres-auth
+    usernameKey: username
+    passwordKey: password
+
+mariadb:
+  enabled: false
+
+postgresql:
+  enabled: false
+
+redis:
+  enabled: false
+
+externalRedis:
+  enabled: true
+  host: nextcloud-dragonfly.nextcloud.svc.cluster.local
+  port: "6379"
+  existingSecret:
+    enabled: true
+    secretName: nextcloud-redis-auth
+    passwordKey: password
+
+cronjob:
+  enabled: true
+  type: sidecar
+  sidecar:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        memory: 128Mi
+
+service:
+  type: ClusterIP
+  port: 8080
+
+persistence:
+  enabled: true
+  existingClaim: nextcloud-html-pvc
+  accessMode: ReadWriteOnce
+  nextcloudData:
+    enabled: true
+    existingClaim: nextcloud-data-pvc
+    accessMode: ReadWriteOnce
+
+livenessProbe:
+  initialDelaySeconds: 120
+  periodSeconds: 30
+  timeoutSeconds: 10
+
+readinessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 15
+  timeoutSeconds: 10
+
+startupProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 10
+  failureThreshold: 30
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 512Mi
+  limits:
+    memory: 1Gi
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: DoesNotExist

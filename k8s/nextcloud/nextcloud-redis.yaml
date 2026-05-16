@@ -1,0 +1,36 @@
+apiVersion: dragonflydb.io/v1alpha1
+kind: Dragonfly
+metadata:
+  name: nextcloud-dragonfly
+  namespace: nextcloud
+  labels:
+    app.kubernetes.io/name: dragonfly
+    app.kubernetes.io/instance: nextcloud-dragonfly
+    app.kubernetes.io/component: redis
+    app.kubernetes.io/part-of: nextcloud
+    app.kubernetes.io/managed-by: nextcloud
+spec:
+  replicas: 2
+  authentication:
+    passwordFromSecret:
+      name: nextcloud-redis-auth
+      key: password
+  resources:
+    requests:
+      cpu: 10m
+      memory: 100Mi
+    limits:
+      memory: 100Mi
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: DoesNotExist
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: dragonfly
+          topologyKey: kubernetes.io/hostname

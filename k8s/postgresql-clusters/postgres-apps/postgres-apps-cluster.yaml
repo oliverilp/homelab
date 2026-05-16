@@ -63,6 +63,15 @@ spec:
         createrole: false
         passwordSecret:
           name: postgres-apps-grafana-auth
+      - name: nextcloud
+        ensure: present
+        comment: "Nextcloud application user"
+        login: true
+        superuser: false
+        createdb: false
+        createrole: false
+        passwordSecret:
+          name: postgres-apps-nextcloud-auth
 
   superuserSecret:
     name: postgres-apps-superuser-auth
