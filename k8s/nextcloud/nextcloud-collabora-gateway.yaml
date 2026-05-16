@@ -1,0 +1,21 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: nextcloud-collabora-route
+  namespace: nextcloud
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: collabora.oliverilp.ee
+spec:
+  parentRefs:
+    - name: traefik-public-gateway
+      namespace: traefik
+  hostnames:
+    - collabora.oliverilp.ee
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: nextcloud-collabora-online
+          port: 9980

@@ -13,14 +13,7 @@ ingress:
   enabled: false
 
 httpRoute:
-  enabled: true
-  annotations:
-    external-dns.alpha.kubernetes.io/hostname: cloud-internal.oliverilp.ee
-  parentRefs:
-    - name: traefik-internal-gateway
-      namespace: traefik
-  hostnames:
-    - cloud-internal.oliverilp.ee
+  enabled: false
 
 phpClientHttpsFix:
   enabled: true
@@ -147,3 +140,26 @@ affinity:
         - matchExpressions:
             - key: node-role.kubernetes.io/control-plane
               operator: DoesNotExist
+
+collabora:
+  enabled: true
+  autoscaling:
+    enabled: false
+  collabora:
+    aliasgroups:
+      - host: "https://cloud.oliverilp.ee"
+    extra_params: "--o:ssl.enabled=false --o:ssl.termination=true"
+    server_name: collabora.oliverilp.ee
+    existingSecret:
+      enabled: true
+      secretName: nextcloud-collabora-admin
+      usernameKey: username
+      passwordKey: password
+  ingress:
+    enabled: false
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      memory: 2Gi
