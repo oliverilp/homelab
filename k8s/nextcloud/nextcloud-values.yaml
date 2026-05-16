@@ -43,6 +43,9 @@ nextcloud:
       mountPath: /usr/local/etc/php/conf.d/zz-homelab.ini
       subPath: zz-homelab.ini
       readOnly: true
+  podSecurityContext:
+    fsGroup: 33
+    fsGroupChangePolicy: OnRootMismatch
 
 internalDatabase:
   enabled: false
@@ -116,7 +119,7 @@ startupProbe:
   initialDelaySeconds: 30
   periodSeconds: 10
   timeoutSeconds: 10
-  failureThreshold: 90
+  failureThreshold: 180
 
 resources:
   requests:
