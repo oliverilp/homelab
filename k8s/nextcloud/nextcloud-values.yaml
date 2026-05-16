@@ -148,7 +148,7 @@ collabora:
   collabora:
     aliasgroups:
       - host: "https://cloud.oliverilp.ee"
-    extra_params: "--o:ssl.enabled=false --o:ssl.termination=true"
+    extra_params: "--o:ssl.enabled=false --o:ssl.termination=false"
     server_name: collabora.oliverilp.ee
     existingSecret:
       enabled: true
