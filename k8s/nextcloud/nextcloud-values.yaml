@@ -116,7 +116,7 @@ startupProbe:
   initialDelaySeconds: 30
   periodSeconds: 10
   timeoutSeconds: 10
-  failureThreshold: 30
+  failureThreshold: 90
 
 resources:
   requests:
