@@ -14,9 +14,19 @@ End user applications.
         <th>Description</th>
     </tr>
     <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/nextcloud.svg"></td>
+        <td><a href="https://nextcloud.com/">Nextcloud</a></td>
+        <td>Google Drive alternative focused on document storage, sync, and sharing.</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/collabora-online.svg"></td>
+        <td><a href="https://www.collaboraonline.com/">Collabora Online</a></td>
+        <td>Google Docs and Sheets alternative integrated with Nextcloud for collaborative document editing.</td>
+    </tr>
+    <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/filestash.svg"></td>
         <td><a href="https://www.filestash.app/">Filestash</a></td>
-        <td>Google Drive alternative. Web UI for my TrueNAS SMB shares. Lightweight and more reliable than Nextcloud.</td>
+        <td>Web frontend for my TrueNAS SMB shares. SMB is faster and more reliable for large files than Nextcloud. Mostly a fallback option for phone access since macOS, iOS, and iPadOS support SMB natively.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/immich.svg"></td>
