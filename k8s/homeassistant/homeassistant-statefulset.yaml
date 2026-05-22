@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: homeassistant
-          image: ghcr.io/home-assistant/home-assistant:2026.5.1
+          image: ghcr.io/home-assistant/home-assistant:2026.5.4
           ports:
             - containerPort: 8123
               name: http
