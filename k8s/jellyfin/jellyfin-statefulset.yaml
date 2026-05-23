@@ -22,7 +22,7 @@ spec:
             nodeSelectorTerms:
             - matchExpressions:
               - key: kubernetes.io/hostname
-                operator: NotIn
+                operator: In
                 values:
                 - k8s-worker-01
       containers:
@@ -69,7 +69,7 @@ spec:
       volumes:
       - name: jellyfin-data
         persistentVolumeClaim:
-          claimName: jellyfin-data-pvc
+          claimName: jellyfin-data-local-pvc
       - name: jellyfin-media
         persistentVolumeClaim:
           claimName: jellyfin-shared-media-pvc
