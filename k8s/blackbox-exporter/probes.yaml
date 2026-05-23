@@ -19,23 +19,6 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: Probe
 metadata:
-  name: filestash
-  namespace: monitoring
-spec:
-  interval: 60s
-  module: http_external
-  prober:
-    url: blackbox-exporter.monitoring.svc.cluster.local:9115
-  targets:
-    staticConfig:
-      static:
-        - https://files.oliverilp.ee
-      labels:
-        service: filestash
----
-apiVersion: monitoring.coreos.com/v1
-kind: Probe
-metadata:
   name: homeassistant
   namespace: monitoring
 spec:

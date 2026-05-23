@@ -24,11 +24,6 @@ End user applications.
         <td>Google Docs and Sheets alternative integrated with Nextcloud for collaborative document editing.</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/filestash.svg"></td>
-        <td><a href="https://www.filestash.app/">Filestash</a></td>
-        <td>Web frontend for my TrueNAS SMB shares. SMB is faster and more reliable for large files than Nextcloud. Mostly a fallback option for phone access since macOS, iOS, and iPadOS support SMB natively.</td>
-    </tr>
-    <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/immich.svg"></td>
         <td><a href="https://immich.app/">Immich</a></td>
         <td>Google Photos alternative.</td>
