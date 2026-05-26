@@ -53,10 +53,10 @@ spec:
               value: "Europe/Tallinn"
           resources:
             requests:
-              memory: "950Mi"
+              memory: "2Gi"
               cpu: "500m"
             limits:
-              memory: "950Mi"
+              memory: "2Gi"
           volumeMounts:
             - name: immich-data
               mountPath: /usr/src/app/upload
