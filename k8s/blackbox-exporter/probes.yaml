@@ -121,6 +121,23 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: Probe
 metadata:
+  name: nextcloud
+  namespace: monitoring
+spec:
+  interval: 60s
+  module: http_external
+  prober:
+    url: blackbox-exporter.monitoring.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      static:
+        - https://cloud.oliverilp.ee
+      labels:
+        service: nextcloud
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
   name: qbittorrent
   namespace: monitoring
 spec:
