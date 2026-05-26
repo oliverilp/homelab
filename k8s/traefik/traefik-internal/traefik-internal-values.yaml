@@ -13,6 +13,11 @@ additionalArguments:
   - "--entryPoints.web.http.middlewares=traefik-error-pages@kubernetescrd"
   - "--entryPoints.websecure.http.middlewares=traefik-error-pages@kubernetescrd"
 
+ports:
+  websecure:
+    http3:
+      enabled: true
+
 gateway:
   enabled: false
 
