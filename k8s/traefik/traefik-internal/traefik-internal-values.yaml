@@ -17,6 +17,7 @@ ports:
   websecure:
     http3:
       enabled: true
+      advertisedPort: 443
 
 gateway:
   enabled: false
