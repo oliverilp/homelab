@@ -8,7 +8,7 @@ data:
     {
       "directories": [
         "/media/la-movies",
-        "/media/la-tv"
+        "/media/shows"
       ],
       "remove_languages": [
         "rus",
