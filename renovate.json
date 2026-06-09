@@ -19,14 +19,15 @@
   },
   "minimumReleaseAge": "3 days",
   "internalChecksFilter": "strict",
+  "pinDigests": true,
   "automerge": false,
   "automergeType": "pr",
   "platformAutomerge": false,
   "automergeSchedule": ["* 5 * * *"],
   "packageRules": [
     {
-      "description": "Auto-merge minor, patch and digest updates for everything",
-      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "description": "Auto-merge minor, patch, digest and digest-pin updates for everything",
+      "matchUpdateTypes": ["minor", "patch", "digest", "pinDigest"],
       "automerge": true
     },
     {
