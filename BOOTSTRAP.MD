@@ -130,14 +130,24 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snaps
 
 ### 4. Install Gateway API CRDs
 
-Install the Gateway API Custom Resource Definitions:
+The Gateway API CRDs (standard channel) are managed via GitOps in
+`k8s/gateway-api/` and applied automatically by the `gateway-api` ArgoCD
+Application (sync-wave -35, before Traefik). No manual step is required once
+the app-of-apps is deployed.
+
+> **Note:** Traefik v3.7+ (chart v40) requires Gateway API **v1.5.x**, where
+> `TLSRoute` graduated to the standard channel. With older CRDs (e.g. v1.4.0)
+> the gateway provider's informer cache fails to sync and Traefik serves its
+> default self-signed certificate. To bump the version, replace the bundle in
+> `k8s/gateway-api/` with the new `standard-install-<version>.yaml` from
+> https://github.com/kubernetes-sigs/gateway-api/releases.
+
+If you need the CRDs before ArgoCD is bootstrapped, apply the pinned bundle
+manually (server-side apply is required — the schemas exceed kubectl's
+client-side annotation limit):
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/standard/gateway.networking.k8s.io_gatewayclasses.yaml
-kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/standard/gateway.networking.k8s.io_gateways.yaml
-kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/standard/gateway.networking.k8s.io_httproutes.yaml
-kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/standard/gateway.networking.k8s.io_referencegrants.yaml
-kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/standard/gateway.networking.k8s.io_grpcroutes.yaml
+kubectl apply --server-side -f k8s/gateway-api/standard-install-v1.5.1.yaml
 ```
 
 ### 5. Install CloudNative-PG Operator
