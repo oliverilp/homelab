@@ -20,11 +20,13 @@ phpClientHttpsFix:
   protocol: https
 
 nextcloud:
+  # /var/www/html (Nextcloud code) is a shared RWX volume across replicas, so
+  # two versions must never run against it at once. Recreate terminates all old
+  # pods before new ones start; the entrypoint's flock then serializes the code
+  # rsync + `occ upgrade` cleanly. RollingUpdate here deadlocks on version bumps
+  # (new pod's rsync --delete stalls on NFS while old pods hold the files open).
   strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
+    type: Recreate
   host: cloud.oliverilp.ee
   trustedDomains:
     - cloud.oliverilp.ee
