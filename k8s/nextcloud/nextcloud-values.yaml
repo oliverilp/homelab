@@ -4,7 +4,11 @@ image:
 nginx:
   enabled: true
 
-replicaCount: 2
+# Single replica: /var/www/html (code) is on shared NFS, so the startup
+# rsync of the ~27k-file codebase deadlocks when multiple pods hold the
+# files open during a version bump. One replica + Recreate (below) lets the
+# single pod rsync the volume uncontended. HA was traded away deliberately.
+replicaCount: 1
 
 deploymentAnnotations:
   configmap.reloader.stakater.com/reload: nextcloud-homelab-config
