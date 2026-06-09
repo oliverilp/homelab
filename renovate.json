@@ -3,6 +3,7 @@
   "extends": [
     "config:recommended"
   ],
+  "timezone": "Europe/Tallinn",
   "ignorePaths": [
     "k8s/mkv-strip/mkv-strip-cronjob.yaml",
     "k8s/mkv-strip/mkv-strip-job.yaml"
@@ -15,5 +16,43 @@
   },
   "helmfile": {
     "fileMatch": ["^k8s/argocd/argocd-helmfile\\.yaml$"]
-  }
+  },
+  "minimumReleaseAge": "3 days",
+  "internalChecksFilter": "strict",
+  "automerge": false,
+  "automergeType": "pr",
+  "platformAutomerge": false,
+  "automergeSchedule": ["* 5 * * *"],
+  "packageRules": [
+    {
+      "description": "Auto-merge minor, patch and digest updates for everything",
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "automerge": true
+    },
+    {
+      "description": "Always auto-merge (including major) for selected apps",
+      "matchFileNames": [
+        "k8s/jellyfin/**",
+        "k8s/qbittorrent/**",
+        "k8s/stump/**",
+        "k8s/vaultwarden/**",
+        "k8s/memos/**",
+        "k8s/linkwarden/**",
+        "k8s/librespeed/**",
+        "k8s/homeassistant/**"
+      ],
+      "automerge": true
+    },
+    {
+      "description": "Never auto-merge the Meilisearch search DB used by Linkwarden",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["getmeili/meilisearch"],
+      "automerge": false
+    },
+    {
+      "description": "Never auto-merge the Proxmox Terraform provider",
+      "matchManagers": ["terraform"],
+      "automerge": false
+    }
+  ]
 }
