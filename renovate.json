@@ -17,7 +17,7 @@
   "helmfile": {
     "fileMatch": ["^k8s/argocd/argocd-helmfile\\.yaml$"]
   },
-  "minimumReleaseAge": "3 days",
+  "minimumReleaseAge": "2 days",
   "internalChecksFilter": "strict",
   "pinDigests": true,
   "automerge": false,
