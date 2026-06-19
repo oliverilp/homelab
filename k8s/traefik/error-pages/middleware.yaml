@@ -8,12 +8,16 @@ metadata:
     app.kubernetes.io/part-of: traefik
 spec:
   errors:
-    # Only intercept GATEWAY-level errors, where the backend never answered so
-    # there is no original body (JSON or otherwise) to preserve. Application
-    # level codes (400/401/403/404/500) are deliberately NOT listed: those are
-    # real responses from the app / forward-auth and must pass through
-    # untouched so API clients get real JSON and the auth wall keeps working.
+    # Intercept GATEWAY-level errors (502/503/504), where the backend never
+    # answered so there is no original body to preserve, plus 404 to give a
+    # branded page for unknown routes (e.g. crunchyroll.ee/<garbage>).
+    # The nginx backend only serves HTML to browsers (Accept: text/html); API
+    # and XHR clients always get JSON, so a real app 404 body is at worst
+    # swapped for a generic JSON one, never replaced with HTML.
+    # Other application codes (400/401/403/500) are deliberately NOT listed so
+    # they pass through untouched and the auth wall keeps working.
     status:
+      - "404"
       - "502"
       - "503"
       - "504"
