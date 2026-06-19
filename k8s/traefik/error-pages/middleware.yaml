@@ -8,13 +8,15 @@ metadata:
     app.kubernetes.io/part-of: traefik
 spec:
   errors:
+    # Only intercept GATEWAY-level errors, where the backend never answered so
+    # there is no original body (JSON or otherwise) to preserve. Application
+    # level codes (400/401/403/404/500) are deliberately NOT listed: those are
+    # real responses from the app / forward-auth and must pass through
+    # untouched so API clients get real JSON and the auth wall keeps working.
     status:
-      - "400"
-      - "403"
-      - "404"
-      - "500"
       - "502"
       - "503"
+      - "504"
     query: "/{status}.html"
     service:
       name: traefik-error-pages

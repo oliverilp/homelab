@@ -11,12 +11,12 @@ resources:
 configMapGenerator:
   - name: traefik-error-pages-html
     files:
-      - html/400.html
-      - html/403.html
+      # Only gateway-level pages are served now (see middleware.yaml). 404 is
+      # kept as nginx's internal fallback for unexpected requests.
       - html/404.html
-      - html/500.html
       - html/502.html
       - html/503.html
+      - html/504.html
   - name: traefik-error-pages-nginx
     files:
       - default.conf=nginx/default.conf

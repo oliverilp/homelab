@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>400 — Bad Request</title>
+  <title>504 — Gateway Timeout</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --accent: #94a3b8; }
+    :root { --accent: #fbbf24; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
       background: #0f172a; color: rgba(255,255,255,0.85);
@@ -48,12 +48,12 @@
 </head>
 <body>
   <div class="scene">
-    <div class="icon-ring" aria-hidden="true"><i class="ti ti-question-mark"></i></div>
-    <p class="code" aria-hidden="true">400</p>
-    <h1>Bad Request</h1>
-    <p>The server couldn't understand this request. Double-check the URL and try again.</p>
-    <div><span class="badge">HTTP 400</span></div>
-    
+    <div class="icon-ring" aria-hidden="true"><i class="ti ti-clock-off"></i></div>
+    <p class="code" aria-hidden="true">504</p>
+    <h1>Gateway Timeout</h1>
+    <p>The upstream service took too long to respond. Probably temporary.</p>
+    <div><span class="badge">HTTP 504</span></div>
+    <button class="retry" onclick="window.location.reload()"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8.1 8.1 0 0 0 4.5 9M4 5v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg> Try again</button>
     <div class="divider"></div>
     <footer>traefik &middot; errors middleware</footer>
   </div>
