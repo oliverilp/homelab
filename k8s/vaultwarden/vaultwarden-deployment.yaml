@@ -42,9 +42,9 @@ spec:
           resources:
             requests:
               cpu: 10m
-              memory: 150Mi
+              memory: 140Mi
             limits:
-              memory: 150Mi
+              memory: 140Mi
           volumeMounts:
             - name: vaultwarden-data
               mountPath: /data
