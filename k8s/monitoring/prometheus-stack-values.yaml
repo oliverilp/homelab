@@ -78,14 +78,14 @@ grafana:
   envFromSecret: grafana-postgres-auth
   resources:
     requests:
-      cpu: 50m
+      cpu: 30m
       memory: 750Mi
     limits:
       memory: 750Mi
   sidecar:
     resources:
       requests:
-        cpu: 40m
+        cpu: 10m
         memory: 110Mi
       limits:
         memory: 110Mi
@@ -156,9 +156,9 @@ kube-state-metrics:
   resources:
     requests:
       cpu: 10m
-      memory: 110Mi
+      memory: 100Mi
     limits:
-      memory: 110Mi
+      memory: 100Mi
 
 nodeExporter:
   enabled: true
@@ -193,9 +193,9 @@ prometheus-node-exporter:
   resources:
     requests:
       cpu: 10m
-      memory: 100Mi
+      memory: 120Mi
     limits:
-      memory: 100Mi
+      memory: 120Mi
 
 prometheusOperator:
   enabled: true
@@ -245,10 +245,10 @@ prometheus:
     podAntiAffinity: "hard"
     resources:
       requests:
-        cpu: 110m
-        memory: 4500Mi
+        cpu: 175m
+        memory: 7500Mi
       limits:
-        memory: 4500Mi
+        memory: 7500Mi
     storageSpec:
       disableMountSubPath: true
       volumeClaimTemplate:
