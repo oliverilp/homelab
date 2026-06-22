@@ -36,7 +36,7 @@ triggerLoopOnEvent: true
 
 resources:
   requests:
-    cpu: 20m
+    cpu: 90m
     memory: 130Mi
   limits:
     memory: 130Mi
