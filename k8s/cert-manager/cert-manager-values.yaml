@@ -4,9 +4,9 @@ crds:
 resources:
   requests:
     cpu: 10m
-    memory: 100Mi
+    memory: 120Mi
   limits:
-    memory: 100Mi
+    memory: 120Mi
 
 webhook:
   timeoutSeconds: 30
@@ -22,9 +22,9 @@ cainjector:
   resources:
     requests:
       cpu: 10m
-      memory: 150Mi
+      memory: 130Mi
     limits:
-      memory: 150Mi
+      memory: 130Mi
 
 startupapicheck:
   enabled: true
