@@ -117,6 +117,9 @@ Examples:
 - Keep existing workload-specific intent only when a manifest comment or user instruction clearly justifies it; otherwise use the rounded KRR target.
 - Jellyfin exception: for namespace `jellyfin`, workload `jellyfin`, container `jellyfin`, use at least `2Gi` memory request and `2Gi` memory limit, even if KRR recommends around `1400Mi`. If KRR recommends less than `2Gi`, use `2Gi`, not the current larger value merely because it already exists. If KRR recommends more than `2Gi`, round up using the normal memory tiers.
 - ArgoCD exception: The controller should have minimum of `1.5Gi` of memory.
+- Traefik error-pages exception: for namespace `traefik`, workload `traefik-error-pages`, container `nginx` (file `k8s/traefik/error-pages/deployment.yaml`), pin memory request and limit to `64Mi`, even if the rounded KRR target is higher. CPU follows the normal rounding (floor `10m`).
+- authentik-dragonfly exception: for namespace `authentik`, Dragonfly `authentik-redis` / container `dragonfly` (file `k8s/authentik/authentik-redis.yaml`), use at least `150Mi` memory request and limit. If KRR recommends less, use `150Mi`; if more, round up using the normal memory tiers. CPU follows normal rounding.
+- argocd-dragonfly exception: for namespace `argocd`, Dragonfly `argocd-redis` / container `dragonfly` (file `k8s/argocd/argocd-redis.yaml`), use at least `200Mi` memory request and limit. If KRR recommends less, use `200Mi`; if more, round up using the normal memory tiers. CPU follows normal rounding.
 - Do not create new special cases unless the user states one or the existing manifest clearly documents one.
 
 ## Editing Source Files
