@@ -44,10 +44,10 @@ server:
 
   resources:
     requests:
-      cpu: 10m
-      memory: 230Mi
+      cpu: 30m
+      memory: 200Mi
     limits:
-      memory: 230Mi
+      memory: 200Mi
 
 repoServer:
   replicas: 2
@@ -56,10 +56,10 @@ repoServer:
 
   resources:
     requests:
-      cpu: 375m
-      memory: 230Mi
+      cpu: 10m
+      memory: 250Mi
     limits:
-      memory: 230Mi
+      memory: 250Mi
 
 controller:
   metrics:
@@ -67,7 +67,7 @@ controller:
 
   resources:
     requests:
-      cpu: 90m
+      cpu: 375m
       memory: 1536Mi
     limits:
       memory: 1536Mi
@@ -76,9 +76,9 @@ applicationSet:
   resources:
     requests:
       cpu: 10m
-      memory: 100Mi
+      memory: 120Mi
     limits:
-      memory: 100Mi
+      memory: 120Mi
 
 redis:
   enabled: false

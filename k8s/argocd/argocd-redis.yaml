@@ -18,10 +18,10 @@ spec:
       key: redis-password
   resources:
     requests:
-      cpu: 10m
-      memory: 256Mi
+      cpu: 20m
+      memory: 200Mi
     limits:
-      memory: 512Mi
+      memory: 200Mi
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
