@@ -1,0 +1,47 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: argocd-alert-rules
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+spec:
+  groups:
+    - name: argocd.sync
+      interval: 1m
+      rules:
+        # App has drifted from git (yellow) and ArgoCD hasn't reconciled it back.
+        # `for: 15m` debounces routine auto-syncs — only a genuinely stuck app pages.
+        - alert: ArgoCDAppOutOfSync
+          expr: argocd_app_info{sync_status="OutOfSync"} == 1
+          for: 15m
+          labels:
+            severity: warning
+            namespace: monitoring
+          annotations:
+            summary: "ArgoCD app {{ $labels.name }} stuck OutOfSync"
+            description: "{{ $labels.name }} has been OutOfSync for 15m — git and the cluster disagree and auto-sync hasn't resolved it. Check the diff in ArgoCD."
+
+        # App is red — resources are failing or missing, not just drifted.
+        - alert: ArgoCDAppUnhealthy
+          expr: argocd_app_info{health_status=~"Degraded|Missing"} == 1
+          for: 10m
+          labels:
+            severity: critical
+            namespace: monitoring
+          annotations:
+            summary: "ArgoCD app {{ $labels.name }} unhealthy ({{ $labels.health_status }})"
+            description: "{{ $labels.name }} has been {{ $labels.health_status }} for 10m. Pods/probes may look fine but ArgoCD considers the app broken."
+
+        # A sync operation actually errored/failed (e.g. invalid manifest from a
+        # values change). Catches hard failures faster than the 15m drift alert.
+        - alert: ArgoCDAppSyncFailed
+          expr: |
+            sum by (name) (increase(argocd_app_sync_total{phase=~"Error|Failed"}[10m])) > 0
+          for: 5m
+          labels:
+            severity: warning
+            namespace: monitoring
+          annotations:
+            summary: "ArgoCD app {{ $labels.name }} sync failed"
+            description: "{{ $labels.name }} had a failed/errored sync operation in the last 10m. ArgoCD likely rejected the rendered manifests."

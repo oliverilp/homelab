@@ -41,6 +41,8 @@ server:
 
   metrics:
     enabled: true
+    serviceMonitor:
+      enabled: true
 
   resources:
     requests:
@@ -53,6 +55,8 @@ repoServer:
   replicas: 2
   metrics:
     enabled: true
+    serviceMonitor:
+      enabled: true
 
   resources:
     requests:
@@ -64,6 +68,8 @@ repoServer:
 controller:
   metrics:
     enabled: true
+    serviceMonitor:
+      enabled: true
 
   resources:
     requests:
