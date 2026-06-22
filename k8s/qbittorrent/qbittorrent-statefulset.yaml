@@ -38,10 +38,10 @@ spec:
               value: "0"
           resources:
             requests:
-              cpu: 10m
-              memory: 1200Mi
+              cpu: 20m
+              memory: 1400Mi
             limits:
-              memory: 1200Mi
+              memory: 1400Mi
           volumeMounts:
             - name: qbittorrent-data
               mountPath: /config
