@@ -17,13 +17,12 @@
   "helmfile": {
     "fileMatch": ["^k8s/argocd/argocd-helmfile\\.yaml$"]
   },
-  "minimumReleaseAge": "2 days",
+  "minimumReleaseAge": "1 day",
   "internalChecksFilter": "strict",
   "pinDigests": true,
   "automerge": false,
   "automergeType": "pr",
   "platformAutomerge": false,
-  "automergeSchedule": ["* 5 * * *"],
   "packageRules": [
     {
       "description": "Auto-merge minor, patch, digest and digest-pin updates for everything",
@@ -43,6 +42,22 @@
         "k8s/homeassistant/**"
       ],
       "automerge": true
+    },
+    {
+      "description": "Critical infra: only auto-merge on weekends so I have time to fix breakage",
+      "matchPackageNames": [
+        "cilium",
+        "traefik",
+        "csi-driver-nfs",
+        "cert-manager",
+        "external-secrets",
+        "argo-cd",
+        "cloudnative-pg",
+        "kube-prometheus-stack",
+        "authentik",
+        "nextcloud"
+      ],
+      "automergeSchedule": ["every weekend"]
     },
     {
       "description": "Never auto-merge the Meilisearch search DB used by Linkwarden",
