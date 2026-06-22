@@ -42,10 +42,10 @@ spec:
                 name: stump-app-secrets
           resources:
             requests:
-              cpu: 10m
-              memory: 600Mi
+              cpu: 70m
+              memory: 700Mi
             limits:
-              memory: 600Mi
+              memory: 700Mi
           securityContext:
             allowPrivilegeEscalation: false
             privileged: false
