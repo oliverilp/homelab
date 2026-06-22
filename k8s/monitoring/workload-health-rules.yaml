@@ -1,0 +1,41 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: workload-health-rules
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+spec:
+  groups:
+    - name: workload.oom
+      interval: 1m
+      rules:
+        - alert: HomelabContainerOOMKilled
+          # kube_pod_container_status_last_terminated_reason is sticky: it stays
+          # 1 until the container terminates again for a different reason. Gate it
+          # on a restart counted in the same window so we fire on a *fresh* OOM
+          # event, not a stale one from hours ago.
+          expr: |
+            (max_over_time(kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}[10m]) == 1)
+            and on (namespace, pod, container)
+            (increase(kube_pod_container_status_restarts_total[10m]) > 0)
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container }}) was OOMKilled"
+            description: "Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} hit its memory limit and was OOMKilled. Raise its memory request/limit (re-run krr) or investigate a leak."
+
+    - name: workload.restarts
+      interval: 1m
+      rules:
+        - alert: HomelabContainerRestartingFrequently
+          # Catches crashloops regardless of cause (OOM, panic, failed probe).
+          expr: |
+            increase(kube_pod_container_status_restarts_total[15m]) > 3
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container }}) is restarting repeatedly"
+            description: "Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} restarted {{ $value | printf \"%.0f\" }} times in 15m (possible crashloop)."
