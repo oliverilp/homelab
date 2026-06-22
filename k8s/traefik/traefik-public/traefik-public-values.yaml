@@ -44,10 +44,10 @@ deployment:
 
 resources:
   requests:
-    cpu: 50m
-    memory: 200Mi
+    cpu: 350m
+    memory: 180Mi
   limits:
-    memory: 200Mi
+    memory: 180Mi
 
 affinity:
   nodeAffinity:
