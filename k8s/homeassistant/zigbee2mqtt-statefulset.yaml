@@ -39,7 +39,7 @@ spec:
               readOnly: true
       containers:
         - name: zigbee2mqtt
-          image: koenkk/zigbee2mqtt:2.11.0
+          image: koenkk/zigbee2mqtt:2.12.0@sha256:1debff565ab6841417bd9f7ce8ad44f8c5f25a8b02a24ce3fd79e4779a4763a5
           ports:
             - containerPort: 8080
               name: http
