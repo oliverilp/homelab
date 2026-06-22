@@ -66,10 +66,10 @@ spec:
                   key: key
           resources:
             requests:
-              memory: "1100Mi"
+              memory: "1200Mi"
               cpu: "10m"
             limits:
-              memory: "1100Mi"
+              memory: "1200Mi"
           volumeMounts:
             - name: linkwarden-data
               mountPath: /data/data
