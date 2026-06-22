@@ -18,11 +18,10 @@ spec:
       key: password
   resources:
     requests:
-      cpu: 500m
-      memory: 256Mi
+      cpu: 20m
+      memory: 100Mi
     limits:
-      cpu: 600m
-      memory: 512Mi
+      memory: 100Mi
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
