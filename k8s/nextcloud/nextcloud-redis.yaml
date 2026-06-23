@@ -16,6 +16,8 @@ spec:
     passwordFromSecret:
       name: nextcloud-redis-auth
       key: password
+  args:
+    - --proactor_threads=1
   resources:
     requests:
       cpu: 20m
