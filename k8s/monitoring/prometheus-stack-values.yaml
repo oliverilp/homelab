@@ -82,6 +82,12 @@ grafana:
       memory: 750Mi
     limits:
       memory: 750Mi
+  additionalDataSources:
+    - name: Prometheus Long-term
+      type: prometheus
+      access: proxy
+      url: http://prometheus-longterm.monitoring.svc:9090
+      isDefault: false
   sidecar:
     resources:
       requests:
@@ -237,7 +243,10 @@ prometheus:
     serviceMonitorSelectorNilUsesHelmValues: false
     podMonitorSelectorNilUsesHelmValues: false
     probeSelectorNilUsesHelmValues: false
-    retention: 365d
+    retention: 30d
+    retentionSize: "20GB"
+    externalLabels:
+      tier: main
     enableAdminAPI: true
     walCompression: true
     scrapeInterval: 30s
@@ -257,7 +266,7 @@ prometheus:
           accessModes: ["ReadWriteOnce"]
           resources:
             requests:
-              storage: 150Gi
+              storage: 30Gi
 
 thanosRuler:
   enabled: false

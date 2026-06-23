@@ -1,0 +1,71 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: prometheus-longterm
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+spec:
+  serviceAccountName: prometheus-prometheus        # reuse existing RBAC
+  replicas: 1                                       # archive, no HA
+  retention: 10y                                    # high ceiling; size cap is the real limit
+  retentionSize: "4GB"                              # effective cap (PVC is 5Gi)
+  walCompression: true
+  scrapeInterval: 30s
+  evaluationInterval: 30s
+  externalLabels:
+    tier: longterm
+  # scrape ONLY the uptime probes; ignore every exporter/servicemonitor
+  probeSelector: {}                                 # {} = ALL Probe CRs (all yours are uptime)
+  probeNamespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: monitoring
+  # serviceMonitorSelector / podMonitorSelector intentionally omitted
+  # -> nil selector on a raw Prometheus CR selects NOTHING (no apiserver/etcd/node noise)
+  # ruleSelector intentionally omitted -> stores raw probe_success only
+  securityContext:                                  # match main: local-path needs chown + fsGroup
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+  initContainers:
+    - name: fix-permissions
+      image: busybox:1.37
+      command: ["sh", "-c", "chown -R 1000:1000 /prometheus"]
+      securityContext:
+        runAsNonRoot: false
+        runAsUser: 0
+      volumeMounts:
+        - name: prometheus-prometheus-longterm-db   # operator names vol prometheus-<crname>-db
+          mountPath: /prometheus
+  resources:
+    requests:
+      cpu: 25m
+      memory: 400Mi
+    limits:
+      memory: 512Mi
+  storage:
+    disableMountSubPath: true
+    volumeClaimTemplate:
+      spec:
+        storageClassName: local-path
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-longterm
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+spec:
+  selector:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/instance: prometheus-longterm   # operator labels LT pods with this
+  ports:
+    - name: http-web
+      port: 9090
+      targetPort: 9090
