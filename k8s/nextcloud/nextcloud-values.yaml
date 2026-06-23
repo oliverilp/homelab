@@ -63,6 +63,10 @@ nextcloud:
       mountPath: /usr/local/etc/php/conf.d/zz-homelab.ini
       subPath: zz-homelab.ini
       readOnly: true
+    - name: nextcloud-homelab-config
+      mountPath: /usr/local/etc/php-fpm.d/zz-homelab.conf
+      subPath: zz-homelab-fpm.conf
+      readOnly: true
   podSecurityContext:
     fsGroup: 33
     fsGroupChangePolicy: OnRootMismatch

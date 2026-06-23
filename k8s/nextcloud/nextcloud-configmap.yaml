@@ -29,3 +29,10 @@ data:
     post_max_size=16G
     max_execution_time=3600
     max_input_time=3600
+  zz-homelab-fpm.conf: |-
+    [www]
+    pm = dynamic
+    pm.max_children = 20
+    pm.start_servers = 4
+    pm.min_spare_servers = 2
+    pm.max_spare_servers = 6
