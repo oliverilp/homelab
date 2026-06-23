@@ -70,6 +70,18 @@ nextcloud:
   podSecurityContext:
     fsGroup: 33
     fsGroupChangePolicy: OnRootMismatch
+  lifecycle:
+    postStart:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - |
+            php occ upgrade --no-interaction
+            php occ db:add-missing-columns
+            php occ db:add-missing-indices
+            php occ db:add-missing-primary-keys
+            php occ maintenance:mode --off
 
 internalDatabase:
   enabled: false
