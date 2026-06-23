@@ -14,7 +14,7 @@ resource "proxmox_vm_qemu" "vm" {
   automatic_reboot = false
   vm_state = var.vm_state
   os_type = "cloud-init"
-  clone = "talos-v1.10.4"
+  clone = "talos-v1.13.5"
   scsihw = "virtio-scsi-single"
   # boot = "order=scsi0;ide2;net0"
   onboot = var.onboot
