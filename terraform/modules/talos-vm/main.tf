@@ -47,6 +47,15 @@ resource "proxmox_vm_qemu" "vm" {
           size = var.disk_size
         }
       }
+      dynamic "scsi1" {
+        for_each = var.ceph_disk_size > 0 ? [1] : []
+        content {
+          disk {
+            storage = "${var.target_node}-nvme"
+            size    = var.ceph_disk_size
+          }
+        }
+      }
     }
     ide {
       ide2 {

@@ -98,3 +98,9 @@ variable "gateway" {
   type        = string
   default     = "10.1.1.1"
 }
+
+variable "ceph_disk_size" {
+  description = "Size of the Ceph OSD disk in GB (0 = no Ceph disk)"
+  type        = number
+  default     = 0
+}
