@@ -16,15 +16,6 @@ spec:
       labels:
         app: jellyfin
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: kubernetes.io/hostname
-                operator: In
-                values:
-                - k8s-worker-01
       containers:
       - name: jellyfin
         image: jellyfin/jellyfin:10.11.11
@@ -58,7 +49,7 @@ spec:
             port: 8096
           periodSeconds: 30
           timeoutSeconds: 10
-          failureThreshold: 3
+          failureThreshold: 6
         readinessProbe:
           httpGet:
             path: /health
@@ -69,7 +60,7 @@ spec:
       volumes:
       - name: jellyfin-data
         persistentVolumeClaim:
-          claimName: jellyfin-data-local-pvc
+          claimName: jellyfin-data-pvc
       - name: jellyfin-media
         persistentVolumeClaim:
           claimName: jellyfin-shared-media-pvc
