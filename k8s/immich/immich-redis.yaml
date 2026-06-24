@@ -14,6 +14,7 @@ spec:
   replicas: 2
   args:
     - "--default_lua_flags=allow-undeclared-keys,disable-atomicity"
+    - --proactor_threads=1
   authentication:
     passwordFromSecret:
       name: immich-redis-auth
