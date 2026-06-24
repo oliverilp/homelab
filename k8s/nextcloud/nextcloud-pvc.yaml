@@ -6,7 +6,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: nfs-app-data
+  storageClassName: ceph-filesystem
   resources:
     requests:
       storage: 20Gi
@@ -19,7 +19,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: nfs-app-data
+  storageClassName: ceph-filesystem
   resources:
     requests:
       storage: 200Gi
