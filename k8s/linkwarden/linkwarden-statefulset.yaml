@@ -92,4 +92,4 @@ spec:
       volumes:
         - name: linkwarden-data
           persistentVolumeClaim:
-            claimName: linkwarden-data
+            claimName: linkwarden-data-pvc
