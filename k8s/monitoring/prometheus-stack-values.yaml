@@ -255,7 +255,7 @@ prometheus:
     resources:
       requests:
         cpu: 175m
-        memory: 7500Mi
+        memory: 2Gi
       limits:
         memory: 7500Mi
     storageSpec:
