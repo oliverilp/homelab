@@ -54,4 +54,4 @@ spec:
       volumes:
         - name: meilisearch-data
           persistentVolumeClaim:
-            claimName: meilisearch-data
+            claimName: meilisearch-data-pvc

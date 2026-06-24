@@ -59,4 +59,4 @@ spec:
       volumes:
         - name: memos-data
           persistentVolumeClaim:
-            claimName: memos-data
+            claimName: memos-data-pvc
