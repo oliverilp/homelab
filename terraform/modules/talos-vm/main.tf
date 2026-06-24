@@ -47,15 +47,10 @@ resource "proxmox_vm_qemu" "vm" {
           size = var.disk_size
         }
       }
-      dynamic "scsi1" {
-        for_each = var.ceph_disk_size > 0 ? [1] : []
-        content {
-          disk {
-            storage = "${var.target_node}-nvme"
-            size    = var.ceph_disk_size
-          }
-        }
-      }
+      # Ceph OSD disk is attached as raw LV passthrough outside Terraform
+      # (e.g. /dev/<host>-nvme/ceph-osd-0) so it survives VM destroy/recreate.
+      # Re-attach after recreating a worker:
+      #   qm set <vmid> --scsi1 /dev/<host>-nvme/ceph-osd-0,replicate=0
     }
     ide {
       ide2 {
@@ -77,4 +72,8 @@ resource "proxmox_vm_qemu" "vm" {
   memory = var.memory
   balloon = var.balloon
   ipconfig0 = "ip=${var.ip_base}${count.index + var.ip_offset}/24,gw=${var.gateway}"
+
+  lifecycle {
+    ignore_changes = [disks]
+  }
 }
