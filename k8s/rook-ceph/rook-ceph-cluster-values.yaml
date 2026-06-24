@@ -25,23 +25,21 @@ cephClusterSpec:
     useAllNodes: true
     useAllDevices: false
     deviceFilter: "^sdb$" # only the empty ~761G passthrough disk; never /dev/sda (boot)
-  # Trim the chart's production-sized resource *requests* to fit this homelab.
-  # The scheduler reserves on requests, and the defaults (osd 4Gi/1cpu, mon 1Gi/1cpu)
-  # filled the workers to ~99% and blocked other pods. Limits stay generous so pods can
-  # still burst. Rook auto-derives osd_memory_target from the OSD request, so lowering it
-  # also caps actual OSD cache usage (no OOM risk). Other components (prepareosd,
-  # crashcollector, exporter, …) keep their small chart defaults.
+  # Note: Rook derives osd_memory_target from the OSD *request* (2Gi), so an OSD normally
+  # targets ~2Gi of cache and won't approach its 4Gi limit — the limit is purely a safety
+  # ceiling for transient spikes. Other components (prepareosd, crashcollector, exporter,
+  # …) keep their small chart defaults.
   resources:
     mon:
       requests:
         cpu: "250m"
         memory: "512Mi"
       limits:
-        memory: "1Gi"
+        memory: "2Gi"
     mgr:
       requests:
         cpu: "250m"
-        memory: "256Mi"
+        memory: "512Mi"
       limits:
         memory: "1Gi"
     osd:
@@ -49,7 +47,7 @@ cephClusterSpec:
         cpu: "500m"
         memory: "2Gi"
       limits:
-        memory: "3Gi"
+        memory: "4Gi"
 
 # Disable the chart's default pools / filesystems / object stores — out of scope for now.
 cephBlockPools: []
