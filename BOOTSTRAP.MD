@@ -34,14 +34,30 @@ Before proceeding, ensure your Proxmox infrastructure is provisioned using Terra
 
 ### 1. Generate Talos Configuration
 
-Generate image from (update version):
-https://factory.talos.dev/?arch=amd64&cmdline-set=true&extensions=-&extensions=siderolabs%2Fqemu-guest-agent&platform=nocloud&target=cloud&version=v1.12.2
+Schematic (nocloud + qemu-guest-agent): `ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515`
+
+Generate image from (update version as needed):
+https://factory.talos.dev/?arch=amd64&cmdline-set=true&extensions=-&extensions=siderolabs%2Fqemu-guest-agent&platform=nocloud&target=cloud&version=1.13.5
+
+**Create the Proxmox VM template** (run on each Proxmox host, replace `<node>` with e.g. `casper`):
+```bash
+wget -O /tmp/talos-v1.13.5.raw.xz \
+  "https://factory.talos.dev/image/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515/v1.13.5/nocloud-amd64.raw.xz"
+xz -d /tmp/talos-v1.13.5.raw.xz
+qm create 9000 --name talos-v1.13.5 --memory 2048 --cores 2 --net0 virtio,bridge=vmbr0
+qm importdisk 9000 /tmp/talos-v1.13.5.raw <node>-nvme
+qm set 9000 --scsihw virtio-scsi-pci --scsi0 <node>-nvme:vm-9000-disk-0
+qm set 9000 --boot c --bootdisk scsi0
+qm template 9000
+```
+The terraform module clones from `talos-v1.13.5` — update `terraform/modules/talos-vm/main.tf` if the template name changes.
 
 Generate the initial cluster configuration with custom patches:
 
 ```bash
 talosctl gen config magi https://10.1.20.10:6443 \
---install-image factory.talos.dev/nocloud-installer/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515:v1.12.2 \
+--install-image factory.talos.dev/nocloud-installer/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515:v1.13.5 \
+--kubernetes-version v1.35.3 \
 --with-secrets secrets.yaml \
 --config-patch @patches/cni.yaml \
 --config-patch @patches/dns.yaml \
@@ -309,7 +325,7 @@ All subsequent deployments are automated through ArgoCD applications defined in 
 
 ## Network Architecture
 
-- **VIP**: 10.1.20.30 (Kubernetes API)
+- **VIP**: 10.1.20.10 (Kubernetes API)
 - **Control Plane**: 10.1.20.11-13
 - **Workers**: 10.1.20.21-23
 - **LoadBalancer Pool**: 10.1.20.100-120
