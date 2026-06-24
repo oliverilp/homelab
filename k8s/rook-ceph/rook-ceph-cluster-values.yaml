@@ -73,5 +73,44 @@ cephBlockPools:
         csi.storage.k8s.io/node-stage-secret-namespace: "{{ .Release.Namespace }}"
         csi.storage.k8s.io/fstype: ext4
 
-cephFileSystems: []
+cephFileSystems:
+  - name: ceph-filesystem
+    spec:
+      metadataPool:
+        replicated:
+          size: 3
+      dataPools:
+        - name: data0
+          failureDomain: host
+          replicated:
+            size: 3
+      metadataServer:
+        activeCount: 1
+        activeStandby: true # 2 MDS pods: 1 active + 1 hot standby (HA)
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "1Gi"
+          limits:
+            memory: "4Gi"
+    storageClass:
+      enabled: true
+      name: ceph-filesystem
+      isDefault: false
+      reclaimPolicy: Retain
+      allowVolumeExpansion: true
+      volumeBindingMode: Immediate
+      parameters:
+        fsName: ceph-filesystem
+        # Rook names the RADOS data pool <fsName>-<dataPool.name> = ceph-filesystem-data0.
+        # This SC `pool` param is the only place it's referenced directly — it must match
+        # the generated pool name. PVCs/apps never see it.
+        pool: ceph-filesystem-data0
+        csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
+        csi.storage.k8s.io/provisioner-secret-namespace: "{{ .Release.Namespace }}"
+        csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
+        csi.storage.k8s.io/controller-expand-secret-namespace: "{{ .Release.Namespace }}"
+        csi.storage.k8s.io/node-stage-secret-name: rook-csi-cephfs-node
+        csi.storage.k8s.io/node-stage-secret-namespace: "{{ .Release.Namespace }}"
+
 cephObjectStores: []
