@@ -9,6 +9,8 @@ spec:
   parentRefs:
     - name: traefik-internal-gateway
       namespace: traefik
+      kind: Gateway
+      group: gateway.networking.k8s.io	
   hostnames:
     - ceph.oliverilp.ee
   rules:
@@ -18,4 +20,6 @@ spec:
             value: /
       backendRefs:
         - name: rook-ceph-mgr-dashboard
+          kind: Service
+          group: ''
           port: 7000
