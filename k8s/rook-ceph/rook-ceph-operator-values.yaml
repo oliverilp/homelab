@@ -1,0 +1,11 @@
+# Overrides for the rook-ceph (operator) Helm chart.
+# Chart defaults are kept intentionally minimal for this base install.
+#
+# Notably we keep the chart default `csi.installCsiOperator: true`, which installs
+# the ceph-csi-operator subchart and its CRDs. As of Rook v1.20 the operator no
+# longer deploys the CSI drivers itself — those are created separately by the
+# `ceph-csi-drivers` chart (see k8s/rook-ceph/ceph-csi-drivers-values.yaml).
+
+# Manage the Rook CRDs via this chart.
+crds:
+  enabled: true

@@ -1,0 +1,35 @@
+# Values for the ceph-csi-drivers chart (https://ceph.github.io/ceph-csi-operator).
+# As of Rook v1.20 the CSI drivers are admin-managed via the ceph-csi-operator, which
+# is installed by the rook-ceph operator chart. This chart creates the Driver CRs that
+# the ceph-csi-operator reconciles into the actual RBD/CephFS CSI driver pods.
+#
+# Based on Rook's recommended values
+# (deploy/charts/ceph-csi-drivers/values.yaml @ v1.20.1). The drivers fail if configured
+# with chart defaults alone, so these are required.
+#
+# Driver names use the `rook-ceph.*` prefix so the StorageClasses created later by the
+# rook-ceph-cluster chart match these provisioners.
+
+operatorConfig:
+  namespace: rook-ceph
+  driverSpecDefaults:
+    imageSet:
+      name: rook-csi-operator-image-set-configmap
+    nodePlugin:
+      priorityClassName: system-node-critical
+    controllerPlugin:
+      priorityClassName: system-cluster-critical
+
+drivers:
+  rbd:
+    enabled: true
+    name: rook-ceph.rbd.csi.ceph.com
+  cephfs:
+    enabled: true
+    name: rook-ceph.cephfs.csi.ceph.com
+  nfs:
+    enabled: false
+    name: rook-ceph.nfs.csi.ceph.com
+  nvmeof:
+    enabled: false
+    name: rook-ceph.nvmeof.csi.ceph.com

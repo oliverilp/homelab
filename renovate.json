@@ -70,6 +70,11 @@
       "description": "Never auto-merge the Proxmox Terraform provider",
       "matchManagers": ["terraform"],
       "automerge": false
+    },
+    {
+      "description": "Never auto-merge Rook Ceph storage charts; open the PR but merge manually",
+      "matchPackageNames": ["rook-ceph", "rook-ceph-cluster", "ceph-csi-drivers"],
+      "automerge": false
     }
   ]
 }

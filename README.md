@@ -212,6 +212,12 @@ Everything needed to run my cluster and deploy my applications.
         <td>Used to provision block storage with the NFS CSI driver on my TrueNAS server. I'm planning to migrate to Rook Ceph in the near future.</td>
     </tr>
     <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/ceph.svg"></td>
+        <td><a href="https://rook.io/">Rook Ceph</a></td>
+        <td>AWS EBS</td>
+        <td>Cloud-native distributed storage running on local NVMe-backed disks across the worker nodes. Provides a self-hosted alternative to NFS for latency-sensitive workloads.</td>
+    </tr>
+    <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/proxmox.svg"></td>
         <td><a href="https://www.proxmox.com/en/products/proxmox-virtual-environment/overview">Proxmox VE</a></td>
         <td>AWS EC2</td>

@@ -1,0 +1,32 @@
+# Overrides for the rook-ceph-cluster Helm chart (CephCluster CR).
+# Bare-minimum cluster: mons, mgrs, OSDs on the passthrough disk, and the dashboard.
+# No CephBlockPool / CephFilesystem / CephObjectStore / StorageClass yet — those are a
+# follow-up once the cluster reports HEALTH_OK.
+
+operatorNamespace: rook-ceph
+
+toolbox:
+  enabled: true # rook-ceph-tools pod for `ceph status` debugging
+
+monitoring:
+  enabled: false # defer ServiceMonitor / PrometheusRules wiring
+
+cephClusterSpec:
+  mon:
+    count: 3
+    allowMultiplePerNode: false
+  mgr:
+    count: 3
+    allowMultiplePerNode: false
+  dashboard:
+    enabled: true
+    ssl: false
+  storage:
+    useAllNodes: true
+    useAllDevices: false
+    deviceFilter: "^sdb$" # only the empty ~761G passthrough disk; never /dev/sda (boot)
+
+# Disable the chart's default pools / filesystems / object stores — out of scope for now.
+cephBlockPools: []
+cephFileSystems: []
+cephObjectStores: []

@@ -1,0 +1,11 @@
+# Talos enforces PodSecurity; Rook operator/mon/mgr/OSD and the CSI driver pods
+# require the privileged level, so the namespace is declared explicitly with the
+# privileged PSA labels (rather than relying on ArgoCD CreateNamespace alone).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rook-ceph
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/warn: privileged
+    pod-security.kubernetes.io/audit: privileged

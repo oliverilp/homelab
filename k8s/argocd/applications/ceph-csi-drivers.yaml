@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ceph-csi-drivers
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "-6"
+spec:
+  project: default
+  sources:
+    - repoURL: https://ceph.github.io/ceph-csi-operator
+      chart: ceph-csi-drivers
+      targetRevision: 1.0.1
+      helm:
+        releaseName: ceph-csi-drivers
+        valueFiles:
+          - $values/k8s/rook-ceph/ceph-csi-drivers-values.yaml
+    - repoURL: "git@github.com:oliverilp/homelab.git"
+      targetRevision: HEAD
+      ref: values
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: rook-ceph
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
