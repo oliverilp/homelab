@@ -20,7 +20,7 @@ locals {
     memory          = 22528
     balloon         = 0
     disk_size       = 150
-    ceph_disk_size  = 750
+    ceph_disk_size  = 761
     gateway         = "10.1.20.1"
     ip_base         = "10.1.20.2"
     network_tag     = 20
