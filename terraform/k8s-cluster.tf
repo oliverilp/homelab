@@ -16,7 +16,7 @@ locals {
   worker_defaults = {
     vmid_prefix     = "41"
     name_prefix     = "k8s-worker"
-    cpu_cores       = 6
+    cpu_cores       = 16
     memory          = 22528
     balloon         = 0
     disk_size       = 150
