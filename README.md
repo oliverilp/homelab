@@ -208,14 +208,14 @@ Everything needed to run my cluster and deploy my applications.
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/truenas.svg"></td>
         <td><a href="https://www.truenas.com/">TrueNAS</a></td>
-        <td>AWS EBS</td>
-        <td>Used to provision block storage with the NFS CSI driver on my TrueNAS server. I'm planning to migrate to Rook Ceph in the near future.</td>
+        <td>AWS EFS</td>
+        <td>Bulk HDD storage for media libraries, mounted as static NFS volumes. The Minisforum worker nodes have no SATA ports or HDD bays, so large datasets live on the TrueNAS HDD pool.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/ceph.svg"></td>
         <td><a href="https://rook.io/">Rook Ceph</a></td>
         <td>AWS EBS</td>
-        <td>Cloud-native distributed storage running on local NVMe-backed disks across the worker nodes. Provides a self-hosted alternative to NFS for latency-sensitive workloads.</td>
+        <td>Cloud-native distributed storage on local NVMe across the worker nodes. Primary storage for all application data — block volumes via RBD and shared filesystems via CephFS.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/proxmox.svg"></td>
@@ -255,7 +255,7 @@ Three bare-metal servers form the foundation of this homelab: **Melchior**, **Ba
 
 All nodes run Proxmox VE in a cluster. Each node hosts Kubernetes control plane and worker VMs. Melchior additionally runs TrueNAS (storage) and a Windows 11 VM for game servers. Each server uses **dual network cables** in active/backup bond mode for fault tolerance against cable or switch failures.
 
-**Why ECC memory on Melchior?** ECC (Error-Correcting Code) memory detects and fixes random bit flips in RAM that would otherwise cause crashes or silent data corruption. Since TrueNAS is a single point of failure for most storage, ECC is essential for both uptime and data integrity.
+**Why ECC memory on Melchior?** ECC (Error-Correcting Code) memory detects and fixes random bit flips in RAM that would otherwise cause crashes or silent data corruption. Since TrueNAS is a single point of failure for bulk media storage, ECC is essential for both uptime and data integrity.
 
 **Why NVMe on all nodes?** Both etcd (Kubernetes cluster state) and PostgreSQL databases require sub-millisecond disk latency. Slow storage causes cluster timeouts and poor database performance.
 
@@ -298,12 +298,16 @@ Traffic isolation using 802.1Q VLANs across the network:
 
 | Storage Class | Backend | Use Case |
 |--------------|---------|----------|
-| `nfs-csi` | TrueNAS NFS | Application data, media libraries |
+| `ceph-block` | Rook Ceph RBD on NVMe | Single-writer application data (RWO) |
+| `ceph-filesystem` | Rook Ceph CephFS on NVMe | Shared application data (RWX) |
+| static NFS PVs | TrueNAS HDD | Bulk media libraries (Jellyfin, Stump, qBittorrent) |
 | `local-path` | Node NVMe | Prometheus metrics, PostgreSQL databases |
 
-**TrueNAS** (10.1.30.10) serves as the primary storage backend:
+**Rook Ceph** (NVMe across the workers) is the primary backend for all application data, replicated 3× for high availability.
 
-- **NFS shares** for Kubernetes persistent volumes via CSI driver
+**TrueNAS** (10.1.30.10) provides bulk HDD storage. The Minisforum worker nodes have no SATA ports or HDD bays, so large media libraries live on TrueNAS's HDD pool and are mounted as static NFS volumes:
+
+- **NFS shares** for bulk media libraries (Jellyfin, Stump, qBittorrent)
 - **SMB shares** for macOS Time Machine backups and file access from personal devices
 - **ZFS RAIDZ1** with snapshots and scheduled scrubbing — tolerates one disk failure without downtime or data loss
 
