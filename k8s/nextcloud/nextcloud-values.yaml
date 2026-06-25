@@ -10,11 +10,14 @@ nginx:
     limits:
       memory: 100Mi
 
-# Single replica: /var/www/html (code) is on shared NFS, so the startup
-# rsync of the ~27k-file codebase deadlocks when multiple pods hold the
-# files open during a version bump. One replica + Recreate (below) lets the
-# single pod rsync the volume uncontended. HA was traded away deliberately.
-replicaCount: 1
+# Two replicas for HA: survive a single worker failure or `kubectl drain` with
+# no real outage. Both Nextcloud PVCs are now on CephFS (RWX, proper POSIX
+# flock), which unblocks multi-replica — the old NFS deadlock (the entrypoint
+# rsyncs the ~27k-file codebase into shared /var/www/html under flock, and NFS
+# advisory locking is unreliable) no longer applies. HA across pods/nodes comes
+# from 2 replicas + PDB + anti-affinity (see below), independent of update
+# strategy. All deps are already HA (Dragonfly, CNPG postgres-apps, Collabora).
+replicaCount: 2
 
 deploymentAnnotations:
   configmap.reloader.stakater.com/reload: nextcloud-homelab-config
@@ -30,11 +33,15 @@ phpClientHttpsFix:
   protocol: https
 
 nextcloud:
-  # /var/www/html (Nextcloud code) is a shared RWX volume across replicas, so
-  # two versions must never run against it at once. Recreate terminates all old
-  # pods before new ones start; the entrypoint's flock then serializes the code
-  # rsync + `occ upgrade` cleanly. RollingUpdate here deadlocks on version bumps
-  # (new pod's rsync --delete stalls on NFS while old pods hold the files open).
+  # HA (against node/pod failure) = 2 replicas + PDB + anti-affinity, which is
+  # independent of update strategy (strategy gates rollouts, not evictions or
+  # failures). Recreate is retained because /var/www/html (the Nextcloud code)
+  # is a single shared RWX volume for all replicas: a RollingUpdate would let a
+  # new-version pod rsync new code into that shared dir while old-version pods
+  # still serve it → two code versions against one codebase → corruption.
+  # Consequence/accepted tradeoff: every pod-template change — a reloader config
+  # reload or a chart/image version bump — is a brief (~1-2 min) full-restart
+  # outage. Upgrades are always correct; that is the point of Recreate here.
   strategy:
     type: Recreate
   host: cloud.oliverilp.ee
@@ -76,12 +83,19 @@ nextcloud:
         command:
           - /bin/sh
           - -c
+          # With Recreate, both replicas start together. Serialize the upgrade
+          # across them via flock on the shared CephFS data volume so exactly
+          # one pod runs the real migrations; the other blocks then no-ops
+          # (all occ steps are idempotent). The lock inode lives on the shared
+          # nextcloud-data-pvc so every pod contends on the same file.
           - |
-            php occ upgrade --no-interaction
-            php occ db:add-missing-columns
-            php occ db:add-missing-indices
-            php occ db:add-missing-primary-keys
-            php occ maintenance:mode --off
+            flock /var/www/html/data/.occ-upgrade.lock sh -c '
+              php occ upgrade --no-interaction
+              php occ db:add-missing-columns
+              php occ db:add-missing-indices
+              php occ db:add-missing-primary-keys
+              php occ maintenance:mode --off
+            '
 
 internalDatabase:
   enabled: false
@@ -178,6 +192,16 @@ affinity:
         - matchExpressions:
             - key: node-role.kubernetes.io/control-plane
               operator: DoesNotExist
+  # Keep the 2 replicas on 2 different workers so one node failing/draining never
+  # takes out both. A drained pod can reschedule onto the 3rd (spare) worker.
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - topologyKey: kubernetes.io/hostname
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: nextcloud
+            app.kubernetes.io/instance: nextcloud
+            app.kubernetes.io/component: app
 
 collabora:
   enabled: true
