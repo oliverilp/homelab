@@ -53,8 +53,8 @@ spec:
               value: "Europe/Tallinn"
           resources:
             requests:
-              memory: "2000Mi"
-              cpu: "10m"
+              memory: "1100Mi"
+              cpu: "180m"
             limits:
               memory: "2000Mi"
           volumeMounts:
