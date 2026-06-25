@@ -18,10 +18,6 @@ data:
       'maintenance_window_start' => 1,
       'default_phone_region' => 'EE',
       'instanceid' => 'oc33k8j4gjri',
-      // Disable app store during upgrade to prevent occ upgrade from
-      // downloading/extracting app zips to NFS (causes D-state hangs).
-      // Remove after upgrade completes and richdocuments is reinstalled.
-      'appstoreenabled' => false,
     );
   zz-homelab.ini: |-
     memory_limit=1024M
