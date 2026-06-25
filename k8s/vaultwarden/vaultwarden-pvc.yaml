@@ -5,8 +5,8 @@ metadata:
   namespace: vaultwarden
 spec:
   accessModes:
-    - ReadWriteOnce
-  storageClassName: ceph-block
+    - ReadWriteMany
+  storageClassName: ceph-filesystem
   resources:
     requests:
       storage: 5Gi
