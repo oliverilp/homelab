@@ -42,9 +42,9 @@ server:
   resources:
     requests:
       cpu: 30m
-      memory: 1050Mi
+      memory: 1200Mi
     limits:
-      memory: 1050Mi
+      memory: 1200Mi
 
 worker:
   replicas: 2
@@ -66,8 +66,8 @@ worker:
           key: password
   resources:
     requests:
-      cpu: 80m
-      memory: 1300Mi
+      cpu: 70m
+      memory: 500Mi
     limits:
       memory: 1300Mi
 
