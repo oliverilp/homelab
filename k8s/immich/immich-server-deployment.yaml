@@ -6,7 +6,20 @@ metadata:
   labels:
     app: immich-server
 spec:
-  replicas: 1
+  # 2 replicas for HA: Immich supports multiple server instances behind one
+  # Service (all share the same Postgres, Dragonfly, and CephFS upload volume —
+  # see https://docs.immich.app/guides/scaling-immich/). Each replica runs both
+  # the API and microservices workers; the job queue is coordinated via Redis,
+  # so the two cooperate rather than conflict.
+  replicas: 2
+  # Unlike Nextcloud, Immich has no shared mutable code volume, so a true
+  # zero-downtime RollingUpdate is safe: bring up the new pod, wait for it to be
+  # Ready, then drop the old one.
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
     matchLabels:
       app: immich-server
@@ -15,6 +28,21 @@ spec:
       labels:
         app: immich-server
     spec:
+      # Keep the 2 replicas on different workers so one node failing/draining
+      # never takes out both; a drained pod reschedules onto the spare worker.
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: immich-server
+              topologyKey: kubernetes.io/hostname
       containers:
         - name: immich-server
           image: ghcr.io/immich-app/immich-server:v2.7.5
@@ -57,6 +85,30 @@ spec:
               cpu: "180m"
             limits:
               memory: "2000Mi"
+          # Readiness gates the Service: with 2 replicas + RollingUpdate, traffic
+          # only reaches pods that pass /api/server/ping, so a starting/rolling
+          # pod never serves errors. Startup probe covers the slow boot.
+          startupProbe:
+            httpGet:
+              path: /api/server/ping
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /api/server/ping
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /api/server/ping
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
           volumeMounts:
             - name: immich-data
               mountPath: /usr/src/app/upload

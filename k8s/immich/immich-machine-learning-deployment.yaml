@@ -6,7 +6,16 @@ metadata:
   labels:
     app: immich-machine-learning
 spec:
-  replicas: 1
+  # 2 replicas for HA: the ML service is stateless (model-cache is a shared RWX
+  # CephFS cache, not state), so a second replica just avoids an inference gap
+  # when a node fails/drains. Server contacts it via the immich-machine-learning
+  # Service, which load-balances across both.
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
     matchLabels:
       app: immich-machine-learning
@@ -15,6 +24,19 @@ spec:
       labels:
         app: immich-machine-learning
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: immich-machine-learning
+              topologyKey: kubernetes.io/hostname
       containers:
       - name: immich-machine-learning
         image: ghcr.io/immich-app/immich-machine-learning:v2.7.5
@@ -30,6 +52,27 @@ spec:
             cpu: "60m"
           limits:
             memory: "1600Mi"
+        startupProbe:
+          httpGet:
+            path: /ping
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 60
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
         volumeMounts:
         - name: model-cache
           mountPath: /cache

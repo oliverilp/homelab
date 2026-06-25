@@ -1,0 +1,21 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: immich-server
+  namespace: immich
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: immich-server
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: immich-machine-learning
+  namespace: immich
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: immich-machine-learning
