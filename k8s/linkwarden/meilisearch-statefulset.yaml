@@ -30,12 +30,14 @@ spec:
                   key: key
             - name: MEILI_ENV
               value: "production"
+            - name: MEILI_MAX_INDEXING_MEMORY
+              value: "256Mb"
           resources:
             requests:
-              memory: "200Mi"
+              memory: "256Mi"
               cpu: "10m"
             limits:
-              memory: "200Mi"
+              memory: "512Mi"
           volumeMounts:
             - name: meilisearch-data
               mountPath: /meili_data
