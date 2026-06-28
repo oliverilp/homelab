@@ -6,10 +6,6 @@ metadata:
   labels:
     app: immich-machine-learning
 spec:
-  # 2 replicas for HA: the ML service is stateless (model-cache is a shared RWX
-  # CephFS cache, not state), so a second replica just avoids an inference gap
-  # when a node fails/drains. Server contacts it via the immich-machine-learning
-  # Service, which load-balances across both.
   replicas: 2
   strategy:
     type: RollingUpdate

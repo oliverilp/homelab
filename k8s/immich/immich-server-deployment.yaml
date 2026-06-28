@@ -6,15 +6,7 @@ metadata:
   labels:
     app: immich-server
 spec:
-  # 2 replicas for HA: Immich supports multiple server instances behind one
-  # Service (all share the same Postgres, Dragonfly, and CephFS upload volume —
-  # see https://docs.immich.app/guides/scaling-immich/). Each replica runs both
-  # the API and microservices workers; the job queue is coordinated via Redis,
-  # so the two cooperate rather than conflict.
   replicas: 2
-  # Unlike Nextcloud, Immich has no shared mutable code volume, so a true
-  # zero-downtime RollingUpdate is safe: bring up the new pod, wait for it to be
-  # Ready, then drop the old one.
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -28,8 +20,6 @@ spec:
       labels:
         app: immich-server
     spec:
-      # Keep the 2 replicas on different workers so one node failing/draining
-      # never takes out both; a drained pod reschedules onto the spare worker.
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
