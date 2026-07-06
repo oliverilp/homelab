@@ -1,6 +1,9 @@
 global:
   domain: argocd.oliverilp.ee
 
+  networkPolicy:
+    create: true
+
 configs:
   cm:
     url: "https://argocd.oliverilp.ee"

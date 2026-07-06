@@ -1,0 +1,53 @@
+# The argo-cd chart only creates a NetworkPolicy for its bundled Redis,
+# which is disabled here in favor of Dragonfly. Poisoning the Redis cache
+# is the second stage of the repo-server attack chain (disclosed 2026-07),
+# so lock it down to Argo CD components, Dragonfly replication, and the
+# Dragonfly operator.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: argocd-dragonfly
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: dragonfly
+    app.kubernetes.io/instance: argocd-dragonfly
+    app.kubernetes.io/component: redis
+    app.kubernetes.io/part-of: argocd
+spec:
+  podSelector:
+    matchLabels:
+      app: argocd-dragonfly
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: argocd
+              app.kubernetes.io/name: argocd-server
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: argocd
+              app.kubernetes.io/name: argocd-repo-server
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: argocd
+              app.kubernetes.io/name: argocd-application-controller
+      ports:
+        - protocol: TCP
+          port: 6379
+    # Master <-> replica replication and operator management commands.
+    # The operator runs the admin port (9999) with --admin_nopass, so it
+    # must never be reachable from outside this allow list.
+    - from:
+        - podSelector:
+            matchLabels:
+              app: argocd-dragonfly
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: dragonfly-operator-system
+      ports:
+        - protocol: TCP
+          port: 6379
+        - protocol: TCP
+          port: 9999
