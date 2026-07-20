@@ -1,0 +1,36 @@
+# Cert for the Passbolt container's own :443 listener, which only the kubelet
+# probes talk to (Traefik terminates the public Let's Encrypt cert and forwards
+# plain HTTP to :80).
+#
+# The chart can autogenerate this, but it does so with Helm's genSignedCert,
+# which produces a different cert on every template render. Under ArgoCD that
+# means the Secret is permanently OutOfSync and selfHeal rewrites it forever.
+# cert-manager gives us a stable one instead.
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: passbolt-selfsigned-issuer
+  namespace: passbolt
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: passbolt-internal-tls
+  namespace: passbolt
+spec:
+  secretName: passbolt-internal-tls
+  dnsNames:
+    - passbolt.oliverilp.ee
+    - passbolt.passbolt.svc.cluster.local
+    - passbolt.passbolt.svc
+    - localhost
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS8
+    size: 2048
+  issuerRef:
+    name: passbolt-selfsigned-issuer
+    kind: Issuer
+    group: cert-manager.io

@@ -1,0 +1,143 @@
+# Passbolt CE — official chart, wired to the shared postgres-apps CNPG cluster
+# and a dedicated Dragonfly instance. No Bitnami subcharts.
+mariadbDependencyEnabled: false
+postgresqlDependencyEnabled: false
+redisDependencyEnabled: false
+
+replicaCount: 3
+
+# The GPG server key and JWT keypair are pre-generated and delivered via
+# ExternalSecret. Setting these is REQUIRED, not just preferred: without them the
+# chart renders pre-install Jobs that ArgoCD maps to PreSync and therefore re-runs
+# on every sync, generating a NEW GPG server key each time. A rotated server key
+# makes every secret already stored in Passbolt undecryptable.
+gpgExistingSecret: passbolt-gpg
+jwtExistingSecret: passbolt-jwt
+
+app:
+  database:
+    kind: postgresql
+  databaseInitContainer:
+    # The chart's postgresql init container runs `apt update && apt install
+    # postgresql-client` from the internet on every pod start. postgres-apps is
+    # already up long before wave 30.
+    enabled: false
+  cache:
+    redis:
+      enabled: true
+      sentinelProxy:
+        # Dragonfly, not Redis Sentinel — no HAProxy sidecar.
+        enabled: false
+  tls:
+    # Cert for the container's own :443 listener, used by the probes.
+    # NOT autogenerate: the chart builds it with genSignedCert, which yields a
+    # different cert on every render and leaves ArgoCD permanently OutOfSync.
+    # See passbolt-certificate.yaml.
+    autogenerate: false
+    existingSecret: passbolt-internal-tls
+  resources:
+    requests:
+      cpu: 50m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+
+passboltEnv:
+  # Overrides the chart-rendered env Secret so no credential lands in git.
+  # With this set, every secret env var must come from this Secret — including
+  # DATASOURCES_DEFAULT_URL, which the chart would otherwise assemble itself.
+  secretName: passbolt-env
+  plain:
+    APP_FULL_BASE_URL: https://passbolt.oliverilp.ee
+    # Traefik terminates TLS and forwards plain HTTP to :80.
+    PASSBOLT_SSL_FORCE: false
+    PASSBOLT_REGISTRATION_PUBLIC: false
+    DEBUG: false
+
+    DATASOURCES_DEFAULT_HOST: postgres-apps-rw.postgresql.svc.cluster.local
+    DATASOURCES_DEFAULT_PORT: 5432
+
+    CACHE_DEFAULT_HOST: &redisHost passbolt-dragonfly.passbolt.svc.cluster.local
+    CACHE_CAKECORE_HOST: *redisHost
+    CACHE_CAKEMODEL_HOST: *redisHost
+    CACHE_DEFAULT_PORT: 6379
+    CACHE_CAKECORE_PORT: 6379
+    CACHE_CAKEMODEL_PORT: 6379
+    CACHE_DEFAULT_CLASSNAME: Redis
+    CACHE_CAKECORE_CLASSNAME: Redis
+    CACHE_CAKEMODEL_CLASSNAME: Redis
+    # Sessions live in Dragonfly so they survive a pod being rescheduled.
+    SESSION_DEFAULTS: cache
+
+    PASSBOLT_KEY_EMAIL: passbolt@oliverilp.ee
+    PASSBOLT_PLUGINS_JWT_AUTHENTICATION_ENABLED: true
+    PASSBOLT_JWT_SERVER_KEY: /var/www/passbolt/config/jwt/jwt.key
+    PASSBOLT_JWT_SERVER_PEM: /var/www/passbolt/config/jwt/jwt.pem
+    PASSBOLT_LEGAL_PRIVACYPOLICYURL: https://www.passbolt.com/privacy
+
+    # Gmail SMTP (smtp.gmail.com). Auth is the full Google account address plus a
+    # 16-char App Password — since May 2025 a plain account password is rejected.
+    #
+    # Must match EMAIL_TRANSPORT_DEFAULT_USERNAME (the authenticated Gmail
+    # account) — Gmail rewrites or rejects any other From address.
+    EMAIL_DEFAULT_FROM: server.oliverilp@gmail.com
+    EMAIL_DEFAULT_FROM_NAME: Passbolt
+    EMAIL_TRANSPORT_DEFAULT_HOST: smtp.gmail.com
+    EMAIL_TRANSPORT_DEFAULT_PORT: 587
+    EMAIL_TRANSPORT_DEFAULT_TLS: true   # 587 = STARTTLS
+    EMAIL_TRANSPORT_DEFAULT_TIMEOUT: 30
+
+cronJobEmail:
+  enabled: true
+  schedule: "* * * * *"
+
+# Keep the 3 replicas off control-plane nodes and spread across workers.
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: DoesNotExist
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: passbolt
+          topologyKey: kubernetes.io/hostname
+
+# Probes hit the container's own HTTPS listener. The Host header must match
+# APP_FULL_BASE_URL or Passbolt answers with a redirect and the probe fails.
+livenessProbe:
+  httpGet:
+    port: https
+    scheme: HTTPS
+    path: /healthcheck/status.json
+    httpHeaders:
+      - name: Host
+        value: passbolt.oliverilp.ee
+  initialDelaySeconds: 30
+  periodSeconds: 10
+readinessProbe:
+  httpGet:
+    port: https
+    scheme: HTTPS
+    path: /healthcheck/status.json
+    httpHeaders:
+      - name: Host
+        value: passbolt.oliverilp.ee
+  initialDelaySeconds: 10
+  periodSeconds: 10
+
+ingress:
+  # Gateway API HTTPRoute instead — see passbolt-gateway.yaml.
+  enabled: false
+  # secret-tls-ingress.yaml ranges over ingress.tls regardless of
+  # ingress.enabled, and would emit another genSignedCert Secret. Empty it out.
+  tls: []
+
+networkPolicy:
+  # Hand-written policies instead — see passbolt-networkpolicy.yaml.
+  enabled: false

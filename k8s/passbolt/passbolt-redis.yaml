@@ -1,0 +1,39 @@
+apiVersion: dragonflydb.io/v1alpha1
+kind: Dragonfly
+metadata:
+  name: passbolt-dragonfly
+  namespace: passbolt
+  labels:
+    app.kubernetes.io/name: dragonfly
+    app.kubernetes.io/instance: passbolt-dragonfly
+    app.kubernetes.io/component: redis
+    app.kubernetes.io/part-of: passbolt
+    app.kubernetes.io/managed-by: passbolt
+spec:
+  image: ghcr.io/dragonflydb/dragonfly:v1.39.0@sha256:0fa01a2b929e704c7a9300d23e7f52002ebd39e90996fb8bb63826aed92fa06f
+  replicas: 2
+  args:
+    - --proactor_threads=1
+  authentication:
+    passwordFromSecret:
+      name: passbolt-redis-auth
+      key: password
+  resources:
+    requests:
+      cpu: 20m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: DoesNotExist
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: dragonfly
+          topologyKey: kubernetes.io/hostname

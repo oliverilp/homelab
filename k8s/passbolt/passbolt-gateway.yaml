@@ -1,0 +1,25 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: passbolt-route
+  namespace: passbolt
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: passbolt.oliverilp.ee
+spec:
+  parentRefs:
+    - name: traefik-public-gateway
+      namespace: traefik
+  hostnames:
+    - passbolt.oliverilp.ee
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        # The chart's Service exposes both :80 and :443 (self-signed). Traefik
+        # terminates the Let's Encrypt cert, so we talk plain HTTP to :80 and set
+        # PASSBOLT_SSL_FORCE=false. Passbolt still emits https:// URLs because
+        # those derive from APP_FULL_BASE_URL.
+        - name: passbolt
+          port: 80

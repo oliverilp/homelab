@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: passbolt
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  project: default
+  sources:
+    - repoURL: https://download.passbolt.com/charts/passbolt
+      chart: passbolt
+      targetRevision: 2.1.1
+      helm:
+        releaseName: passbolt
+        valueFiles:
+          - $values/k8s/passbolt/passbolt-values.yaml
+    - repoURL: "git@github.com:oliverilp/homelab.git"
+      targetRevision: HEAD
+      ref: values
+    - repoURL: "git@github.com:oliverilp/homelab.git"
+      path: k8s/passbolt
+      targetRevision: HEAD
+      directory:
+        exclude: passbolt-values.yaml
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: passbolt
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - Replace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
