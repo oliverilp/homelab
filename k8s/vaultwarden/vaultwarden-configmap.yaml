@@ -11,4 +11,10 @@ data:
 
   DATA_FOLDER: "/data"
 
+  # Egress to the internet is blocked by network policy, so favicon downloads
+  # would only fail and churn the logs. TTL 0 keeps already-cached icons from
+  # expiring, since they could never be re-fetched.
+  DISABLE_ICON_DOWNLOAD: "true"
+  ICON_CACHE_TTL: "0"
+
   TZ: "Europe/Tallinn"
