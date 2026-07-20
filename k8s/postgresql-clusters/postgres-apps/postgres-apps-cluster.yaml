@@ -72,6 +72,15 @@ spec:
         createrole: false
         passwordSecret:
           name: postgres-apps-nextcloud-auth
+      - name: passbolt
+        ensure: present
+        comment: "Passbolt application user"
+        login: true
+        superuser: false
+        createdb: false
+        createrole: false
+        passwordSecret:
+          name: postgres-apps-passbolt-auth
 
   superuserSecret:
     name: postgres-apps-superuser-auth
