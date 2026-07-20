@@ -39,6 +39,29 @@ spec:
           kubernetes.io/metadata.name: traefik
 
 ---
+# Allow Dragonfly operator to configure the Passbolt Dragonfly pods.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dragonfly-operator
+  namespace: passbolt
+spec:
+  podSelector:
+    matchLabels:
+      app: passbolt-dragonfly
+      app.kubernetes.io/name: dragonfly
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: dragonfly-operator-system
+    ports:
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 9999
+
+---
 # Allow health checks from Kubernetes nodes (kubelet) on web ports only
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
