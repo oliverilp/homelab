@@ -56,6 +56,10 @@ endpoints:
     url: "https://cloud.oliverilp.ee"
     <<: *public_endpoint
 
+  - name: Passbolt
+    url: "https://passbolt.oliverilp.ee"
+    <<: *public_endpoint
+
   - name: Speedtest
     url: "https://speedtest.oliverilp.ee"
     <<: *public_endpoint

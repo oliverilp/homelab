@@ -39,9 +39,14 @@ End user applications.
         <td>Open-source home automation platform for smart device control and monitoring.</td>
     </tr>
     <tr>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/passbolt.svg"></td>
+        <td><a href="https://www.passbolt.com/">Passbolt</a></td>
+        <td>Primary password manager. Replaced Vaultwarden — end-to-end encrypted with per-user OpenPGP keys, so it is safe to expose publicly.</td>
+    </tr>
+    <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/vaultwarden.svg"></td>
         <td><a href="https://github.com/dani-garcia/vaultwarden">Vaultwarden</a></td>
-        <td>Self-hosted, Bitwarden-compatible password manager.</td>
+        <td>Self-hosted, Bitwarden-compatible password manager. Kept internal-only as a fallback after the Passbolt migration.</td>
     </tr>
     <tr>
         <td><img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/memos.png"></td>
