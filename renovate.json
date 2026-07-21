@@ -76,13 +76,13 @@
       "automerge": false
     },
     {
-      "description": "Never auto-merge Rook Ceph storage charts; open the PR but merge manually",
+      "description": "Rook Ceph storage charts: minor and major land as manual PRs so I can review CRD and OSD changes first",
       "matchPackageNames": ["rook-ceph", "rook-ceph-cluster", "ceph-csi-drivers"],
       "automerge": false
     },
     {
-      "description": "Exception: ceph-csi-drivers patch releases are CSI-operator-only and safe to auto-merge. Minor and major still land as manual PRs.",
-      "matchPackageNames": ["ceph-csi-drivers"],
+      "description": "Exception: Ceph patch releases are bugfix-only and safe to auto-merge",
+      "matchPackageNames": ["rook-ceph", "rook-ceph-cluster", "ceph-csi-drivers"],
       "matchUpdateTypes": ["patch"],
       "automerge": true
     }
