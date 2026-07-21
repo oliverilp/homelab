@@ -138,6 +138,23 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: Probe
 metadata:
+  name: passbolt
+  namespace: monitoring
+spec:
+  interval: 60s
+  module: http_external
+  prober:
+    url: blackbox-exporter.monitoring.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      static:
+        - https://passbolt.oliverilp.ee
+      labels:
+        service: passbolt
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
   name: qbittorrent
   namespace: monitoring
 spec:
