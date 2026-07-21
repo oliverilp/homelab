@@ -31,6 +31,11 @@
       "automerge": true
     },
     {
+      "description": "No release-age gate on digests. They track mutable tags that get rebuilt upstream, which resets the age clock every run, so renovate/stability-days hangs pending forever and the branch is never green.",
+      "matchUpdateTypes": ["digest", "pinDigest"],
+      "minimumReleaseAge": null
+    },
+    {
       "description": "Always auto-merge (including major) for selected apps",
       "matchFileNames": [
         "k8s/jellyfin/**",
@@ -45,19 +50,18 @@
       "automerge": true
     },
     {
-      "description": "Critical infra: only auto-merge on weekends so I have time to fix breakage",
+      "description": "Critical infra: hold minor updates for the weekend so I have time to fix breakage. Patch releases are left to merge as soon as they are green.",
       "matchPackageNames": [
         "cilium",
         "traefik",
-        "csi-driver-nfs",
         "cert-manager",
         "external-secrets",
         "argo-cd",
-        "cloudnative-pg",
         "kube-prometheus-stack",
         "authentik",
         "nextcloud"
       ],
+      "matchUpdateTypes": ["minor"],
       "automergeSchedule": ["every weekend"]
     },
     {
@@ -75,6 +79,12 @@
       "description": "Never auto-merge Rook Ceph storage charts; open the PR but merge manually",
       "matchPackageNames": ["rook-ceph", "rook-ceph-cluster", "ceph-csi-drivers"],
       "automerge": false
+    },
+    {
+      "description": "Exception: ceph-csi-drivers patch releases are CSI-operator-only and safe to auto-merge. Minor and major still land as manual PRs.",
+      "matchPackageNames": ["ceph-csi-drivers"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true
     }
   ]
 }
