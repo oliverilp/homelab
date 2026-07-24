@@ -16,16 +16,36 @@ spec:
     - name: cnpg.availability
       interval: 1m
       rules:
-        # The metrics collector can't reach Postgres — instance is down or
-        # unhealthy. cnpg_collector_up is 1 per reachable instance.
+        # An instance stopped reporting entirely — pod crashed/evicted or its
+        # node went down. We alert on a DROP in the count of reporting instances,
+        # NOT on `cnpg_collector_up == 0`: when a pod/node vanishes its series
+        # goes absent (stale), it never becomes 0, so a `== 0` rule silently
+        # misses it — which is exactly why a downed replica sent no alert. The
+        # count of live series drops instead, so we compare it to the expected
+        # instance count. Both clusters run `instances: 3`; adjust if that
+        # changes. Total-cluster loss (0 series) can't fire here — node/Ceph
+        # alerts cover that.
         - alert: CNPGInstanceDown
+          expr: count by (cluster) (cnpg_collector_up) < 3
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "CNPG cluster {{ $labels.cluster }} is missing an instance"
+            description: "Only {{ $value }} of 3 instances in cluster {{ $labels.cluster }} are reporting — a pod has crashed, been evicted, or its node is offline."
+
+        # Complementary case: the pod is up and scrapeable, but its collector
+        # reports the local Postgres unreachable (crash, stuck, disk). Here the
+        # series IS present with value 0, so the count-based rule above stays
+        # quiet — this one catches it.
+        - alert: CNPGInstanceUnhealthy
           expr: cnpg_collector_up == 0
           for: 5m
           labels:
             severity: critical
           annotations:
-            summary: "CNPG instance {{ $labels.pod }} is down"
-            description: "The CloudNativePG metrics collector on {{ $labels.namespace }}/{{ $labels.pod }} (cluster {{ $labels.cluster }}) has been unreachable for 5m — the Postgres instance is likely down or unhealthy."
+            summary: "CNPG instance {{ $labels.pod }} is unhealthy"
+            description: "The CloudNativePG collector on {{ $labels.namespace }}/{{ $labels.pod }} (cluster {{ $labels.cluster }}) reports Postgres unreachable for 5m — the pod is up but the instance is unhealthy."
 
     - name: cnpg.replication
       interval: 1m
