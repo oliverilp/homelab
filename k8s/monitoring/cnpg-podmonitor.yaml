@@ -31,7 +31,8 @@ spec:
       # (which don't carry it) so ad-hoc PromQL and future alerts can filter any
       # cnpg metric by cluster. namespace/pod target labels are added automatically.
       relabelings:
-        - sourceLabels: [__meta_kubernetes_pod_label_cnpg_io_cluster]
+        - action: replace
+          sourceLabels: [__meta_kubernetes_pod_label_cnpg_io_cluster]
           targetLabel: cluster
 ---
 apiVersion: monitoring.coreos.com/v1
