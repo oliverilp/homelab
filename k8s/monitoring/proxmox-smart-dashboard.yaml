@@ -213,8 +213,8 @@ data:
         {
           "id": 6,
           "type": "stat",
-          "title": "Highest NVMe Wear",
-          "description": "Worst percentage of rated write endurance consumed across the NVMe drives. 100 = manufacturer's rated end-of-life (it can exceed 100). Alert fires at 90.",
+          "title": "Highest SSD Wear",
+          "description": "Worst percentage of rated write endurance consumed across all SSDs, NVMe and SATA. 100 = manufacturer's rated end-of-life (it can exceed 100). Alerts fire at 90.",
           "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
           "options": {
             "reduceOptions": { "calcs": ["lastNotNull"] },
@@ -240,7 +240,7 @@ data:
             "overrides": []
           },
           "targets": [
-            { "refId": "A", "expr": "max(smartctl_device_percentage_used)", "instant": true }
+            { "refId": "A", "expr": "max(max by (instance, device) (smartctl_device_percentage_used) or max by (instance, device) (100 - smartctl_device_attribute{attribute_name=~\"Wear_Leveling_Count|Media_Wearout_Indicator\",attribute_value_type=\"value\"}))", "instant": true }
           ]
         },
 
@@ -256,7 +256,7 @@ data:
           "id": 10,
           "type": "table",
           "title": "All Physical Disks",
-          "description": "Every physical disk on the hypervisors, with model and serial for RMA. Wear % is NVMe-only; sector-based wear for SATA is in the precursor table below.",
+          "description": "Every physical disk on the hypervisors, with model and serial for RMA. Wear % covers both NVMe (percentage_used) and SATA SSDs (normalized wear attribute, inverted to read as 'used'); it is blank for the spinning HDDs, which have no endurance rating.",
           "gridPos": { "h": 10, "w": 24, "x": 0, "y": 6 },
           "options": {
             "showHeader": true,
@@ -332,7 +332,7 @@ data:
             { "refId": "C", "expr": "sum by (instance, device) (smartctl_device_temperature{temperature_type=\"current\"})", "instant": true, "format": "table" },
             { "refId": "D", "expr": "smartctl_device_capacity_bytes", "instant": true, "format": "table" },
             { "refId": "E", "expr": "smartctl_device_power_on_seconds", "instant": true, "format": "table" },
-            { "refId": "F", "expr": "smartctl_device_percentage_used", "instant": true, "format": "table" },
+            { "refId": "F", "expr": "max by (instance, device) (smartctl_device_percentage_used) or max by (instance, device) (100 - smartctl_device_attribute{attribute_name=~\"Wear_Leveling_Count|Media_Wearout_Indicator\",attribute_value_type=\"value\"})", "instant": true, "format": "table" },
             { "refId": "G", "expr": "smartctl_device_bytes_written", "instant": true, "format": "table" }
           ],
           "transformations": [
@@ -587,8 +587,8 @@ data:
         {
           "id": 30,
           "type": "bargauge",
-          "title": "NVMe Endurance Used",
-          "description": "Vendor-reported percentage of rated write endurance consumed. 100 = rated end-of-life; drives keep working past it but risk climbs.",
+          "title": "SSD Endurance Used (NVMe + SATA)",
+          "description": "Percentage of rated write endurance consumed. 100 = rated end-of-life; drives keep working past it but risk climbs. NVMe reports this directly; SATA SSDs report normalized life REMAINING counting down from 100, so that series is inverted here to read as 'used'. HDDs are absent by design.",
           "gridPos": { "h": 7, "w": 8, "x": 0, "y": 34 },
           "options": {
             "reduceOptions": { "calcs": ["lastNotNull"] },
@@ -613,14 +613,15 @@ data:
             "overrides": []
           },
           "targets": [
-            { "refId": "A", "expr": "smartctl_device_percentage_used", "legendFormat": "{{instance}} {{device}}", "instant": true }
+            { "refId": "A", "expr": "smartctl_device_percentage_used", "legendFormat": "{{instance}} {{device}} (NVMe)", "instant": true },
+            { "refId": "B", "expr": "100 - smartctl_device_attribute{attribute_name=~\"Wear_Leveling_Count|Media_Wearout_Indicator\",attribute_value_type=\"value\"}", "legendFormat": "{{instance}} {{device}} (SATA)", "instant": true }
           ]
         },
 
         {
           "id": 31,
           "type": "timeseries",
-          "title": "NVMe Endurance Trend",
+          "title": "SSD Endurance Trend",
           "description": "Wear over time — the slope is what matters. Extrapolate to 100% to estimate replacement timing; a Ceph OSD or database disk climbs far faster than a boot drive. Widen the dashboard time range to see a meaningful gradient.",
           "gridPos": { "h": 7, "w": 16, "x": 8, "y": 34 },
           "options": {
@@ -643,7 +644,8 @@ data:
             "overrides": []
           },
           "targets": [
-            { "refId": "A", "expr": "smartctl_device_percentage_used", "legendFormat": "{{instance}} {{device}}" }
+            { "refId": "A", "expr": "smartctl_device_percentage_used", "legendFormat": "{{instance}} {{device}} (NVMe)" },
+            { "refId": "B", "expr": "100 - smartctl_device_attribute{attribute_name=~\"Wear_Leveling_Count|Media_Wearout_Indicator\",attribute_value_type=\"value\"}", "legendFormat": "{{instance}} {{device}} (SATA)" }
           ]
         },
 

@@ -94,6 +94,24 @@ spec:
             summary: "NVMe wear high on {{ $labels.instance }} {{ $labels.device }}"
             description: "{{ $labels.device }} on {{ $labels.instance }} is at {{ $value }}% of rated write endurance. Plan a replacement as it approaches/exceeds 100%."
 
+        # SATA SSD endurance. percentage_used is NVMe-only, so SATA needs its own
+        # rule or a worn-out SSD goes unnoticed. These report a NORMALIZED value
+        # counting DOWN from 100 (life remaining), so <= 10 means >= 90% consumed,
+        # matching the NVMe threshold above. Attribute name is vendor-specific:
+        # Samsung uses Wear_Leveling_Count (177), WD/Intel Media_Wearout_Indicator
+        # (233). Measured: melchior/sdb 76 (24% used), melchior/sda 100 (new).
+        # Both are ZFS rpool mirror members — different models and ages (2.5y vs
+        # 0.3y), so correlated wear-out is unlikely, but the mirror only survives
+        # one at a time.
+        - alert: ProxmoxSataSsdWearHigh
+          expr: smartctl_device_attribute{attribute_name=~"Wear_Leveling_Count|Media_Wearout_Indicator",attribute_value_type="value"} <= 10
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "SATA SSD wear high on {{ $labels.instance }} {{ $labels.device }}"
+            description: "{{ $labels.device }} on {{ $labels.instance }} reports {{ $value }}% of rated endurance REMAINING (>= 90% consumed). Plan a replacement — and if it's an rpool mirror member, replace before its partner also ages out."
+
         # NVMe spare blocks dropped below the drive's own critical threshold.
         # NOTE: some drives advertise a threshold of 0, in which case this never
         # fires for them — ProxmoxNvmeWearHigh and ProxmoxSmartHealthFailed cover
