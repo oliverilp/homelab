@@ -9,7 +9,17 @@ toolbox:
   enabled: true # rook-ceph-tools pod for `ceph status` debugging
 
 monitoring:
-  enabled: false # defer ServiceMonitor / PrometheusRules wiring
+  # enabled=true sets spec.monitoring.enabled on the CephCluster: the mgr
+  # `prometheus` module (9283) and the ceph-exporter daemons (9926) start
+  # reporting, and the Rook operator creates the mgr + exporter ServiceMonitors
+  # in this namespace (plus the RBAC to do so). This Prometheus discovers them
+  # cluster-wide (serviceMonitorSelectorNilUsesHelmValues: false) — no extra
+  # ServiceMonitor/RBAC needed on our side, and rook-ceph has no NetworkPolicy
+  # blocking the scrape. Grafana dashboards ship in k8s/monitoring/ceph-dashboards.yaml.
+  enabled: true
+  # Render the bundled `prometheus-ceph-rules` PrometheusRule (the official Ceph
+  # health/OSD/mon/PG/pool-capacity alerts). Picked up via the empty ruleSelector.
+  createPrometheusRules: true
 
 cephClusterSpec:
   mon:
