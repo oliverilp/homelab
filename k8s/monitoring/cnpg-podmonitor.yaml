@@ -1,0 +1,54 @@
+# Prometheus scraping for CloudNativePG. Prometheus here discovers PodMonitors
+# cluster-wide (podMonitorSelectorNilUsesHelmValues: false), so these live in the
+# monitoring namespace and reach into the target namespaces via namespaceSelector.
+#
+# .spec.monitoring.enablePodMonitor on the Cluster is deprecated upstream; the
+# recommended approach is an explicit PodMonitor (see
+# https://cloudnative-pg.io/docs/1.29/monitoring).
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: cnpg-cluster
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+spec:
+  # Both postgres-apps and postgres-immich live in the postgresql namespace and
+  # carry the cnpg.io/cluster label on every instance pod.
+  namespaceSelector:
+    matchNames:
+      - postgresql
+  selector:
+    matchExpressions:
+      - key: cnpg.io/cluster
+        operator: Exists
+  podMetricsEndpoints:
+    - port: metrics # 9187/metrics, plain HTTP (monitoring.tls not enabled)
+      # Stamp a `cluster` label (from the pod's cnpg.io/cluster label) onto every
+      # scraped metric. The official dashboard and the CNPGInstanceDown alert only
+      # strictly need it on cnpg_collector_up, which already exports `cluster`
+      # natively; this relabeling extends it to the rest of the cnpg_* metrics
+      # (which don't carry it) so ad-hoc PromQL and future alerts can filter any
+      # cnpg metric by cluster. namespace/pod target labels are added automatically.
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_label_cnpg_io_cluster]
+          targetLabel: cluster
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: cnpg-operator
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+spec:
+  # The operator (cnpg-controller-manager) is applied out-of-band per BOOTSTRAP.MD,
+  # not via ArgoCD, but its pod still carries the app.kubernetes.io/name label.
+  namespaceSelector:
+    matchNames:
+      - cnpg-system
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cloudnative-pg
+  podMetricsEndpoints:
+    - port: metrics # 8080/metrics, kubebuilder/controller-runtime metrics

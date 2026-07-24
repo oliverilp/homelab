@@ -1,0 +1,108 @@
+# CloudNativePG alerting rules. Adapted from the upstream sample
+# (https://cloudnative-pg.io/docs/1.29/monitoring) plus an instance-down alert.
+# Metric labels (namespace, pod, cluster) flow through from the cnpg-cluster
+# PodMonitor, so descriptions can reference {{ $labels.pod }} directly. No
+# rule-level namespace label here — that would clobber the metric's own
+# namespace label (postgresql) used in the messages.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cnpg-alert-rules
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+spec:
+  groups:
+    - name: cnpg.availability
+      interval: 1m
+      rules:
+        # The metrics collector can't reach Postgres — instance is down or
+        # unhealthy. cnpg_collector_up is 1 per reachable instance.
+        - alert: CNPGInstanceDown
+          expr: cnpg_collector_up == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "CNPG instance {{ $labels.pod }} is down"
+            description: "The CloudNativePG metrics collector on {{ $labels.namespace }}/{{ $labels.pod }} (cluster {{ $labels.cluster }}) has been unreachable for 5m — the Postgres instance is likely down or unhealthy."
+
+    - name: cnpg.replication
+      interval: 1m
+      rules:
+        # Standby falling behind the primary by more than 5 minutes of WAL.
+        - alert: CNPGReplicationLag
+          expr: cnpg_pg_replication_lag > 300
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "CNPG standby {{ $labels.pod }} is lagging"
+            description: "Standby {{ $labels.pod }} is lagging behind the primary by over 300s (5 minutes)."
+
+        # Replica is in recovery but its WAL receiver is not up.
+        - alert: CNPGReplicaFailingReplication
+          expr: cnpg_pg_replication_in_recovery > cnpg_pg_replication_is_wal_receiver_up
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "CNPG replica {{ $labels.pod }} is failing to replicate"
+            description: "Replica {{ $labels.pod }} is in recovery but its WAL receiver is not running."
+
+    - name: cnpg.archiving
+      interval: 1m
+      rules:
+        # WAL archiving (barman-cloud → S3) failed more recently than it last
+        # succeeded — backups/PITR coverage is at risk.
+        - alert: CNPGLastFailedArchiveTime
+          expr: (cnpg_pg_stat_archiver_last_failed_time - cnpg_pg_stat_archiver_last_archived_time) > 1
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "CNPG WAL archiving failing on {{ $labels.pod }}"
+            description: "WAL archiving last failed more recently than it last succeeded on {{ $labels.pod }} — check the barman-cloud plugin and S3 object store."
+
+    - name: cnpg.workload
+      interval: 1m
+      rules:
+        # A query has been running for more than 5 minutes.
+        - alert: CNPGLongRunningTransaction
+          expr: cnpg_backends_max_tx_duration_seconds > 300
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Long-running query on {{ $labels.pod }}"
+            description: "{{ $labels.pod }} has a query running for more than 300s (5 minutes)."
+
+        # Backends stuck waiting (locks) for more than 5 minutes.
+        - alert: CNPGBackendsWaiting
+          expr: cnpg_backends_waiting_total > 300
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Backends waiting on {{ $labels.pod }}"
+            description: "{{ $labels.pod }} has had backends waiting for more than 300s (5 minutes)."
+
+        # Deadlock conflicts accumulating in the database.
+        - alert: CNPGDatabaseDeadlockConflicts
+          expr: cnpg_pg_stat_database_deadlocks > 10
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Deadlock conflicts on {{ $labels.pod }}"
+            description: "There are over 10 deadlock conflicts in {{ $labels.pod }}."
+
+        # Transaction ID age approaching wraparound territory.
+        - alert: CNPGDatabaseXidAge
+          expr: cnpg_pg_database_xid_age > 300000000
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High transaction ID age on {{ $labels.pod }}"
+            description: "Over 300,000,000 transactions from the frozen XID on {{ $labels.pod }} — watch for wraparound; ensure autovacuum is keeping up."
