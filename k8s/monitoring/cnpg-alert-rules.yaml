@@ -55,8 +55,16 @@ spec:
       rules:
         # WAL archiving (barman-cloud → S3) failed more recently than it last
         # succeeded — backups/PITR coverage is at risk.
+        #
+        # Only the primary archives WAL. A demoted primary keeps its
+        # pg_stat_archiver stats frozen, with the failover-time failure staying
+        # newer than the last success indefinitely, so the bare upstream expr
+        # fires forever on standbys. The `in_recovery == 0` guard restricts the
+        # check to the current primary (replicas report in_recovery == 1).
         - alert: CNPGLastFailedArchiveTime
-          expr: (cnpg_pg_stat_archiver_last_failed_time - cnpg_pg_stat_archiver_last_archived_time) > 1
+          expr: |
+            (cnpg_pg_stat_archiver_last_failed_time - cnpg_pg_stat_archiver_last_archived_time) > 1
+              and on(namespace, pod) cnpg_pg_replication_in_recovery == 0
           for: 1m
           labels:
             severity: warning
