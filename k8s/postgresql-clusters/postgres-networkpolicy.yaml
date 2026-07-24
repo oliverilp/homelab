@@ -135,3 +135,24 @@ spec:
     ports:
     - protocol: TCP
       port: 5432
+
+---
+# Allow Prometheus (monitoring namespace) to scrape CloudNativePG instance
+# metrics on 9187. The monitoring entry in allow-db-clients only opens 5432
+# (Grafana's DB connection); the PodMonitor scrape needs 9187 too, otherwise
+# every cnpg-cluster target reports "context deadline exceeded".
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-metrics-scrape
+  namespace: postgresql
+spec:
+  podSelector: {}
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: monitoring
+    ports:
+    - protocol: TCP
+      port: 9187
