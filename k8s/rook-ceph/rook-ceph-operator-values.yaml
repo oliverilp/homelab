@@ -9,3 +9,11 @@
 # Manage the Rook CRDs via this chart.
 crds:
   enabled: true
+
+# Grant the operator RBAC to manage ServiceMonitors (Role + RoleBinding in the
+# rook-ceph namespace). This is what actually lets the operator create the
+# rook-ceph-mgr / rook-ceph-exporter ServiceMonitors once monitoring is enabled
+# on the CephCluster (see rook-ceph-cluster-values.yaml). Without it the operator
+# SA is forbidden on servicemonitors.monitoring.coreos.com and no metrics flow.
+monitoring:
+  enabled: true
