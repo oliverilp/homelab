@@ -243,6 +243,10 @@ prometheus:
     serviceMonitorSelectorNilUsesHelmValues: false
     podMonitorSelectorNilUsesHelmValues: false
     probeSelectorNilUsesHelmValues: false
+    # Match any ScrapeConfig in the namespace (e.g. proxmox-scrapeconfig.yaml)
+    # regardless of labels, mirroring the selectors above. Without this the
+    # operator would only pick up ScrapeConfigs carrying the Helm release label.
+    scrapeConfigSelectorNilUsesHelmValues: false
     retention: 30d
     retentionSize: "20GB"
     externalLabels:

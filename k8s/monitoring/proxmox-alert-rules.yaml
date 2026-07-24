@@ -1,0 +1,182 @@
+# Hardware/host health alerting for the bare-metal Proxmox hosts, fed by
+# smartctl_exporter (SMART) and node_exporter running on the hypervisors —
+# disk failure, host OOM, unexpected reboots and root filesystem exhaustion.
+#
+# Deliberately NOT covered: ECC memory errors. Melchior is the only host with ECC
+# DIMMs and its Xeon E-2300 has no upstream EDAC driver, so node_edac_* never
+# appears there; the two MS-01s expose the metrics but have non-ECC RAM, pinning
+# them at 0 forever. Rules would be permanently inert, which reads as coverage
+# while providing none. See the "Known gap" section in proxmox-exporters.md.
+#
+# The headline gap this closes is physical disk failure. The VMs (Talos, TrueNAS)
+# only see qemu-passthrough devices with no SMART, so these alerts are the ONLY
+# early warning for a dying SSD/NVMe or — critically — the 3x10TB HDDs backing
+# the TrueNAS RAIDZ1 media pool, which are passed through to TrueNAS and thus
+# invisible to SMART anywhere except the Proxmox host.
+#
+# Severity labels route to Telegram via the existing alertmanager config, same
+# as cnpg-alert-rules.yaml / workload-health-rules.yaml.
+#
+# Metric reference (smartctl_exporter v0.14.0):
+#   smartctl_device_smart_status                 1 = PASSED, 0 = FAILING
+#   smartctl_device_percentage_used              NVMe endurance used, 0-100+ (100 = rated EOL)
+#   smartctl_device_available_spare[_threshold]  NVMe spare %, 0-100 (drive's own critical line)
+#   smartctl_device_temperature{temperature_type="current"}   degrees C
+#   smartctl_device_attribute{attribute_name=...,attribute_value_type="raw"}  SATA/SAS attrs
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: proxmox-alert-rules
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+spec:
+  groups:
+    - name: proxmox.smart
+      interval: 1m
+      rules:
+        # The headline signal: the drive's own overall SMART self-assessment
+        # flipped to FAILING. Replace the disk.
+        - alert: ProxmoxSmartHealthFailed
+          expr: smartctl_device_smart_status == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "SMART health FAILED: {{ $labels.instance }} {{ $labels.device }}"
+            description: "{{ $labels.device }} on {{ $labels.instance }} reports SMART overall-health FAILED. Back up and replace the disk."
+
+        # Unreadable sectors awaiting reallocation — a strong imminent-failure
+        # signal, more urgent than reallocated count. Any raw value > 0 warrants
+        # attention.
+        - alert: ProxmoxSmartPendingSectors
+          expr: smartctl_device_attribute{attribute_name="Current_Pending_Sector",attribute_value_type="raw"} > 0
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Pending sectors on {{ $labels.instance }} {{ $labels.device }}"
+            description: "{{ $labels.device }} on {{ $labels.instance }} has {{ $value }} current pending (unreadable) sector(s). This usually precedes failure — check the ZFS/pool state and plan a replacement."
+
+        # Physical bad blocks that have been remapped. Any nonzero value fires.
+        # NOTE: a drive that has sat at a stable low count for years is low-risk;
+        # if that turns out to be noisy, either raise this threshold or swap to a
+        # growth-based rule, e.g. `delta(smartctl_device_attribute{...}[24h]) > 0`.
+        - alert: ProxmoxSmartReallocatedSectors
+          expr: smartctl_device_attribute{attribute_name="Reallocated_Sector_Ct",attribute_value_type="raw"} > 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Reallocated sectors on {{ $labels.instance }} {{ $labels.device }}"
+            description: "{{ $labels.device }} on {{ $labels.instance }} has {{ $value }} reallocated sector(s). Watch for growth — a rising count indicates a degrading disk."
+
+        # NVMe endurance: 100 == manufacturer's rated end-of-life (can exceed).
+        - alert: ProxmoxNvmeWearHigh
+          expr: smartctl_device_percentage_used >= 90
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "NVMe wear high on {{ $labels.instance }} {{ $labels.device }}"
+            description: "{{ $labels.device }} on {{ $labels.instance }} is at {{ $value }}% of rated write endurance. Plan a replacement as it approaches/exceeds 100%."
+
+        # NVMe spare blocks dropped below the drive's own critical threshold.
+        # NOTE: some drives advertise a threshold of 0, in which case this never
+        # fires for them — ProxmoxNvmeWearHigh and ProxmoxSmartHealthFailed cover
+        # end-of-life in that case.
+        - alert: ProxmoxNvmeSpareLow
+          expr: smartctl_device_available_spare < smartctl_device_available_spare_threshold
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: "NVMe spare below threshold on {{ $labels.instance }} {{ $labels.device }}"
+            description: "{{ $labels.device }} on {{ $labels.instance }} available spare ({{ $value }}%) fell below its critical threshold. Replace the disk."
+
+        # Sustained high temperature (general SSD/HDD/NVMe warning floor).
+        - alert: ProxmoxDiskTemperatureHigh
+          expr: smartctl_device_temperature{temperature_type="current"} > 65
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Disk running hot on {{ $labels.instance }} {{ $labels.device }}"
+            description: "{{ $labels.device }} on {{ $labels.instance }} is at {{ $value }}C. Check airflow/cooling."
+
+    - name: proxmox.exporters
+      interval: 1m
+      rules:
+        # Exporter or host unreachable. Unlike the CNPG count-based rule, `up == 0`
+        # is correct here: static ScrapeConfig targets always produce an `up`
+        # series (it goes to 0 when unreachable rather than vanishing). A fully
+        # downed host is also covered by the node/CNPG alerts on its VMs, so this
+        # mostly catches a stopped exporter or a firewall regression.
+        - alert: ProxmoxExporterDown
+          expr: up{job=~"proxmox-.*"} == 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Proxmox exporter down: {{ $labels.job }} on {{ $labels.instance }}"
+            description: "Prometheus cannot scrape {{ $labels.job }} at {{ $labels.instance }}. Check the systemd service on the host and the VLAN20->VLAN10 / pve-firewall rules for tcp 9100/9633."
+
+    - name: proxmox.node
+      interval: 1m
+      rules:
+        # Proxmox root filesystem filling up (logs, backups, ISO/template store).
+        - alert: ProxmoxHostRootFsLow
+          expr: |
+            node_filesystem_avail_bytes{job="proxmox-node",mountpoint="/",fstype!~"tmpfs|overlay"}
+            / node_filesystem_size_bytes{job="proxmox-node",mountpoint="/",fstype!~"tmpfs|overlay"}
+            * 100 < 10
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Proxmox root filesystem low on {{ $labels.instance }}"
+            description: "Root filesystem on {{ $labels.instance }} is below 10% free ({{ $value | printf \"%.1f\" }}% left)."
+
+        # An unexpected reboot is the observable signature of a kernel panic,
+        # watchdog reset or power loss. A panic itself can't be caught from logs
+        # (the host is dead, and nothing gets flushed), so we detect the aftermath
+        # instead: boot time changed. A panic that *hangs* without rebooting shows
+        # up as ProxmoxExporterDown above, so between the two both outcomes are
+        # covered without shipping syslog anywhere.
+        # This also fires on planned reboots (PVE updates) — treat it as a "host
+        # came back" notice rather than a fault.
+        - alert: ProxmoxHostRebooted
+          expr: changes(node_boot_time_seconds{job="proxmox-node"}[15m]) > 0
+          labels:
+            severity: warning
+          annotations:
+            summary: "Proxmox host {{ $labels.instance }} rebooted"
+            description: "{{ $labels.instance }} has a new boot time — it rebooted in the last 15m. If this wasn't planned maintenance, check `journalctl -b -1 -e` on the host for a panic or hardware fault."
+
+    - name: proxmox.memory
+      interval: 1m
+      rules:
+        # The kernel OOM killer ran. Worse than a container OOM: the fattest
+        # process on a PVE host is a qemu process, so this can take down a whole
+        # VM (Talos node, TrueNAS, Windows). From /proc/vmstat, which exports
+        # oom_kill by default — no log shipping needed.
+        - alert: ProxmoxHostOOMKill
+          expr: increase(node_vmstat_oom_kill{job="proxmox-node"}[10m]) > 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Kernel OOM killer ran on {{ $labels.instance }}"
+            description: "{{ $value | printf \"%.0f\" }} OOM kill(s) on Proxmox host {{ $labels.instance }} in the last 10m. Check whether a VM was killed (`journalctl -k | grep -i oom`) and review VM memory allocation."
+
+        # Absolute floor, not a percentage: on a hypervisor RAM is committed to
+        # guests in fixed allocations, so "% available" tracks packing density
+        # rather than risk, and doesn't compare across a 128 GiB and a 32 GiB host.
+        - alert: ProxmoxHostMemoryLow
+          expr: node_memory_MemAvailable_bytes{job="proxmox-node"} < 1073741824
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Proxmox host {{ $labels.instance }} low on memory"
+            description: "{{ $labels.instance }} has only {{ $value | humanize1024 }}B of memory available. The OOM killer may start killing VMs — check guest allocation before it does."

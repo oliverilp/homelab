@@ -1,0 +1,62 @@
+# Scrape the bare-metal Proxmox hosts (Melchior, Balthasar, Casper) for
+# node_exporter (:9100) and smartctl_exporter (:9633). These run as systemd
+# services on the hypervisors themselves — the ONLY vantage point that can see
+# raw disk SMART data, since the Talos/TrueNAS VMs only get qemu-passthrough
+# block devices. Host install steps live in proxmox-exporters.md.
+#
+# Path note: this is a *pull* scrape. Prometheus pods egress to the Proxmox mgmt
+# IPs; Cilium masquerades that traffic to the worker node IP, so from Proxmox's
+# side the source is the Kubernetes subnet (10.1.20.0/24). The `monitoring`
+# namespace has no egress NetworkPolicy, so nothing blocks it cluster-side — the
+# only gates are the UniFi inter-VLAN rule (VLAN20 -> VLAN10, tcp 9100+9633) and
+# the Proxmox host firewall. See proxmox-exporters.md.
+#
+# TODO(oliver): confirm the Proxmox host management IPs on VLAN 10 (10.1.10.0/24)
+# below — these are placeholders mirroring the control-plane numbering.
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: proxmox-node
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+spec:
+  # Give every scraped series a clean, stable job label for alerts/dashboards.
+  relabelings:
+    - action: replace
+      targetLabel: job
+      replacement: proxmox-node
+  staticConfigs:
+    - targets: ["10.1.10.11:9100"]
+      labels:
+        instance: melchior
+    - targets: ["10.1.10.12:9100"]
+      labels:
+        instance: balthasar
+    - targets: ["10.1.10.13:9100"]
+      labels:
+        instance: casper
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: proxmox-smartctl
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+spec:
+  relabelings:
+    - action: replace
+      targetLabel: job
+      replacement: proxmox-smartctl
+  staticConfigs:
+    - targets: ["10.1.10.11:9633"]
+      labels:
+        instance: melchior
+    - targets: ["10.1.10.12:9633"]
+      labels:
+        instance: balthasar
+    - targets: ["10.1.10.13:9633"]
+      labels:
+        instance: casper
