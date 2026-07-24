@@ -58,18 +58,31 @@ spec:
             summary: "Pending sectors on {{ $labels.instance }} {{ $labels.device }}"
             description: "{{ $labels.device }} on {{ $labels.instance }} has {{ $value }} current pending (unreadable) sector(s). This usually precedes failure — check the ZFS/pool state and plan a replacement."
 
-        # Physical bad blocks that have been remapped. Any nonzero value fires.
-        # NOTE: a drive that has sat at a stable low count for years is low-risk;
-        # if that turns out to be noisy, either raise this threshold or swap to a
-        # growth-based rule, e.g. `delta(smartctl_device_attribute{...}[24h]) > 0`.
-        - alert: ProxmoxSmartReallocatedSectors
-          expr: smartctl_device_attribute{attribute_name="Reallocated_Sector_Ct",attribute_value_type="raw"} > 0
-          for: 15m
+        # Physical bad blocks that have been remapped. Deliberately NOT `> 0`:
+        # melchior/sde (ST10000DM0004, 5.3y powered on) sits at a stable 8 with
+        # zero pending and zero offline-uncorrectable, i.e. it remapped a few
+        # sectors long ago and has been fine since. A `> 0` rule fires on that
+        # forever and teaches you to ignore the alert.
+        #
+        # What's actionable is GROWTH — new sectors being remapped now.
+        - alert: ProxmoxSmartReallocatedSectorsGrowing
+          expr: delta(smartctl_device_attribute{attribute_name="Reallocated_Sector_Ct",attribute_value_type="raw"}[24h]) > 0
+          for: 30m
           labels:
             severity: warning
           annotations:
-            summary: "Reallocated sectors on {{ $labels.instance }} {{ $labels.device }}"
-            description: "{{ $labels.device }} on {{ $labels.instance }} has {{ $value }} reallocated sector(s). Watch for growth — a rising count indicates a degrading disk."
+            summary: "Reallocated sectors GROWING on {{ $labels.instance }} {{ $labels.device }}"
+            description: "{{ $labels.device }} on {{ $labels.instance }} remapped {{ $value | printf \"%.0f\" }} new sector(s) in 24h. Active degradation — check the pool and plan a replacement."
+
+        # Backstop for accumulated damage, whether or not it's currently growing.
+        - alert: ProxmoxSmartReallocatedSectorsHigh
+          expr: smartctl_device_attribute{attribute_name="Reallocated_Sector_Ct",attribute_value_type="raw"} > 50
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "High reallocated sector count on {{ $labels.instance }} {{ $labels.device }}"
+            description: "{{ $labels.device }} on {{ $labels.instance }} has {{ $value }} reallocated sectors. Well past incidental — schedule a replacement."
 
         # NVMe endurance: 100 == manufacturer's rated end-of-life (can exceed).
         - alert: ProxmoxNvmeWearHigh
@@ -94,15 +107,34 @@ spec:
             summary: "NVMe spare below threshold on {{ $labels.instance }} {{ $labels.device }}"
             description: "{{ $labels.device }} on {{ $labels.instance }} available spare ({{ $value }}%) fell below its critical threshold. Replace the disk."
 
-        # Sustained high temperature (general SSD/HDD/NVMe warning floor).
-        - alert: ProxmoxDiskTemperatureHigh
-          expr: smartctl_device_temperature{temperature_type="current"} > 65
+        # Temperature is split by disk class because one threshold can't serve
+        # both. Measured idle: NVMe 35-59C (balthasar/casper nvme0 run hottest in
+        # the MS-01 chassis), SATA SSD+HDD 33-40C. A single 65C line would be
+        # near-noise for NVMe while never catching a genuinely overheating HDD.
+        # Matching on device prefix rather than the interface label keeps the
+        # expression readable; sd*/nvme* class naming is stable even if a specific
+        # letter shifts across reboots.
+
+        # NVMe throttles around 80C, so 70C is the "something changed" line.
+        - alert: ProxmoxNvmeTemperatureHigh
+          expr: smartctl_device_temperature{temperature_type="current",device=~"nvme.*"} > 70
           for: 15m
           labels:
             severity: warning
           annotations:
-            summary: "Disk running hot on {{ $labels.instance }} {{ $labels.device }}"
-            description: "{{ $labels.device }} on {{ $labels.instance }} is at {{ $value }}C. Check airflow/cooling."
+            summary: "NVMe running hot on {{ $labels.instance }} {{ $labels.device }}"
+            description: "{{ $labels.device }} on {{ $labels.instance }} is at {{ $value }}C (normal idle here is 35-59C). Approaching thermal throttling — check chassis airflow."
+
+        # Spinning disks and SATA SSDs should stay well under 50C; sustained heat
+        # above that measurably shortens HDD life.
+        - alert: ProxmoxSataTemperatureHigh
+          expr: smartctl_device_temperature{temperature_type="current",device=~"sd.*"} > 50
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "SATA disk running hot on {{ $labels.instance }} {{ $labels.device }}"
+            description: "{{ $labels.device }} on {{ $labels.instance }} is at {{ $value }}C (normal here is 33-40C). Sustained heat shortens disk life — check airflow/cooling."
 
     - name: proxmox.exporters
       interval: 1m

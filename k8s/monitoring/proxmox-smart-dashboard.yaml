@@ -1,0 +1,710 @@
+# Grafana dashboard for physical disk SMART health on the bare-metal Proxmox
+# hosts, fed by smartctl_exporter (see proxmox-exporters.md). Hand-built for this
+# fleet rather than imported: with 11 disks across 3 hosts the whole estate fits
+# on one screen, so there are no host/device template variables to page through.
+#
+# Picked up by the kube-prometheus-stack Grafana sidecar via the grafana_dashboard
+# label. Panels omit an explicit datasource and use Grafana's default, matching
+# homelab-uptime-dashboard.yaml.
+#
+# Design notes:
+#   * Temperature is split NVMe vs SATA on purpose. Idle NVMe legitimately runs
+#     50-60C (measured: balthasar nvme0 at 59C) while a SATA disk at 55C is a
+#     genuine concern, so a single scale/threshold would mislead on both.
+#   * The inventory table carries model + serial so a failing disk can go straight
+#     into an RMA without SSHing anywhere.
+#   * The precursor table covers SATA (sector counts) and NVMe (media/error-log
+#     entries) in one place; every cell should read 0, and anything non-zero is
+#     coloured red.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: proxmox-smart-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  proxmox-smart.json: |
+    {
+      "title": "Proxmox Disk Health (SMART)",
+      "uid": "proxmox-smart-v1",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "1m",
+      "tags": ["homelab", "proxmox", "smart", "hardware"],
+      "time": { "from": "now-30d", "to": "now" },
+      "timezone": "browser",
+      "graphTooltip": 1,
+      "annotations": { "list": [] },
+      "links": [],
+      "panels": [
+
+        {
+          "id": 100,
+          "type": "row",
+          "title": "Fleet Health",
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+        },
+
+        {
+          "id": 1,
+          "type": "stat",
+          "title": "Disks Monitored",
+          "description": "Physical disks reporting SMART data across all three Proxmox hosts. Should be 11: melchior 7 (2 NVMe, 2 SATA SSD, 3x10TB HDD), balthasar 2, casper 2.",
+          "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "none",
+            "textMode": "value"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "noValue": "NO DATA",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "green", "value": 11 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            { "refId": "A", "expr": "count(smartctl_device_smart_status) or vector(0)", "instant": true }
+          ]
+        },
+
+        {
+          "id": 2,
+          "type": "stat",
+          "title": "Failing SMART",
+          "description": "Disks whose own overall-health self-assessment reports FAILING. Anything above zero means back up and replace that disk (alert: ProxmoxSmartHealthFailed).",
+          "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "none",
+            "textMode": "value"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "noValue": "0",
+              "mappings": [
+                { "type": "value", "options": { "0": { "text": "ALL PASSED", "color": "green", "index": 0 } } }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "red", "value": 1 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            { "refId": "A", "expr": "count(smartctl_device_smart_status == 0) or vector(0)", "instant": true }
+          ]
+        },
+
+        {
+          "id": 3,
+          "type": "stat",
+          "title": "Exporters Up",
+          "description": "smartctl_exporter reachability on the Proxmox hosts. Below 3 means a stopped systemd service or a firewall regression (alert: ProxmoxExporterDown).",
+          "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "none",
+            "textMode": "value"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "noValue": "NO DATA",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "orange", "value": 2 },
+                  { "color": "green", "value": 3 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            { "refId": "A", "expr": "sum(up{job=\"proxmox-smartctl\"}) or vector(0)", "instant": true }
+          ]
+        },
+
+        {
+          "id": 4,
+          "type": "stat",
+          "title": "Bad Sectors (fleet)",
+          "description": "Reallocated + current-pending + offline-uncorrectable sectors summed across every SATA disk. Known baseline: 8, all from melchior/sde which remapped them years ago and has been stable since (0 pending, 0 uncorrectable). Yellow is 'known and stable', red means it has grown materially — what matters is the trend, not the absolute number.",
+          "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "none",
+            "textMode": "value"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "noValue": "0",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 1 },
+                  { "color": "orange", "value": 20 },
+                  { "color": "red", "value": 50 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            { "refId": "A", "expr": "sum(smartctl_device_attribute{attribute_name=~\"Reallocated_Sector_Ct|Current_Pending_Sector|Offline_Uncorrectable\",attribute_value_type=\"raw\"}) or vector(0)", "instant": true }
+          ]
+        },
+
+        {
+          "id": 5,
+          "type": "stat",
+          "title": "Hottest Disk",
+          "description": "Highest current disk temperature in the fleet. NVMe running 50-60C is normal; a SATA disk that high is not — see the split temperature panels below.",
+          "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "none",
+            "textMode": "value"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "celsius",
+              "noValue": "NO DATA",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 60 },
+                  { "color": "orange", "value": 70 },
+                  { "color": "red", "value": 75 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            { "refId": "A", "expr": "max(smartctl_device_temperature{temperature_type=\"current\"})", "instant": true }
+          ]
+        },
+
+        {
+          "id": 6,
+          "type": "stat",
+          "title": "Highest NVMe Wear",
+          "description": "Worst percentage of rated write endurance consumed across the NVMe drives. 100 = manufacturer's rated end-of-life (it can exceed 100). Alert fires at 90.",
+          "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "none",
+            "textMode": "value"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "noValue": "NO DATA",
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 50 },
+                  { "color": "orange", "value": 80 },
+                  { "color": "red", "value": 90 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            { "refId": "A", "expr": "max(smartctl_device_percentage_used)", "instant": true }
+          ]
+        },
+
+        {
+          "id": 200,
+          "type": "row",
+          "title": "Disk Inventory",
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 }
+        },
+
+        {
+          "id": 10,
+          "type": "table",
+          "title": "All Physical Disks",
+          "description": "Every physical disk on the hypervisors, with model and serial for RMA. Wear % is NVMe-only; sector-based wear for SATA is in the precursor table below.",
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 6 },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": { "show": false, "reducer": ["sum"], "countRows": false, "fields": "" },
+            "sortBy": [{ "displayName": "Host", "desc": false }]
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": { "align": "auto", "cellOptions": { "type": "auto" }, "inspect": false },
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "text", "value": null }] }
+            },
+            "overrides": [
+              {
+                "matcher": { "id": "byName", "options": "Health" },
+                "properties": [
+                  { "id": "mappings", "value": [
+                    { "type": "value", "options": {
+                      "1": { "text": "PASSED", "color": "green", "index": 0 },
+                      "0": { "text": "FAILING", "color": "red", "index": 1 }
+                    } }
+                  ] },
+                  { "id": "custom.cellOptions", "value": { "type": "color-text" } },
+                  { "id": "custom.width", "value": 90 }
+                ]
+              },
+              {
+                "matcher": { "id": "byName", "options": "Temp" },
+                "properties": [
+                  { "id": "unit", "value": "celsius" },
+                  { "id": "custom.cellOptions", "value": { "type": "color-text" } },
+                  { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "yellow", "value": 60 },
+                    { "color": "orange", "value": 70 },
+                    { "color": "red", "value": 75 }
+                  ] } },
+                  { "id": "custom.width", "value": 80 }
+                ]
+              },
+              {
+                "matcher": { "id": "byName", "options": "Capacity" },
+                "properties": [{ "id": "unit", "value": "bytes" }, { "id": "custom.width", "value": 100 }]
+              },
+              {
+                "matcher": { "id": "byName", "options": "Powered On" },
+                "properties": [{ "id": "unit", "value": "s" }, { "id": "decimals", "value": 1 }, { "id": "custom.width", "value": 110 }]
+              },
+              {
+                "matcher": { "id": "byName", "options": "Wear %" },
+                "properties": [
+                  { "id": "unit", "value": "percent" },
+                  { "id": "custom.cellOptions", "value": { "type": "gauge", "mode": "gradient" } },
+                  { "id": "max", "value": 100 },
+                  { "id": "min", "value": 0 },
+                  { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "yellow", "value": 50 },
+                    { "color": "orange", "value": 80 },
+                    { "color": "red", "value": 90 }
+                  ] } }
+                ]
+              },
+              {
+                "matcher": { "id": "byName", "options": "Written" },
+                "properties": [{ "id": "unit", "value": "bytes" }, { "id": "custom.width", "value": 100 }]
+              }
+            ]
+          },
+          "targets": [
+            { "refId": "A", "expr": "smartctl_device", "instant": true, "format": "table" },
+            { "refId": "B", "expr": "smartctl_device_smart_status", "instant": true, "format": "table" },
+            { "refId": "C", "expr": "sum by (instance, device) (smartctl_device_temperature{temperature_type=\"current\"})", "instant": true, "format": "table" },
+            { "refId": "D", "expr": "smartctl_device_capacity_bytes", "instant": true, "format": "table" },
+            { "refId": "E", "expr": "smartctl_device_power_on_seconds", "instant": true, "format": "table" },
+            { "refId": "F", "expr": "smartctl_device_percentage_used", "instant": true, "format": "table" },
+            { "refId": "G", "expr": "smartctl_device_bytes_written", "instant": true, "format": "table" }
+          ],
+          "transformations": [
+            { "id": "merge", "options": {} },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true,
+                  "__name__": true,
+                  "job": true,
+                  "Value #A": true,
+                  "ata_additional_product_id": true,
+                  "ata_version": true,
+                  "sata_version": true,
+                  "protocol": true,
+                  "model_family": true,
+                  "temperature_type": true
+                },
+                "renameByName": {
+                  "instance": "Host",
+                  "device": "Device",
+                  "model_name": "Model",
+                  "serial_number": "Serial",
+                  "form_factor": "Form",
+                  "interface": "Bus",
+                  "firmware_version": "Firmware",
+                  "Value #B": "Health",
+                  "Value #C": "Temp",
+                  "Value #D": "Capacity",
+                  "Value #E": "Powered On",
+                  "Value #F": "Wear %",
+                  "Value #G": "Written"
+                },
+                "indexByName": {
+                  "instance": 0,
+                  "device": 1,
+                  "model_name": 2,
+                  "serial_number": 3,
+                  "interface": 4,
+                  "form_factor": 5,
+                  "Value #D": 6,
+                  "Value #B": 7,
+                  "Value #C": 8,
+                  "Value #E": 9,
+                  "Value #F": 10,
+                  "Value #G": 11,
+                  "firmware_version": 12
+                }
+              }
+            }
+          ]
+        },
+
+        {
+          "id": 300,
+          "type": "row",
+          "title": "Failure Signals",
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 16 }
+        },
+
+        {
+          "id": 11,
+          "type": "state-timeline",
+          "title": "SMART Overall Health Over Time",
+          "description": "Per-disk SMART self-assessment history. Any red band is a disk that reported FAILING — visible here even if the alert was missed or has since cleared.",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 17 },
+          "options": {
+            "showValue": "never",
+            "mergeValues": true,
+            "alignValue": "center",
+            "rowHeight": 0.9,
+            "legend": { "showLegend": false, "displayMode": "list", "placement": "bottom" },
+            "tooltip": { "mode": "single", "sort": "none" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": { "lineWidth": 0, "fillOpacity": 80 },
+              "mappings": [
+                { "type": "value", "options": {
+                  "1": { "text": "PASSED", "color": "green", "index": 0 },
+                  "0": { "text": "FAILING", "color": "red", "index": 1 }
+                } },
+                { "type": "special", "options": { "match": "null", "result": { "text": "no data", "color": "text", "index": 2 } } }
+              ],
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+            },
+            "overrides": []
+          },
+          "targets": [
+            { "refId": "A", "expr": "smartctl_device_smart_status", "legendFormat": "{{instance}} {{device}}" }
+          ]
+        },
+
+        {
+          "id": 12,
+          "type": "table",
+          "title": "Failure Precursors (every cell should be 0)",
+          "description": "Early-warning counters. SATA: reallocated / pending / offline-uncorrectable sectors and UDMA CRC errors (CRC points at a cable or connector, not the platter). NVMe: media errors and error-log entries. Non-zero values are coloured red.",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 17 },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": { "show": false, "reducer": ["sum"], "countRows": false, "fields": "" },
+            "sortBy": [{ "displayName": "Host", "desc": false }]
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": { "align": "auto", "cellOptions": { "type": "auto" }, "inspect": false },
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "text", "value": null }] }
+            },
+            "overrides": [
+              {
+                "matcher": { "id": "byType", "options": "number" },
+                "properties": [
+                  { "id": "custom.cellOptions", "value": { "type": "color-background", "mode": "gradient" } },
+                  { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "yellow", "value": 1 },
+                    { "color": "red", "value": 20 }
+                  ] } }
+                ]
+              },
+              {
+                "matcher": { "id": "byNames", "options": { "mode": "include", "names": ["Pending", "Offline Uncorr", "Media Err"] } },
+                "properties": [
+                  { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "red", "value": 1 }
+                  ] } }
+                ]
+              }
+            ]
+          },
+          "targets": [
+            { "refId": "A", "expr": "sum by (instance, device) (smartctl_device_attribute{attribute_name=\"Reallocated_Sector_Ct\",attribute_value_type=\"raw\"})", "instant": true, "format": "table" },
+            { "refId": "B", "expr": "sum by (instance, device) (smartctl_device_attribute{attribute_name=\"Current_Pending_Sector\",attribute_value_type=\"raw\"})", "instant": true, "format": "table" },
+            { "refId": "C", "expr": "sum by (instance, device) (smartctl_device_attribute{attribute_name=\"Offline_Uncorrectable\",attribute_value_type=\"raw\"})", "instant": true, "format": "table" },
+            { "refId": "D", "expr": "sum by (instance, device) (smartctl_device_attribute{attribute_name=\"UDMA_CRC_Error_Count\",attribute_value_type=\"raw\"})", "instant": true, "format": "table" },
+            { "refId": "E", "expr": "sum by (instance, device) (smartctl_device_media_errors)", "instant": true, "format": "table" },
+            { "refId": "F", "expr": "sum by (instance, device) (smartctl_device_num_err_log_entries)", "instant": true, "format": "table" }
+          ],
+          "transformations": [
+            { "id": "merge", "options": {} },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": { "Time": true, "__name__": true, "job": true },
+                "renameByName": {
+                  "instance": "Host",
+                  "device": "Device",
+                  "Value #A": "Realloc",
+                  "Value #B": "Pending",
+                  "Value #C": "Offline Uncorr",
+                  "Value #D": "CRC Err",
+                  "Value #E": "Media Err",
+                  "Value #F": "Err Log"
+                }
+              }
+            }
+          ]
+        },
+
+        {
+          "id": 400,
+          "type": "row",
+          "title": "Temperature",
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 25 }
+        },
+
+        {
+          "id": 20,
+          "type": "timeseries",
+          "title": "NVMe Temperature",
+          "description": "NVMe idling at 50-60C is normal and not a fault — these drives throttle around 80C. Thresholds here are set accordingly, unlike the SATA panel.",
+          "gridPos": { "h": 7, "w": 12, "x": 0, "y": 26 },
+          "options": {
+            "legend": { "showLegend": true, "displayMode": "table", "placement": "right", "calcs": ["lastNotNull", "max"] },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "celsius",
+              "min": 20,
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 5,
+                "showPoints": "never",
+                "spanNulls": true,
+                "thresholdsStyle": { "mode": "dashed" }
+              },
+              "thresholds": { "mode": "absolute", "steps": [
+                { "color": "green", "value": null },
+                { "color": "orange", "value": 70 },
+                { "color": "red", "value": 80 }
+              ] }
+            },
+            "overrides": []
+          },
+          "targets": [
+            { "refId": "A", "expr": "smartctl_device_temperature{temperature_type=\"current\"} * on (instance, device) group_left () (smartctl_device{interface=\"nvme\"})", "legendFormat": "{{instance}} {{device}}" }
+          ]
+        },
+
+        {
+          "id": 21,
+          "type": "timeseries",
+          "title": "SATA Temperature (SSD + HDD)",
+          "description": "Spinning disks and SATA SSDs should sit well below 50C. Sustained temperatures above that shorten HDD life considerably, so the thresholds are much tighter than for NVMe.",
+          "gridPos": { "h": 7, "w": 12, "x": 12, "y": 26 },
+          "options": {
+            "legend": { "showLegend": true, "displayMode": "table", "placement": "right", "calcs": ["lastNotNull", "max"] },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "celsius",
+              "min": 20,
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 5,
+                "showPoints": "never",
+                "spanNulls": true,
+                "thresholdsStyle": { "mode": "dashed" }
+              },
+              "thresholds": { "mode": "absolute", "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 45 },
+                { "color": "orange", "value": 50 },
+                { "color": "red", "value": 55 }
+              ] }
+            },
+            "overrides": []
+          },
+          "targets": [
+            { "refId": "A", "expr": "smartctl_device_temperature{temperature_type=\"current\"} * on (instance, device) group_left () (smartctl_device{interface=\"sat\"})", "legendFormat": "{{instance}} {{device}}" }
+          ]
+        },
+
+        {
+          "id": 500,
+          "type": "row",
+          "title": "Endurance & Workload",
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 33 }
+        },
+
+        {
+          "id": 30,
+          "type": "bargauge",
+          "title": "NVMe Endurance Used",
+          "description": "Vendor-reported percentage of rated write endurance consumed. 100 = rated end-of-life; drives keep working past it but risk climbs.",
+          "gridPos": { "h": 7, "w": 8, "x": 0, "y": 34 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "orientation": "horizontal",
+            "displayMode": "gradient",
+            "showUnfilled": true,
+            "minVizWidth": 8,
+            "minVizHeight": 16
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0,
+              "max": 100,
+              "thresholds": { "mode": "absolute", "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 50 },
+                { "color": "orange", "value": 80 },
+                { "color": "red", "value": 90 }
+              ] }
+            },
+            "overrides": []
+          },
+          "targets": [
+            { "refId": "A", "expr": "smartctl_device_percentage_used", "legendFormat": "{{instance}} {{device}}", "instant": true }
+          ]
+        },
+
+        {
+          "id": 31,
+          "type": "timeseries",
+          "title": "NVMe Endurance Trend",
+          "description": "Wear over time — the slope is what matters. Extrapolate to 100% to estimate replacement timing; a Ceph OSD or database disk climbs far faster than a boot drive. Widen the dashboard time range to see a meaningful gradient.",
+          "gridPos": { "h": 7, "w": 16, "x": 8, "y": 34 },
+          "options": {
+            "legend": { "showLegend": true, "displayMode": "table", "placement": "right", "calcs": ["lastNotNull"] },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0,
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 5,
+                "showPoints": "never",
+                "spanNulls": true
+              },
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+            },
+            "overrides": []
+          },
+          "targets": [
+            { "refId": "A", "expr": "smartctl_device_percentage_used", "legendFormat": "{{instance}} {{device}}" }
+          ]
+        },
+
+        {
+          "id": 32,
+          "type": "bargauge",
+          "title": "Total Data Written",
+          "description": "Lifetime host writes per disk. Useful for spotting which disks carry the write load (Ceph OSDs, PostgreSQL) and for sanity-checking the wear figures above.",
+          "gridPos": { "h": 7, "w": 12, "x": 0, "y": 41 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "orientation": "horizontal",
+            "displayMode": "gradient",
+            "showUnfilled": true,
+            "minVizWidth": 8,
+            "minVizHeight": 16
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "min": 0,
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+            },
+            "overrides": []
+          },
+          "targets": [
+            { "refId": "A", "expr": "smartctl_device_bytes_written", "legendFormat": "{{instance}} {{device}}", "instant": true }
+          ]
+        },
+
+        {
+          "id": 33,
+          "type": "bargauge",
+          "title": "Disk Age (powered on)",
+          "description": "Cumulative power-on time. Drive failure rates climb notably past roughly 4-5 years, so this is the replacement-planning panel — especially for the 10TB HDDs behind the TrueNAS RAIDZ1.",
+          "gridPos": { "h": 7, "w": 12, "x": 12, "y": 41 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "orientation": "horizontal",
+            "displayMode": "gradient",
+            "showUnfilled": true,
+            "minVizWidth": 8,
+            "minVizHeight": 16
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s",
+              "decimals": 1,
+              "min": 0,
+              "thresholds": { "mode": "absolute", "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 126144000 },
+                { "color": "orange", "value": 189216000 }
+              ] }
+            },
+            "overrides": []
+          },
+          "targets": [
+            { "refId": "A", "expr": "smartctl_device_power_on_seconds", "legendFormat": "{{instance}} {{device}}", "instant": true }
+          ]
+        }
+
+      ]
+    }

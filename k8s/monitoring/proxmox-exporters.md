@@ -27,17 +27,36 @@ The Kubernetes side is GitOps-managed and already in this repo:
 The scrape arrives from the Kubernetes subnet (Cilium masquerades pod egress to
 the worker node IP), so the source is `10.1.20.0/24`.
 
-- **UniFi:** allow **VLAN 20 (Kubernetes) → VLAN 10 (Management)** on `tcp 9100, 9633`.
-- **Proxmox host firewall:** if `pve-firewall` is enabled, add to
-  `/etc/pve/firewall/cluster.fw` (applies to all nodes) under `[RULES]`:
+- **UniFi (the only gate that matters here):** allow **VLAN 20 (Kubernetes) →
+  VLAN 10 (Management)** on `tcp 9100, 9633`.
+  - Source must cover **all three workers** (`10.1.20.21-23`) — Prometheus runs 3
+    replicas with hard anti-affinity, one per worker, each scraping independently.
+  - Destination is `10.1.10.21` / `10.1.10.22` / `10.1.10.23`. Prefer selecting the
+    **whole VLAN 10 network** over individual IPs, so a host re-address doesn't
+    silently break scraping.
+- **Proxmox host firewall:** `pve-firewall` is **disabled** on all three hosts
+  (verified with `pve-firewall status`), so nothing is needed there. If it is ever
+  enabled, add to `/etc/pve/firewall/cluster.fw` under `[RULES]`:
 
   ```
   IN ACCEPT -source 10.1.20.0/24 -p tcp -dport 9100 -log nolog # node_exporter
   IN ACCEPT -source 10.1.20.0/24 -p tcp -dport 9633 -log nolog # smartctl_exporter
   ```
 
-  If the Proxmox firewall is disabled (default on many homelab installs), only
-  the UniFi rule is needed.
+### Diagnosing a down target
+
+The scrape error in Prometheus (Status → Targets, or the `lastError` field)
+identifies the layer precisely:
+
+| Error | Meaning |
+|-------|---------|
+| `context deadline exceeded` (runs the full 10s timeout) | packets dropped silently — firewall rule missing or not matching |
+| `connection refused` | host reachable, exporter not listening |
+| `no route to host` | the IP does not exist on the network |
+
+Note `curl localhost:9100/metrics` on the host passes in all three cases, because
+loopback bypasses the network path entirely — it proves the exporter works, not
+that Prometheus can reach it.
 
 ---
 
