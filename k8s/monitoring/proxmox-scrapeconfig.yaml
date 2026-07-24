@@ -11,8 +11,10 @@
 # only gates are the UniFi inter-VLAN rule (VLAN20 -> VLAN10, tcp 9100+9633) and
 # the Proxmox host firewall. See proxmox-exporters.md.
 #
-# TODO(oliver): confirm the Proxmox host management IPs on VLAN 10 (10.1.10.0/24)
-# below — these are placeholders mirroring the control-plane numbering.
+# Host management IPs on VLAN 10, confirmed from `ip -4 -br addr show` on each
+# host (vmbr0): melchior .21, casper .22, balthasar .23. Note the numbering does
+# NOT mirror the k8s node ordering, and casper/balthasar are not in alphabetical
+# order — verify before assuming.
 ---
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
@@ -28,15 +30,15 @@ spec:
       targetLabel: job
       replacement: proxmox-node
   staticConfigs:
-    - targets: ["10.1.10.11:9100"]
+    - targets: ["10.1.10.21:9100"]
       labels:
         instance: melchior
-    - targets: ["10.1.10.12:9100"]
-      labels:
-        instance: balthasar
-    - targets: ["10.1.10.13:9100"]
+    - targets: ["10.1.10.22:9100"]
       labels:
         instance: casper
+    - targets: ["10.1.10.23:9100"]
+      labels:
+        instance: balthasar
 ---
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
@@ -51,12 +53,12 @@ spec:
       targetLabel: job
       replacement: proxmox-smartctl
   staticConfigs:
-    - targets: ["10.1.10.11:9633"]
+    - targets: ["10.1.10.21:9633"]
       labels:
         instance: melchior
-    - targets: ["10.1.10.12:9633"]
-      labels:
-        instance: balthasar
-    - targets: ["10.1.10.13:9633"]
+    - targets: ["10.1.10.22:9633"]
       labels:
         instance: casper
+    - targets: ["10.1.10.23:9633"]
+      labels:
+        instance: balthasar

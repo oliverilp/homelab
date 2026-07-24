@@ -15,8 +15,10 @@ The Kubernetes side is GitOps-managed and already in this repo:
 
 **This file is the manual, host-side half.** Run it once per Proxmox node.
 
-> Update the host IPs in `proxmox-scrapeconfig.yaml` if they differ from the
-> assumed VLAN 10 addresses `10.1.10.11/12/13` (Melchior/Balthasar/Casper).
+> Host management IPs on VLAN 10 (`vmbr0`): **melchior `10.1.10.21`, casper
+> `10.1.10.22`, balthasar `10.1.10.23`**. Note this is neither the k8s node
+> numbering nor alphabetical order — confirm with `ip -4 -br addr show scope
+> global` rather than assuming.
 
 ---
 
