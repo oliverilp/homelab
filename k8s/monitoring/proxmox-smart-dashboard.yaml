@@ -256,7 +256,7 @@ data:
           "id": 10,
           "type": "table",
           "title": "All Physical Disks",
-          "description": "Every physical disk on the hypervisors, with model and serial for RMA. Wear % covers both NVMe (percentage_used) and SATA SSDs (normalized wear attribute, inverted to read as 'used'); it is blank for the spinning HDDs, which have no endurance rating.",
+          "description": "Every physical disk on the hypervisors, one row each, with model and serial for RMA. Wear % covers NVMe (percentage_used) and SATA SSDs (normalized wear attribute, inverted to read as 'used'); blank for spinning HDDs, which have no endurance rating. Written covers NVMe (bytes_written) and SATA (Total_LBAs_Written x 512B logical blocks) — note melchior/sda (WD Blue SA510) reports 0 there, as that model doesn't populate the attribute.",
           "gridPos": { "h": 10, "w": 24, "x": 0, "y": 6 },
           "options": {
             "showHeader": true,
@@ -327,30 +327,23 @@ data:
             ]
           },
           "targets": [
-            { "refId": "A", "expr": "smartctl_device", "instant": true, "format": "table" },
-            { "refId": "B", "expr": "smartctl_device_smart_status", "instant": true, "format": "table" },
-            { "refId": "C", "expr": "sum by (instance, device) (smartctl_device_temperature{temperature_type=\"current\"})", "instant": true, "format": "table" },
-            { "refId": "D", "expr": "smartctl_device_capacity_bytes", "instant": true, "format": "table" },
-            { "refId": "E", "expr": "smartctl_device_power_on_seconds", "instant": true, "format": "table" },
-            { "refId": "F", "expr": "max by (instance, device) (smartctl_device_percentage_used) or max by (instance, device) (100 - smartctl_device_attribute{attribute_name=~\"Wear_Leveling_Count|Media_Wearout_Indicator\",attribute_value_type=\"value\"})", "instant": true, "format": "table" },
-            { "refId": "G", "expr": "smartctl_device_bytes_written", "instant": true, "format": "table" }
+            { "refId": "A", "expr": "max by (disk, instance, device, model_name, serial_number, firmware_version, interface, form_factor) (label_join(smartctl_device, \"disk\", \"/\", \"instance\", \"device\"))", "instant": true, "format": "table" },
+            { "refId": "B", "expr": "max by (disk) (label_join(smartctl_device_smart_status, \"disk\", \"/\", \"instance\", \"device\"))", "instant": true, "format": "table" },
+            { "refId": "C", "expr": "max by (disk) (label_join(smartctl_device_temperature{temperature_type=\"current\"}, \"disk\", \"/\", \"instance\", \"device\"))", "instant": true, "format": "table" },
+            { "refId": "D", "expr": "max by (disk) (label_join(smartctl_device_capacity_bytes, \"disk\", \"/\", \"instance\", \"device\"))", "instant": true, "format": "table" },
+            { "refId": "E", "expr": "max by (disk) (label_join(smartctl_device_power_on_seconds, \"disk\", \"/\", \"instance\", \"device\"))", "instant": true, "format": "table" },
+            { "refId": "F", "expr": "max by (disk) (label_join(smartctl_device_percentage_used, \"disk\", \"/\", \"instance\", \"device\")) or max by (disk) (100 - label_join(smartctl_device_attribute{attribute_name=~\"Wear_Leveling_Count|Media_Wearout_Indicator\",attribute_value_type=\"value\"}, \"disk\", \"/\", \"instance\", \"device\"))", "instant": true, "format": "table" },
+            { "refId": "G", "expr": "max by (disk) (label_join(smartctl_device_bytes_written, \"disk\", \"/\", \"instance\", \"device\")) or max by (disk) (label_join(smartctl_device_attribute{attribute_name=\"Total_LBAs_Written\",attribute_value_type=\"raw\"}, \"disk\", \"/\", \"instance\", \"device\") * 512)", "instant": true, "format": "table" }
           ],
           "transformations": [
-            { "id": "merge", "options": {} },
+            { "id": "filterFieldsByName", "options": { "exclude": { "pattern": "^Time$" } } },
+            { "id": "joinByField", "options": { "byField": "disk", "mode": "outer" } },
             {
               "id": "organize",
               "options": {
                 "excludeByName": {
-                  "Time": true,
-                  "__name__": true,
-                  "job": true,
-                  "Value #A": true,
-                  "ata_additional_product_id": true,
-                  "ata_version": true,
-                  "sata_version": true,
-                  "protocol": true,
-                  "model_family": true,
-                  "temperature_type": true
+                  "disk": true,
+                  "Value #A": true
                 },
                 "renameByName": {
                   "instance": "Host",
@@ -653,7 +646,7 @@ data:
           "id": 32,
           "type": "bargauge",
           "title": "Total Data Written",
-          "description": "Lifetime host writes per disk. Useful for spotting which disks carry the write load (Ceph OSDs, PostgreSQL) and for sanity-checking the wear figures above.",
+          "description": "Lifetime host writes per disk, NVMe and SATA. NVMe reports bytes directly; SATA is derived from Total_LBAs_Written x 512B (logical block size, verified 512 on every device here). Useful for spotting which disks carry the write load (Ceph OSDs, PostgreSQL) and for sanity-checking wear. melchior/sda reads 0 because the WD Blue SA510 doesn't populate that attribute — absence here means unsupported, not idle.",
           "gridPos": { "h": 7, "w": 12, "x": 0, "y": 41 },
           "options": {
             "reduceOptions": { "calcs": ["lastNotNull"] },
@@ -672,7 +665,7 @@ data:
             "overrides": []
           },
           "targets": [
-            { "refId": "A", "expr": "smartctl_device_bytes_written", "legendFormat": "{{instance}} {{device}}", "instant": true }
+            { "refId": "A", "expr": "max by (instance, device) (smartctl_device_bytes_written) or max by (instance, device) (smartctl_device_attribute{attribute_name=\"Total_LBAs_Written\",attribute_value_type=\"raw\"} * 512)", "legendFormat": "{{instance}} {{device}}", "instant": true }
           ]
         },
 
