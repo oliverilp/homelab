@@ -203,6 +203,34 @@ spec:
             summary: "Proxmox host {{ $labels.instance }} rebooted"
             description: "{{ $labels.instance }} has a new boot time — it rebooted in the last 15m. If this wasn't planned maintenance, check `journalctl -b -1 -e` on the host for a panic or hardware fault."
 
+        # CPU package temperature (coretemp temp1 = "Package id 0"), as a rack
+        # heat signal. Averaged over 15m rather than read instantaneously: package
+        # temp tracks load and swings hard (balthasar 71-93C inside one hour), so
+        # a raw threshold would alert on a busy VM instead of a hot cabinet.
+        #
+        # Threshold is each chip's OWN throttle point minus 5C, not a fixed number,
+        # because the hosts don't share one: melchior (Xeon E-2324G) throttles at
+        # 90C while the MS-01s (i5-12600H) go to 100C. A flat 95C would have let
+        # melchior throttle silently and left casper no headroom at all.
+        # Effective lines: melchior >85C, balthasar/casper >95C.
+        #
+        # Measured 1h baselines:
+        #   melchior   avg 55C  (socketed desktop-class CPU, roomy chassis)
+        #   balthasar  avg 80C, peak 93C
+        #   casper     avg 89C, peak 92C  <- mobile CPU in a 1.5L chassis, idles
+        #                                    close to its limit by design
+        - alert: ProxmoxCpuTemperatureHigh
+          expr: |
+            avg_over_time(node_hwmon_temp_celsius{job="proxmox-node",chip="platform_coretemp_0",sensor="temp1"}[15m])
+            > on (instance)
+            (node_hwmon_temp_max_celsius{job="proxmox-node",chip="platform_coretemp_0",sensor="temp1"} - 5)
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "CPU running hot on {{ $labels.instance }}"
+            description: "{{ $labels.instance }} CPU package averaged {{ $value | printf \"%.0f\" }}C over 15m, within 5C of this chip's throttle point. Check rack airflow and intake temperature."
+
     - name: proxmox.memory
       interval: 1m
       rules:
