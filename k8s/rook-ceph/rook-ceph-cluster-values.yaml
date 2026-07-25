@@ -31,6 +31,18 @@ cephClusterSpec:
   dashboard:
     enabled: true
     ssl: false
+  # Ceph traffic runs over the dedicated 10G storage mesh (Proxmox STP bridge vmbr1,
+  # Talos eth1 on 10.1.11.0/24). provider: host puts the daemons in the node netns so
+  # they can bind to eth1; addressRanges map directly to Ceph public_network/cluster_network.
+  # Migrating an existing cluster requires failing the mons over one at a time (they keep
+  # their old network until recreated) — see BOOTSTRAP / the migration runbook.
+  network:
+    provider: host
+    addressRanges:
+      public:
+        - "10.1.11.0/24"
+      cluster:
+        - "10.1.11.0/24"
   storage:
     useAllNodes: true
     useAllDevices: false

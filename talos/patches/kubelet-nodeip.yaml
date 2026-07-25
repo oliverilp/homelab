@@ -1,0 +1,13 @@
+---
+# Pin the kubelet node IP to the Kubernetes VLAN (10.1.20.0/24).
+# Worker nodes have a second NIC (eth1) on the Ceph 10G storage mesh (10.1.11.0/24).
+# Without this, Talos may advertise the storage IP as the node InternalIP, and the
+# control plane (which has no route to 10.1.11.0/24) can no longer reach the kubelet
+# — breaking `talosctl`/`kubectl exec`, logs, and metrics for that node.
+# Shared patch: applied to all nodes (control-plane nodes are already on 10.1.20.x,
+# so it's a no-op safety net for them).
+machine:
+  kubelet:
+    nodeIP:
+      validSubnets:
+        - 10.1.20.0/24

@@ -65,8 +65,10 @@ talosctl gen config magi https://10.1.20.10:6443 \
 --config-patch @patches/install-disk.yaml \
 --config-patch @patches/interface-names.yaml \
 --config-patch @patches/kubelet-certificates.yaml \
+--config-patch @patches/kubelet-nodeip.yaml \
 --config-patch-control-plane @patches/vip.yaml \
 --config-patch-control-plane @patches/metrics.yaml \
+--config-patch-control-plane @patches/control-plane-resources.yaml \
 --output out/
 ```
 
@@ -86,11 +88,18 @@ Apply configurations to control plane nodes:
 talosctl apply-config --insecure -n 10.1.20.11,10.1.20.12,10.1.20.13 -f out/controlplane.yaml
 ```
 
-Apply configurations to worker nodes:
+Apply configurations to worker nodes. Each worker also gets a per-node patch adding
+its Ceph 10G storage-mesh NIC (`eth1` on `10.1.11.2x/24`, MTU 9000) — the IP is
+unique per node, so it can't be a shared `gen` patch and is applied here with `-p`:
 
 ```bash
-talosctl apply-config --insecure -n 10.1.20.21,10.1.20.22,10.1.20.23 -f out/worker.yaml
+talosctl apply-config --insecure -n 10.1.20.21 -f out/worker.yaml -p @patches/storage-net-worker-01.yaml
+talosctl apply-config --insecure -n 10.1.20.22 -f out/worker.yaml -p @patches/storage-net-worker-02.yaml
+talosctl apply-config --insecure -n 10.1.20.23 -f out/worker.yaml -p @patches/storage-net-worker-03.yaml
 ```
+
+The storage NIC depends on the Proxmox-side 10G mesh (STP bridge `vmbr1`) and the
+VM's second NIC (`qm set 41x -net1 virtio=BC:24:11:00:11:2x,bridge=vmbr1,mtu=9000`).
 
 ### 2. Configure Talos Client
 

@@ -1,0 +1,13 @@
+---
+# Ceph 10G storage-mesh NIC (eth1) for worker-02 / casper.
+# Second VM NIC on Proxmox vmbr1 (STP-bridged 10G triangle mesh), MTU 9000.
+# Matched by the pinned MAC set in `qm set 412 -net1 virtio=BC:24:11:00:11:22,...`.
+# Per-node (unique IP), so applied with `-p` on top of the shared out/worker.yaml.
+machine:
+  network:
+    interfaces:
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:00:11:22"
+        mtu: 9000
+        addresses:
+          - 10.1.11.22/24

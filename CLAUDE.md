@@ -6,21 +6,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a GitOps-managed Kubernetes homelab infrastructure running on Talos Linux. The cluster is deployed on Proxmox VE and managed entirely through declarative configuration. ArgoCD provides continuous deployment for all applications and infrastructure components.
 
+`README.md` is the canonical inventory of applications, hardware, VLANs, storage classes, and backup strategy — consult it before answering questions about what runs where.
+
 ## Architecture
 
 ### Infrastructure Stack
 
-- **Hypervisor**: Proxmox VE virtualization layer
+- **Hypervisor**: Proxmox VE virtualization layer (3 bare-metal nodes: Melchior, Balthasar, Casper)
 - **OS**: Talos Linux (immutable, API-managed Kubernetes OS)
 - **Provisioning**: Terraform modules for VM creation
 - **GitOps**: ArgoCD with app-of-apps pattern
 - **Networking**: Cilium CNI with eBPF (kube-proxy disabled), L2 load balancing
 - **Ingress**: Dual Traefik gateways (public on 10.1.20.100, internal on 10.1.20.101)
-- **Storage**: NFS CSI driver connected to TrueNAS server at 10.1.30.10
+- **Storage**: Rook Ceph (primary, NVMe) + static NFS PVs from TrueNAS (bulk media) + local-path (latency-sensitive)
 - **DNS**: External-DNS syncing with Cloudflare
-- **TLS**: cert-manager with Let's Encrypt
+- **TLS**: cert-manager with Let's Encrypt (DNS-01)
 - **Secrets**: External Secrets Operator with Bitwarden Secrets Manager backend
-- **Databases**: CloudNativePG operator for PostgreSQL, Dragonfly operator for Redis-compatible caching
+- **Databases**: CloudNativePG for PostgreSQL (with Barman Cloud S3 backups), Dragonfly operator for Redis-compatible caching
+- **Observability**: kube-prometheus-stack (Prometheus, Alertmanager, Grafana), blackbox-exporter, external Gatus
 
 ### Network Configuration
 
@@ -28,56 +31,78 @@ This is a GitOps-managed Kubernetes homelab infrastructure running on Talos Linu
 - Control plane nodes: 10.1.20.11-13
 - Worker nodes: 10.1.20.21-23
 - LoadBalancer IP pool: 10.1.20.100-120
-- NFS server: 10.1.30.10
+- TrueNAS (NFS/SMB): 10.1.30.10
+- Ceph 10GbE mesh: 10.10.10.0/24 (direct triangle between the Proxmox nodes)
 
 ### Key Applications
 
-Applications include Immich (photos), Jellyfin (media), Vaultwarden (passwords), Authentik (SSO), Home Assistant (smart home), Linkwarden (bookmarks), Memos (notes), qBittorrent, and LibreSpeed.
+Nextcloud + Collabora, Immich (photos), Jellyfin (media), Stump (ebooks), Vaultwarden (passwords), Authentik (SSO), Home Assistant (smart home), Linkwarden (bookmarks), Memos (notes), qBittorrent, LibreSpeed.
 
 ## Directory Structure
 
 ```
 .
-├── k8s/                          # Kubernetes manifests (124 files)
+├── k8s/                          # Kubernetes manifests (~214 files)
 │   ├── argocd/                   # ArgoCD configuration
-│   │   ├── applications/         # ArgoCD Application definitions (20 apps)
-│   │   ├── argocd-helmfile.yaml  # Helmfile for ArgoCD deployment
+│   │   ├── applications/         # ArgoCD Application definitions (~30 apps)
+│   │   ├── argocd-helmfile.yaml  # Helmfile for bootstrapping ArgoCD itself
 │   │   └── argocd-applications.yaml  # App-of-apps root application
 │   ├── [app-name]/               # Per-application directories
-│   │   ├── *-namespace.yaml      # Namespace definition
-│   │   ├── *-deployment.yaml     # Deployment/StatefulSet
-│   │   ├── *-service.yaml        # Services
-│   │   ├── *-gateway.yaml        # Gateway API HTTPRoute
-│   │   ├── *-external-secret.yaml # External Secret definitions
-│   │   ├── *-pvc.yaml            # Persistent volume claims
-│   │   └── *-redis.yaml          # Dragonfly Redis instances (where applicable)
+│   │   ├── *-namespace.yaml           # Namespace definition
+│   │   ├── *-deployment.yaml          # Deployment/StatefulSet
+│   │   ├── *-service.yaml             # Services
+│   │   ├── *-gateway.yaml             # Gateway API HTTPRoute
+│   │   ├── *-external-secret(s).yaml  # External Secret definitions
+│   │   ├── *-pvc.yaml                 # Persistent volume claims
+│   │   ├── *-redis.yaml               # Dragonfly instances (where applicable)
+│   │   ├── *-networkpolicy.yaml       # Ingress policy (default-deny + allow)
+│   │   ├── *-egress-networkpolicy.yaml # Egress policy
+│   │   ├── *-pdb.yaml                 # PodDisruptionBudget
+│   │   └── *-values.yaml              # Helm values, referenced by the ArgoCD app
+│   ├── gateway-api/              # Pinned Gateway API CRDs (standard-install-v1.5.1.yaml)
+│   ├── rook-ceph/                # Ceph operator, cluster, CSI driver values
+│   ├── local-path-storage/       # local-path provisioner
+│   ├── monitoring/               # Prometheus stack values, dashboards, alert rules
+│   ├── blackbox-exporter/        # External probe targets
 │   ├── cert-manager/             # TLS certificate management
 │   ├── cilium/                   # CNI and network policies
 │   ├── external-dns/             # DNS automation
 │   ├── external-secrets/         # Secret management
-│   ├── postgresql-clusters/      # CloudNativePG cluster definitions
-│   └── traefik/                  # Ingress controllers
-│       ├── traefik-public/       # Public-facing gateway
-│       └── traefik-internal/     # Internal-only gateway
+│   ├── cnpg-barman-cloud/        # CNPG Barman Cloud plugin (S3 WAL archiving)
+│   ├── postgresql-clusters/      # CloudNativePG clusters (namespace: postgresql)
+│   ├── dragonfly/                # README only — operator applied from upstream manifest
+│   ├── reloader/                 # Stakater Reloader
+│   ├── mkv-strip/                # CronJob deploying the mkv-strip image
+│   └── traefik/                  # Gateway controllers
+│       ├── traefik-public/       # Public-facing gateway + values
+│       ├── traefik-internal/     # Internal-only gateway + values
+│       └── error-pages/          # Custom error page service + middleware
 ├── terraform/                    # Infrastructure as Code
-│   ├── modules/
-│   │   ├── talos-vm/             # Reusable Talos VM module
-│   │   └── docker-vm/            # Docker host module
-│   └── k8s-cluster.tf            # Main cluster definition
+│   ├── modules/talos-vm/         # Reusable Talos VM module
+│   ├── modules/docker-vm/        # Docker host module
+│   ├── k8s-cluster.tf            # Main cluster definition
+│   └── docker.tf                 # Docker VM definition
 ├── talos/                        # Talos Linux configuration
-│   ├── patches/                  # Configuration patches
-│   │   ├── cni.yaml              # Disable built-in CNI
-│   │   ├── disable-kube-proxy.yaml
-│   │   ├── install-disk.yaml
-│   │   ├── interface-names.yaml
-│   │   ├── kubelet-certificates.yaml
-│   │   └── vip.yaml              # Virtual IP configuration
-│   ├── out/                      # Generated configurations
-│   └── secrets.yaml              # Cluster secrets (not committed)
+│   ├── patches/                  # cni, dns, disable-kube-proxy, install-disk,
+│   │                             # interface-names, kubelet-certificates, kubelet-nodeip,
+│   │                             # vip, metrics, control-plane-resources,
+│   │                             # storage-net-worker-0{1,2,3} (per-node Ceph 10G NIC)
+│   ├── out/                      # Generated configurations (gitignored)
+│   └── secrets.yaml              # Cluster secrets (gitignored)
+├── jobs/mkv-strip/               # Source + Dockerfile for the mkv-strip container
+├── docker/gatus/                 # Compose stack for the external Gatus status page
+├── .github/workflows/            # mkv-strip image build
+├── talos-upgrade.sh              # Rolling Talos/Kubernetes upgrade with health checks
+├── postgresql_backup.sh          # Logical pg_dump backups (redundancy alongside Barman)
 ├── BOOTSTRAP.MD                  # Detailed bootstrap instructions
-├── README.md                     # Application inventory
+├── README.md                     # Application inventory + infrastructure documentation
+├── AGENTS.md                     # Codex-facing copy of this file — keep in sync
 └── renovate.json                 # Automated dependency updates
 ```
+
+## Available CLI Tools
+
+`kubectl`, `talosctl`, `argocd`, `helm`, `helmfile`, `terraform`, `docker`, `gh`, `git`.
 
 ## Common Commands
 
@@ -114,16 +139,9 @@ kubectl get gateways -A
 ### Terraform
 
 ```bash
-# Navigate to terraform directory
 cd terraform/
-
-# Plan infrastructure changes
 terraform plan
-
-# Apply changes
 terraform apply
-
-# View current state
 terraform show
 ```
 
@@ -141,14 +159,17 @@ talosctl gen config magi https://10.1.20.10:6443 \
   --config-patch @patches/interface-names.yaml \
   --config-patch @patches/kubelet-certificates.yaml \
   --config-patch-control-plane @patches/vip.yaml \
+  --config-patch-control-plane @patches/metrics.yaml \
+  --config-patch-control-plane @patches/control-plane-resources.yaml \
   --output out/
 
 # Apply configuration updates
 talosctl apply-config --insecure -n 10.1.20.11,10.1.20.12,10.1.20.13 -f out/controlplane.yaml
 talosctl apply-config --insecure -n 10.1.20.21,10.1.20.22,10.1.20.23 -f out/worker.yaml
 
-# Upgrade Talos
-talosctl upgrade --nodes [node-ip] --image factory.talos.dev/[image-id]:v1.10.x
+# Rolling upgrade of Talos (+ optionally Kubernetes) with health checks
+./talos-upgrade.sh --talos-image factory.talos.dev/installer/[image-id]:v1.10.x
+./talos-upgrade.sh --talos-image ... --k8s-version 1.32.0 --dry-run
 ```
 
 ### ArgoCD Management
@@ -170,14 +191,22 @@ kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.pas
 ### Database Operations
 
 ```bash
-# List PostgreSQL clusters
+# List PostgreSQL clusters (they live in the `postgresql` namespace)
 kubectl get clusters -A
 
-# View cluster status
-kubectl describe cluster [cluster-name] -n [namespace]
+kubectl describe cluster postgres-apps -n postgresql
+kubectl exec -it [cluster-pod] -n postgresql -- psql -U [user] [database]
+```
 
-# Connect to PostgreSQL
-kubectl exec -it [cluster-pod] -n [namespace] -- psql -U [user] [database]
+### Ceph Operations
+
+```bash
+# Ceph health via the toolbox
+kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph status
+kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph osd tree
+
+# Storage classes
+kubectl get sc
 ```
 
 ## Development Workflow
@@ -190,47 +219,70 @@ kubectl exec -it [cluster-pod] -n [namespace] -- psql -U [user] [database]
    - `[app-name]-external-secret.yaml` - Secrets (if needed)
    - `[app-name]-pvc.yaml` - Storage (if needed)
    - `[app-name]-redis.yaml` - Dragonfly instance (if needed)
-   - PostgreSQL cluster in `k8s/postgresql-clusters/` (if needed)
+   - Role + database in `k8s/postgresql-clusters/postgres-apps/` (if needed)
    - `[app-name]-deployment.yaml` or `[app-name]-statefulset.yaml`
    - `[app-name]-service.yaml` - Services
    - `[app-name]-gateway.yaml` - HTTPRoute with Gateway API
-3. **Create ArgoCD Application**: `k8s/argocd/applications/[app-name].yaml`
-   - Set appropriate sync wave with `argocd.argoproj.io/sync-wave` annotation
-   - Infrastructure components use negative waves (-10 to -1)
-   - Database clusters use wave 0
-   - Applications use positive waves (1+)
+   - `[app-name]-networkpolicy.yaml` + `[app-name]-egress-networkpolicy.yaml`
+   - `[app-name]-pdb.yaml` - PodDisruptionBudget for multi-replica workloads
+3. **Create ArgoCD Application**: `k8s/argocd/applications/[app-name].yaml` with a `sync-wave` annotation (see below)
 4. **Test locally**: `kubectl apply -f k8s/[app-name]/`
 5. **Commit and push** - ArgoCD will automatically sync
 
+### Sync Waves
+
+Waves in use, roughly ordered:
+
+| Wave | Components |
+|------|-----------|
+| -35 | gateway-api CRDs |
+| -30 | cilium |
+| -15 | argocd |
+| -10 | cert-manager |
+| -9 | external-secrets |
+| -8 | external-dns, metrics-server, monitoring, reloader, blackbox-exporter |
+| -7 | rook-ceph-operator |
+| -6 | ceph-csi-drivers |
+| -5 | rook-ceph-cluster, local-path-storage, traefik (gateways) |
+| -4 | traefik (controller) |
+| 5 | cnpg-barman-cloud |
+| 10 | postgresql clusters |
+| 20-30 | applications |
+
 ### Gateway API Pattern
 
-Applications use the Gateway API (not Ingress) with HTTPRoute resources:
+Applications use the Gateway API (not Ingress) with HTTPRoute resources. Note the `external-dns` hostname annotation — it drives the Cloudflare record:
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: [app-name]
+  name: [app-name]-http-route
   namespace: [namespace]
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: [hostname].oliverilp.ee
 spec:
   parentRefs:
     - name: traefik-public-gateway  # or traefik-internal-gateway
       namespace: traefik
-      sectionName: https
   hostnames:
     - [hostname].oliverilp.ee
   rules:
-    - backendRefs:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
         - name: [service-name]
           port: [port]
 ```
 
 ### External Secrets Pattern
 
-Secrets are stored in Bitwarden Secrets Manager and synced via External Secrets Operator:
+Secrets are stored in Bitwarden Secrets Manager and synced via External Secrets Operator. The API version is **`external-secrets.io/v1`** (not `v1beta1`):
 
 ```yaml
-apiVersion: external-secrets.io/v1beta1
+apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: [app-name]-es
@@ -251,26 +303,40 @@ spec:
 
 ### CloudNativePG Pattern
 
-PostgreSQL databases are created as CloudNativePG clusters in `k8s/postgresql-clusters/`:
+Two clusters live in the `postgresql` namespace: `postgres-apps` (shared by most apps) and `postgres-immich`. Most new apps get a **managed role + database on `postgres-apps`**, not a new cluster.
+
+Key conventions:
+
+- `storage.storageClass: local-path` — databases run on node NVMe, not Ceph, for latency
+- Node affinity excludes control-plane nodes; `podAntiAffinityType: preferred`
+- WAL archiving to S3 via the `barman-cloud.cloudnative-pg.io` plugin (`plugins:` with `isWALArchiver: true`), **not** the deprecated `backup.barmanObjectStore`
+- Per-app credentials come from `managed.roles[].passwordSecret` backed by an ExternalSecret
+- Disaster recovery: uncomment `bootstrap.recovery` and comment out `plugins` (see the inline comment in the cluster manifest)
 
 ```yaml
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: [app-name]-database
-  namespace: postgres
+  name: postgres-apps
+  namespace: postgresql
 spec:
-  instances: 2
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.5
+  instances: 3
+  managed:
+    roles:
+      - name: [app-name]
+        ensure: present
+        login: true
+        passwordSecret:
+          name: postgres-apps-[app-name]-auth
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: s3-apps
   storage:
-    size: 5Gi
-    storageClass: nfs-csi
-  postgresql:
-    parameters:
-      shared_buffers: 256MB
-  bootstrap:
-    initdb:
-      database: [dbname]
-      owner: [user]
+    size: 10Gi
+    storageClass: local-path
 ```
 
 ### ArgoCD Application Pattern
@@ -291,30 +357,44 @@ When bootstrapping from scratch, follow BOOTSTRAP.MD strictly. Key dependencies:
 1. Cilium must be installed first (cluster has no CNI by default)
 2. Gateway API CRDs before Traefik
 3. External Secrets Operator before applications with secrets
-4. CloudNativePG operator before database clusters
-5. Dragonfly operator before Dragonfly instances
-6. ArgoCD is bootstrapped with helmfile, then takes over via app-of-apps
+4. Rook Ceph operator + CSI drivers before the Ceph cluster and any Ceph PVCs
+5. CloudNativePG operator (and the Barman Cloud plugin) before database clusters
+6. Dragonfly operator before Dragonfly instances
+7. ArgoCD is bootstrapped with helmfile, then takes over via app-of-apps
 
 ### Secrets Management
 
 - Never commit secrets to git
 - All application secrets should use External Secrets Operator
 - Bootstrap secrets (Bitwarden access token) are manually created via kubectl
-- The `talos/secrets.yaml` file is gitignored and contains cluster secrets
+- `talos/secrets.yaml` and `terraform/credentials.auto.tfvars` are gitignored
 
 ### Traefik Gateways
 
-- **Public gateway** (10.1.20.100): Exposed to internet, uses external-dns for Cloudflare
-- **Internal gateway** (10.1.20.101): Local network only, used for internal services
+- **Public gateway** (10.1.20.100): Exposed to internet, uses external-dns for Cloudflare. Only Authentik, Immich, Memos, Linkwarden, and Jellyfin are internet-accessible.
+- **Internal gateway** (10.1.20.101): Local network only, reachable over WireGuard
 - Both gateways use Gateway API, not legacy Ingress resources
-- TLS certificates are centrally managed in cert-manager namespace and referenced via certificateRefs
+- TLS certificates are centrally managed in cert-manager and referenced via `certificateRefs`
+- Gateway API CRDs are pinned in `k8s/gateway-api/` and are version-coupled to the Traefik chart — a mismatch (e.g. missing TLSRoute CRD) makes Traefik fall back to a self-signed cert on **all** gateways
+- Custom error pages are served by the nginx deployment in `k8s/traefik/error-pages/` via a Traefik middleware
 
 ### Storage
 
-- All persistent storage uses NFS CSI driver pointing to TrueNAS at 10.1.30.10
-- Storage class: `nfs-csi`
-- Some applications (Jellyfin, Immich) use PersistentVolumes with specific NFS paths for large media
-- Snapshots are supported via NFS CSI Snapshotter CRDs
+| Storage Class | Backend | Use Case |
+|--------------|---------|----------|
+| `ceph-block` | Rook Ceph RBD on NVMe | Single-writer application data (RWO) |
+| `ceph-filesystem` | Rook Ceph CephFS on NVMe | Shared application data (RWX) |
+| static NFS PVs | TrueNAS HDD (10.1.30.10) | Bulk media (Jellyfin, Stump, qBittorrent) |
+| `local-path` | Node NVMe | Prometheus, PostgreSQL |
+
+- Ceph is the default for application data, replicated 3× across the workers
+- **Deployments that need RWX must use `ceph-filesystem`** — an RBD (RWO) volume causes Multi-Attach errors on rolling updates. StatefulSets can stay on `ceph-block`.
+- PVC naming convention: `<app>-data-pvc`, or `<app>-<role>-pvc` when an app has several
+- Bulk media is mounted as static NFS PersistentVolumes with explicit paths, not dynamically provisioned
+
+### Network Policies
+
+Nearly every namespace ships a default-deny plus explicit allow policy. Most are standard `NetworkPolicy`; a few use `CiliumNetworkPolicy` where L7 or entity selectors are needed. When adding an app, expect to write both an ingress and an egress policy — traffic to the postgres namespace and to the internet is denied by default.
 
 ### Renovate
 
@@ -323,6 +403,14 @@ Automated dependency updates are configured for:
 - Kubernetes manifests in `k8s/`
 - ArgoCD applications in `k8s/argocd/applications/`
 - Helmfile in `k8s/argocd/argocd-helmfile.yaml`
+
+The `review-renovate-prs` skill in `.claude/skills/` drives the review/merge loop for these PRs.
+
+### Backups
+
+- CloudNativePG streams WAL to S3 (`oliverilp-postgresql`, eu-north-1) via Barman Cloud
+- `postgresql_backup.sh` produces logical `pg_dump` exports for redundancy
+- TrueNAS replicates snapshots and personal files to S3 Glacier buckets
 
 ## Troubleshooting
 
@@ -338,15 +426,22 @@ Automated dependency updates are configured for:
 1. Verify Cilium status: `kubectl get pods -n kube-system -l k8s-app=cilium`
 2. Check Gateway status: `kubectl get gateway -n traefik`
 3. Verify LoadBalancer IPs: `kubectl get svc -A | grep LoadBalancer`
+4. Check for a blocking policy: `kubectl get networkpolicy,ciliumnetworkpolicy -n [namespace]`
 
 ### Database issues
 
-1. Check cluster status: `kubectl get cluster [name] -n postgres`
+1. Check cluster status: `kubectl get cluster [name] -n postgresql`
 2. View operator logs: `kubectl logs -n cnpg-system deployment/cnpg-controller-manager`
-3. Check cluster pods: `kubectl get pods -n postgres -l cnpg.io/cluster=[name]`
+3. Check cluster pods: `kubectl get pods -n postgresql -l cnpg.io/cluster=[name]`
+
+### Storage / Ceph issues
+
+1. `kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph status`
+2. Check for stuck volumes: `kubectl get volumeattachment | grep [pvc]`
+3. Multi-Attach errors on a Deployment usually mean an RWO `ceph-block` PVC that should be `ceph-filesystem`
 
 ### DNS not updating
 
 1. Check external-dns logs: `kubectl logs -n external-dns deployment/external-dns`
-2. Verify Gateway annotations: `kubectl get gateway traefik-public-gateway -n traefik -o yaml`
+2. Verify the HTTPRoute/Gateway annotation: `external-dns.alpha.kubernetes.io/hostname`
 3. Check Cloudflare API token in external-dns configuration
