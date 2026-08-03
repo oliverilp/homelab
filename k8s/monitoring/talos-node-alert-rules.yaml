@@ -1,4 +1,4 @@
-# Memory-exhaustion alerting for the Talos nodes, from the in-cluster
+# Memory- and disk-exhaustion alerting for the Talos nodes, from the in-cluster
 # node_exporter DaemonSet (job="node-exporter" — the Proxmox hosts scrape as
 # job="proxmox-node" and are covered by proxmox-alert-rules.yaml).
 #
@@ -96,27 +96,34 @@ spec:
     - name: talos.node.memory.trend
       interval: 1m
       rules:
-        # Slow-leak catcher: a straight-line fit of the last hour reaching zero
-        # available within 4 hours. Gated on already being below 30% available
-        # so ordinary allocation churn on an otherwise idle node doesn't fire.
+        # Slow-leak catcher: a straight-line fit of the last 6 hours reaching
+        # zero available within 6 hours, on a node already under 20% available.
+        #
+        # Both numbers are tuned, not guessed. The masters idle at only 21-29%
+        # available, so a 30% gate is permanently open there and reduces the rule
+        # to "MemAvailable fell recently"; combined with a 1h fit, the post-reboot
+        # refill after a Talos upgrade trips it. Replayed over a 24h window that
+        # contained exactly that (two masters rebooted), 1h/30% fired 33 samples
+        # and 6h/20% fired none.
+        #
         # The `on (kubernetes_node)` joins keep the value as current MemAvailable
         # rather than the (negative) prediction.
         - alert: TalosNodeMemoryFillingUp
           expr: |
             node_memory_MemAvailable_bytes{job="node-exporter"}
               and on (kubernetes_node)
-            (predict_linear(node_memory_MemAvailable_bytes{job="node-exporter"}[1h], 4 * 3600) < 0)
+            (predict_linear(node_memory_MemAvailable_bytes{job="node-exporter"}[6h], 6 * 3600) < 0)
               and on (kubernetes_node)
             (
               node_memory_MemAvailable_bytes{job="node-exporter"}
-              / node_memory_MemTotal_bytes{job="node-exporter"} < 0.30
+              / node_memory_MemTotal_bytes{job="node-exporter"} < 0.20
             )
           for: 30m
           labels:
             severity: warning
           annotations:
             summary: "Memory on {{ $labels.kubernetes_node }} is trending to zero"
-            description: "{{ $labels.kubernetes_node }} has {{ $value | humanize1024 }}B available and, at the current rate, will exhaust it within 4 hours. Likely a leaking workload — check what has been growing over the last few hours."
+            description: "{{ $labels.kubernetes_node }} has {{ $value | humanize1024 }}B available and, on the last 6 hours' trend, will exhaust it within 6 hours. Likely a leaking workload — check what has been growing since."
 
         # The kubelet's own verdict: MemoryPressure flips when available memory
         # drops under the eviction threshold, and it is what actually triggers
@@ -130,3 +137,111 @@ spec:
           annotations:
             summary: "Kubelet reports MemoryPressure on {{ $labels.node }}"
             description: "The kubelet on {{ $labels.node }} has set the MemoryPressure condition — available memory is below the eviction threshold and pods are being evicted."
+
+    # Disk. Only /var matters: Talos mounts it as the EPHEMERAL partition
+    # (/dev/sda6, 18.76 GiB on the masters; /dev/sda5, 145.92 GiB on the workers)
+    # and everything that grows lives there — the containerd image cache under
+    # /var/lib/containerd, kubelet state, container logs, etcd on the masters,
+    # local-path PVs (Prometheus 30Gi x3, the CNPG clusters) on the workers, and
+    # the Ceph mon stores under /var/lib/rook. Every other mount node_exporter
+    # reports on a Talos node is a tmpfs or the read-only rootfs, so none of them
+    # can fill.
+    #
+    # Ceph OSD data is NOT here: the OSDs consume the raw ~761 GiB /dev/sdb
+    # passthrough disk (deviceFilter "^sdb$") as BlueStore, which has no
+    # filesystem for node_exporter to see. OSD capacity is covered by Rook's own
+    # CephOSDNearFull/CephOSDFull, and the mon stores — which do sit on /var and
+    # balloon while PGs are unclean — by CephMonDiskspaceLow/Critical. Both
+    # already reach Telegram through the type=ceph_default route.
+    #
+    # Rook's CephNodeDiskspaceWarning does evaluate on our /var (its device=~"/.*"
+    # matches /dev/sda[56], and the node_uname_info join resolves), but it is a
+    # 5-day prediction off a 48h window — a slow-creep detector. The trend rule
+    # below is deliberately much faster. Its sibling CephNodeRootFilesystemFull
+    # is inert here: it keys on mountpoint="/", which on Talos exists only for
+    # the Proxmox hosts.
+    #
+    # Inode exhaustion is not covered: XFS allocates inodes dynamically and the
+    # image cache's overlay layers only put /var at 0.3-2.4% inode use.
+    - name: talos.node.disk
+      interval: 1m
+      rules:
+        # 85% is not an arbitrary round number — it is where this cluster's
+        # kubelet starts fighting for the disk (verified against the live
+        # /configz): imageGCHighThresholdPercent=85 makes it start deleting
+        # unused images down to 80%, and evictionHard imagefs.available=15% is
+        # the same point. On Talos /var backs both nodefs and imagefs, so
+        # sustaining 85% for 30m means image GC ran and still could not claw the
+        # space back — the cache is either all in-use images or something else on
+        # /var is holding the space. No node has crossed 85% in the last 30 days
+        # (the masters peak at ~83%), so this is not a level we sit at.
+        - alert: TalosNodeEphemeralDiskHigh
+          expr: |
+            100 - (
+              node_filesystem_avail_bytes{job="node-exporter", mountpoint="/var"}
+              / node_filesystem_size_bytes{job="node-exporter", mountpoint="/var"} * 100
+            ) > 85
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "/var on {{ $labels.kubernetes_node }} is filling up"
+            description: "/var is {{ $value | printf \"%.1f\" }}% full on {{ $labels.kubernetes_node }} and has stayed above the kubelet's 85% image-GC threshold for 30m. Check the image cache first (`talosctl -n <ip> images list`), then local-path PVs and container logs."
+
+        # 90% used = evictionHard nodefs.available<10%: the kubelet stops placing
+        # pods, marks the node DiskPressure and starts evicting.
+        - alert: TalosNodeEphemeralDiskCritical
+          expr: |
+            100 - (
+              node_filesystem_avail_bytes{job="node-exporter", mountpoint="/var"}
+              / node_filesystem_size_bytes{job="node-exporter", mountpoint="/var"} * 100
+            ) > 90
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: "/var on {{ $labels.kubernetes_node }} is nearly full"
+            description: "/var is {{ $value | printf \"%.1f\" }}% full on {{ $labels.kubernetes_node }}, past the kubelet's 10% nodefs eviction threshold. Pods are being evicted; on a master this also threatens etcd, and on a worker the Ceph mon store under /var/lib/rook."
+
+        # Fill catcher, sized against the masters: 18.76 GiB total means a
+        # runaway image pull or log loop can cover the distance from a normal
+        # ~71% to full inside a day, well under the 5 days Rook's
+        # CephNodeDiskspaceWarning needs to notice.
+        #
+        # The 12h fit window matters as much as the horizon: the image cache
+        # moves in a sawtooth (pull on deploy, GC at 85%), and a shorter window
+        # reads the pull side of a tooth as a trend. Replayed over 7 days,
+        # 6h/40% fired for two hours on master-03 with nothing wrong; 12h/30%
+        # fired nothing. The masters idle at ~27% used-free, so the 30% gate is
+        # near their normal floor — it opens once a master dips below where it
+        # usually sits and keeps falling.
+        #
+        # The `on (kubernetes_node)` joins keep the reported value as the current
+        # free space rather than the (negative) prediction.
+        - alert: TalosNodeEphemeralDiskFillingUp
+          expr: |
+            node_filesystem_avail_bytes{job="node-exporter", mountpoint="/var"}
+              and on (kubernetes_node)
+            (predict_linear(node_filesystem_avail_bytes{job="node-exporter", mountpoint="/var"}[12h], 24 * 3600) < 0)
+              and on (kubernetes_node)
+            (
+              node_filesystem_avail_bytes{job="node-exporter", mountpoint="/var"}
+              / node_filesystem_size_bytes{job="node-exporter", mountpoint="/var"} < 0.30
+            )
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "/var on {{ $labels.kubernetes_node }} is trending to full"
+            description: "/var on {{ $labels.kubernetes_node }} has {{ $value | humanize1024 }}B free and, on the last 12 hours' trend, will be full within 24 hours. Something is growing steadily — image cache, a log loop, or a local-path PV."
+
+        # The kubelet's own verdict, and what actually stops scheduling. Labels
+        # come from kube-state-metrics, so the node label is `node`.
+        - alert: TalosNodeUnderDiskPressure
+          expr: kube_node_status_condition{condition="DiskPressure", status="true"} == 1
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Kubelet reports DiskPressure on {{ $labels.node }}"
+            description: "The kubelet on {{ $labels.node }} has set the DiskPressure condition — /var is past an eviction threshold, no new pods will be scheduled and existing ones are being evicted."
