@@ -30,10 +30,12 @@ spec:
     - name: talos.node.memory.controlplane
       interval: 1m
       rules:
-        # 88% of 5.77 GiB leaves ~700 MiB. Baseline after the memory limits in
-        # talos/patches/control-plane-resources.yaml is 71-76%; before them the
-        # masters sat above 88% for most of a week and kube-apiserver reached
-        # 4.8 GiB, so this threshold is what that regression looks like.
+        # 88% of 5.77 GiB leaves ~700 MiB. Current baseline is 71-76%, measured
+        # after a control-plane restart and with kube-apiserver still running on
+        # Talos defaults (200m/512Mi requests, no memory limit) — the limits in
+        # talos/patches/control-plane-resources.yaml are written but not applied
+        # to the cluster. Before that restart the masters sat above 88% for most
+        # of a week, which is the regression this threshold is sized to catch.
         - alert: TalosControlPlaneMemoryHigh
           expr: |
             100 - (

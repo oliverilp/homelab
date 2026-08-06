@@ -200,9 +200,18 @@ check_prerequisites() {
 # =============================================================================
 
 check_talos_health() {
-    log_info "Running talosctl health check against cluster VIP..."
+    log_info "Running talosctl health check..."
 
-    if talosctl health -n "$CLUSTER_VIP" --wait-timeout 2m; then
+    # Explicit node lists + --server=false instead of relying on the VIP and
+    # Talos cluster discovery. Discovery advertises the workers on their
+    # 10.1.11.0/24 Ceph storage-mesh addresses (talos/patches/storage-net-worker-0*),
+    # a direct 10G triangle between the Proxmox hosts with no route from a
+    # workstation — so apid probes against those IPs hang until timeout.
+    if talosctl health \
+        --server=false \
+        --control-plane-nodes "$(IFS=,; echo "${CONTROLPLANE_NODES[*]}")" \
+        --worker-nodes "$(IFS=,; echo "${WORKER_NODES[*]}")" \
+        --wait-timeout 2m; then
         log_success "Talos cluster health check passed"
         return 0
     else

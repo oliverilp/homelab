@@ -45,3 +45,11 @@ talos/out/*
 # K8s
 
 k8s/secrets
+
+# Database backups pulled out of pods — contain password hashes, session
+# secrets and IdP client secrets. Never commit these.
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3

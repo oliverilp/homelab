@@ -1,0 +1,70 @@
+---
+# Memory containment for control plane components on the 6GB masters
+# (master-01 has 8GB). Without a bound, kube-apiserver grows until it starves
+# etcd/kubelet and takes down the whole control plane (seen at 4.8GB on
+# 2026-07-05). No CPU limits, to avoid throttling.
+#
+# All numbers below are measured — `talosctl -n <ip> cgroups --preset memory`
+# and the apiserver's own Go metrics. Baseline on master-02 (5.77 GiB total),
+# 2026-08-06, before this patch was ever applied:
+#   kubepods          4.6 GiB current / 4.9 GiB peak  (cap was 5.3 GiB)
+#     kube-apiserver  3.8 GiB / 4.2 GiB  (no limit)
+#     cilium-agent    244 MiB / 378 MiB
+#     kube-cm         221 MiB / 239 MiB
+#     kube-scheduler   84 MiB / 101 MiB
+#     coredns          61 MiB /  94 MiB
+#   podruntime        608 MiB / 1.5 GiB  (containerd, kubelet, etcd)
+#   system + init     222 MiB / 347 MiB
+cluster:
+  apiServer:
+    # The apiserver is not leaking, it is unpressured: live heap
+    # (go_memstats_heap_alloc_bytes) is 2.16 GiB while next_gc sits at 3.39 GiB
+    # and RSS at 3.71 GiB — textbook GOGC=100, which lets the heap double before
+    # collecting.
+    #
+    # Setting limits.memory is all that is needed to fix that. Talos derives
+    # GOMEMLIMIT from it automatically at 95% (verified: a 3Gi limit produced
+    # GOMEMLIMIT=3060164198 in the static pod spec, and go_gc_gomemlimit_bytes
+    # reads 2.85 GiB on the patched node vs an unset MaxInt64 on the others).
+    # That soft ceiling is what actually bounds the heap — Go GCs harder as it
+    # approaches, instead of being OOM-killed at a cgroup limit it cannot see.
+    # Do NOT also set env.GOMEMLIMIT here: it lands in the spec ahead of the
+    # generated one, and the last duplicate is the one the runtime uses.
+    resources:
+      requests:
+        cpu: 250m
+        memory: 1Gi
+      limits:
+        # Hard backstop; the 2.85 GiB soft ceiling derived from it does the real
+        # work, leaving ~32% headroom over the 2.16 GiB live heap. A limit at or
+        # below that live heap (this file previously said 2Gi) would crashloop.
+        memory: 3Gi
+  controllerManager:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+      limits:
+        memory: 512Mi # 239 MiB peak
+  scheduler:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 256Mi # 101 MiB peak
+machine:
+  kubelet:
+    extraConfig:
+      # Reserve for the system layer (etcd, containerd, kubelet, Talos services)
+      # so the kubepods cgroup can never starve etcd on a 6GB node. 1.5Gi, not
+      # the 2Gi this file previously said: non-pod usage is 830 MiB now and
+      # 1.85 GiB at peak, and 2Gi would cap kubepods at ~3.67 GiB — below what
+      # it already uses, so the masters would OOM the moment it applied.
+      #
+      # Budget on a 5.77 GiB node: allocatable becomes ~4.17 GiB, against a
+      # kubepods worst case of 3 GiB (apiserver limit) + 0.84 GiB (everything
+      # else at peak) = 3.84 GiB.
+      systemReserved:
+        cpu: 250m
+        memory: 1536Mi
