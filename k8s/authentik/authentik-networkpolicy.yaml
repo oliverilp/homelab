@@ -100,3 +100,32 @@ spec:
     ports:
     - protocol: TCP
       port: 443
+---
+# Allow Dragonfly operator to configure the Authentik Dragonfly pods.
+# Port 9999 is the admin port the operator uses for its "is pod in stable
+# state" check; without it the operator cannot label pods or set up
+# replication, and a rolling update wedges on "found pod without label" with
+# the Service (selector role=master) left holding zero endpoints. That is
+# exactly what happened on 2026-08-03: Authentik lost its cache entirely and
+# crashlooped on 502 liveness probes for three days. Same policy as nextcloud,
+# immich and passbolt — authentik was the one instance missing it.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dragonfly-operator
+  namespace: authentik
+spec:
+  podSelector:
+    matchLabels:
+      app: authentik-dragonfly
+      app.kubernetes.io/name: dragonfly
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: dragonfly-operator-system
+    ports:
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 9999
