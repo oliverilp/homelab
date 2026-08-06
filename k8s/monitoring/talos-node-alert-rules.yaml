@@ -3,7 +3,7 @@
 # job="proxmox-node" and are covered by proxmox-alert-rules.yaml).
 #
 # Control plane and workers are split because their headroom is not comparable:
-# the masters are 6 GiB VMs (master-01 has 8 GiB) idling around 75% used, while
+# the masters are 6 GiB VMs (master-01 has 8 GiB) idling at 30-68% used, while
 # the workers have 21-24 GiB and idle near 50%. One shared percentage would
 # either page constantly on the masters or never fire on them at all.
 #
@@ -30,64 +30,71 @@ spec:
     - name: talos.node.memory.controlplane
       interval: 1m
       rules:
-        # 88% of 5.77 GiB leaves ~700 MiB. Current baseline is 71-76%, measured
-        # after a control-plane restart and with kube-apiserver still running on
-        # Talos defaults (200m/512Mi requests, no memory limit) — the limits in
-        # talos/patches/control-plane-resources.yaml are written but not applied
-        # to the cluster. Before that restart the masters sat above 88% for most
-        # of a week, which is the regression this threshold is sized to catch.
+        # 80% of 5.77 GiB leaves ~1.15 GiB. Sized against the *design envelope*,
+        # not the old baseline: since talos/patches/control-plane-resources.yaml
+        # was applied on 2026-08-06 the apiserver limit makes Talos derive
+        # GOMEMLIMIT at 95% of it, pinning a loaded apiserver at ~2.7 GiB RSS
+        # against a ~1.7 GiB live heap instead of drifting to 3.8 GiB. Worst
+        # case is then apiserver 2.85 + other pods 0.84 + non-pod 0.85 = ~4.5 GiB,
+        # i.e. ~79% of a 5.77 GiB node. Crossing 80% means the containment
+        # slipped — the exact regression to catch. Measured baseline afterwards
+        # is 30-68% (was 71-76%, with week-long stretches above 88%).
         - alert: TalosControlPlaneMemoryHigh
           expr: |
             100 - (
               node_memory_MemAvailable_bytes{job="node-exporter", kubernetes_node=~"k8s-master-.*"}
               / node_memory_MemTotal_bytes{job="node-exporter", kubernetes_node=~"k8s-master-.*"} * 100
-            ) > 88
+            ) > 80
           for: 15m
           labels:
             severity: warning
           annotations:
             summary: "Control plane node {{ $labels.kubernetes_node }} is low on memory"
-            description: "{{ $labels.kubernetes_node }} has been above 88% memory use for 15m (currently {{ $value | printf \"%.1f\" }}%). Check kube-apiserver and etcd usage — on a 6 GiB node this is roughly 700 MiB of headroom left."
+            description: "{{ $labels.kubernetes_node }} has been above 80% memory use for 15m (currently {{ $value | printf \"%.1f\" }}%). That is past the ~79% ceiling the apiserver memory limit is supposed to hold — check that the limit is still applied, then kube-apiserver and etcd usage. On a 6 GiB node this leaves ~1.15 GiB."
 
-        # ~350 MiB left. At this point etcd is at risk, and losing etcd on a
+        # ~580 MiB left. At this point etcd is at risk, and losing etcd on a
         # 3-node control plane costs quorum, not just one node.
         - alert: TalosControlPlaneMemoryCritical
           expr: |
             100 - (
               node_memory_MemAvailable_bytes{job="node-exporter", kubernetes_node=~"k8s-master-.*"}
               / node_memory_MemTotal_bytes{job="node-exporter", kubernetes_node=~"k8s-master-.*"} * 100
-            ) > 94
+            ) > 90
           for: 5m
           labels:
             severity: critical
           annotations:
             summary: "Control plane node {{ $labels.kubernetes_node }} is nearly out of memory"
-            description: "{{ $labels.kubernetes_node }} is at {{ $value | printf \"%.1f\" }}% memory use — the OOM killer is imminent and etcd/kube-apiserver are the largest processes on the node. Losing a second master costs etcd quorum."
+            description: "{{ $labels.kubernetes_node }} is at {{ $value | printf \"%.1f\" }}% memory use, ~580 MiB left — the OOM killer is imminent and etcd/kube-apiserver are the largest processes on the node. Losing a second master costs etcd quorum."
 
     - name: talos.node.memory.worker
       interval: 1m
       rules:
-        # Workers idle near 50% of 21-24 GiB, so 85% (~3.2 GiB free) is a real
-        # deviation rather than normal packing.
+        # Workers idle near 50% of 21-24 GiB and have never exceeded 53% in the
+        # last 7 days, so 80% (~4.3 GiB free) is a large, unambiguous deviation
+        # with no false-positive history. Their absolute headroom is ~4x a
+        # master's, so the same percentage is far less urgent here — hence the
+        # split from the control plane rules above, even though the numbers now
+        # sit close together.
         - alert: TalosWorkerMemoryHigh
           expr: |
             100 - (
               node_memory_MemAvailable_bytes{job="node-exporter", kubernetes_node=~"k8s-worker-.*"}
               / node_memory_MemTotal_bytes{job="node-exporter", kubernetes_node=~"k8s-worker-.*"} * 100
-            ) > 85
+            ) > 80
           for: 15m
           labels:
             severity: warning
           annotations:
             summary: "Worker node {{ $labels.kubernetes_node }} is low on memory"
-            description: "{{ $labels.kubernetes_node }} has been above 85% memory use for 15m (currently {{ $value | printf \"%.1f\" }}%). Find the heaviest pods (`kubectl top pod -A --sort-by=memory`) before the kubelet starts evicting."
+            description: "{{ $labels.kubernetes_node }} has been above 80% memory use for 15m (currently {{ $value | printf \"%.1f\" }}%). Find the heaviest pods (`kubectl top pod -A --sort-by=memory`) before the kubelet starts evicting."
 
         - alert: TalosWorkerMemoryCritical
           expr: |
             100 - (
               node_memory_MemAvailable_bytes{job="node-exporter", kubernetes_node=~"k8s-worker-.*"}
               / node_memory_MemTotal_bytes{job="node-exporter", kubernetes_node=~"k8s-worker-.*"} * 100
-            ) > 92
+            ) > 90
           for: 5m
           labels:
             severity: critical
@@ -131,9 +138,26 @@ spec:
         # drops under the eviction threshold, and it is what actually triggers
         # pod eviction. Labels come from kube-state-metrics, so the node label
         # is `node`, not `kubernetes_node`.
+        #
+        # The condition alone is NOT enough to alert on. The kubelet holds it
+        # True for evictionPressureTransitionPeriod (5m0s, the default here)
+        # *after* pressure clears, so on its own no `for` under 5m can tell a
+        # self-healed spike from a real problem: a 5-second eviction burst while
+        # applying systemReserved on 2026-08-06 paged as critical while the node
+        # had 3.9 GiB free. Rather than wait out the hold-down, the join below
+        # requires memory to still be genuinely low, which lets `for` stay short.
+        # 10% available is far above the 100Mi evictionHard threshold, so a node
+        # under real pressure clears it easily while a recovered one does not.
         - alert: TalosNodeUnderMemoryPressure
-          expr: kube_node_status_condition{condition="MemoryPressure", status="true"} == 1
-          for: 2m
+          expr: |
+            kube_node_status_condition{condition="MemoryPressure", status="true"} == 1
+              and on (node)
+            label_replace(
+              node_memory_MemAvailable_bytes{job="node-exporter"}
+              / node_memory_MemTotal_bytes{job="node-exporter"} < 0.10,
+              "node", "$1", "kubernetes_node", "(.*)"
+            )
+          for: 3m
           labels:
             severity: critical
           annotations:
@@ -238,10 +262,21 @@ spec:
             description: "/var on {{ $labels.kubernetes_node }} has {{ $value | humanize1024 }}B free and, on the last 12 hours' trend, will be full within 24 hours. Something is growing steadily — image cache, a log loop, or a local-path PV."
 
         # The kubelet's own verdict, and what actually stops scheduling. Labels
-        # come from kube-state-metrics, so the node label is `node`.
+        # come from kube-state-metrics, so the node label is `node`. Same
+        # freshness join as TalosNodeUnderMemoryPressure and for the same reason
+        # — the kubelet pins this condition for evictionPressureTransitionPeriod
+        # (5m0s) after pressure clears. 15% free matches the imagefs.available
+        # eviction threshold that sets DiskPressure in the first place.
         - alert: TalosNodeUnderDiskPressure
-          expr: kube_node_status_condition{condition="DiskPressure", status="true"} == 1
-          for: 2m
+          expr: |
+            kube_node_status_condition{condition="DiskPressure", status="true"} == 1
+              and on (node)
+            label_replace(
+              node_filesystem_avail_bytes{job="node-exporter", mountpoint="/var"}
+              / node_filesystem_size_bytes{job="node-exporter", mountpoint="/var"} < 0.15,
+              "node", "$1", "kubernetes_node", "(.*)"
+            )
+          for: 3m
           labels:
             severity: critical
           annotations:
