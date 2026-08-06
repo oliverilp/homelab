@@ -1,4 +1,4 @@
-FROM python:3.14-slim-trixie@sha256:7bec7ddcddeff7975d6ba9b4be7dd6f6b2f55e7491539145e2978f7f97ce9144 AS base
+FROM python:3.14-slim-trixie@sha256:a7fb1e634c4a578f9e0bd6327f11a3cde11b7a9395f48e24360c0988bcc5c2bc AS base
 
 SHELL ["/bin/sh", "-euxc"]
 
