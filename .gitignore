@@ -53,3 +53,8 @@ k8s/secrets
 *.db-shm
 *.sqlite
 *.sqlite3
+
+# Python
+
+__pycache__/
+*.py[cod]

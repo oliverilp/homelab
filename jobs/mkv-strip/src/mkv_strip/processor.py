@@ -56,7 +56,7 @@ def run_ffmpeg(cmd: list[str], output_path: Path) -> int:
         runtime.ACTIVE_PROCESS = None
 
 
-def probe(path: Path) -> list[dict[str, Any]] | None:
+def probe(path: Path) -> tuple[list[dict[str, Any]] | None, str | None]:
     try:
         result = run_capture(
             [
@@ -71,7 +71,7 @@ def probe(path: Path) -> list[dict[str, Any]] | None:
         )
     except OSError as error:
         runtime.LOGGER.error("ffprobe launch failed path=%s error=%s", path, error)
-        return None
+        return None, f"ffprobe launch failed: {error}"
 
     if result.returncode != 0:
         runtime.LOGGER.error(
@@ -80,20 +80,20 @@ def probe(path: Path) -> list[dict[str, Any]] | None:
             result.returncode,
             result.stderr.strip(),
         )
-        return None
+        return None, f"ffprobe exited {result.returncode}"
 
     try:
         data = json.loads(result.stdout)
     except json.JSONDecodeError as error:
         runtime.LOGGER.error("ffprobe returned invalid json path=%s error=%s", path, error)
-        return None
+        return None, f"ffprobe returned invalid json: {error}"
 
     streams = data.get("streams")
     if not isinstance(streams, list):
         runtime.LOGGER.error("ffprobe output had no streams list path=%s", path)
-        return None
+        return None, "ffprobe output had no streams list"
 
-    return streams
+    return streams, None
 
 
 def should_remove(stream: dict[str, Any], config: Config) -> bool:
@@ -143,12 +143,12 @@ def process_file(path: Path, config: Config) -> FileResult:
 
     runtime.LOGGER.info("processing path=%s", path)
 
-    streams = probe(path)
+    streams, probe_error = probe(path)
     if streams is None:
-        return FileResult(path=path, outcome=Outcome.FAILED)
+        return FileResult(path=path, outcome=Outcome.FAILED, error=probe_error)
     if not streams:
         runtime.LOGGER.warning("skip no-streams path=%s", path)
-        return FileResult(path=path, outcome=Outcome.FAILED)
+        return FileResult(path=path, outcome=Outcome.FAILED, error="file has no streams")
 
     keep: list[dict[str, Any]] = []
     remove: list[dict[str, Any]] = []
@@ -230,18 +230,18 @@ def process_file(path: Path, config: Config) -> FileResult:
     except OSError as error:
         runtime.LOGGER.error("ffmpeg launch failed path=%s error=%s", path, error)
         cleanup(output_path)
-        return FileResult(path=path, outcome=Outcome.FAILED)
+        return FileResult(path=path, outcome=Outcome.FAILED, error=f"ffmpeg launch failed: {error}")
     finally:
         runtime.CURRENT_OUTPUT = None
 
     if return_code != 0:
         runtime.LOGGER.error("ffmpeg failed path=%s returncode=%s", path, return_code)
         cleanup(output_path)
-        return FileResult(path=path, outcome=Outcome.FAILED)
+        return FileResult(path=path, outcome=Outcome.FAILED, error=f"ffmpeg exited {return_code}")
 
     if not output_path.exists():
         runtime.LOGGER.error("ffmpeg succeeded but output missing path=%s output=%s", path, output_path)
-        return FileResult(path=path, outcome=Outcome.FAILED)
+        return FileResult(path=path, outcome=Outcome.FAILED, error="ffmpeg exited 0 but output file is missing")
 
     original_size = path.stat().st_size
     new_size = output_path.stat().st_size
@@ -249,7 +249,7 @@ def process_file(path: Path, config: Config) -> FileResult:
     if new_size == 0:
         runtime.LOGGER.error("output is empty path=%s output=%s", path, output_path)
         cleanup(output_path)
-        return FileResult(path=path, outcome=Outcome.FAILED)
+        return FileResult(path=path, outcome=Outcome.FAILED, error="output file was empty")
 
     if new_size < original_size * config.min_output_size_ratio:
         runtime.LOGGER.error(
@@ -259,7 +259,14 @@ def process_file(path: Path, config: Config) -> FileResult:
             new_size,
         )
         cleanup(output_path)
-        return FileResult(path=path, outcome=Outcome.FAILED)
+        return FileResult(
+            path=path,
+            outcome=Outcome.FAILED,
+            error=(
+                f"output suspiciously small: {new_size} B vs {original_size} B "
+                f"(min ratio {config.min_output_size_ratio})"
+            ),
+        )
 
     saved_mb = (original_size - new_size) / 1_048_576
     runtime.LOGGER.info(
@@ -283,7 +290,7 @@ def process_file(path: Path, config: Config) -> FileResult:
         output_path.replace(path)
     except OSError as error:
         runtime.LOGGER.error("replace failed path=%s output=%s error=%s", path, output_path, error)
-        return FileResult(path=path, outcome=Outcome.FAILED)
+        return FileResult(path=path, outcome=Outcome.FAILED, error=f"replacing original failed: {error}")
 
     runtime.LOGGER.info("replaced original path=%s", path)
     return FileResult(

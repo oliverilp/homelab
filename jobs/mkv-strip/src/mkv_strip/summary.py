@@ -57,6 +57,7 @@ def print_summary(
     duration_seconds: float,
     cleaned_files: list[Path],
     changed_files: list[FileResult],
+    failed_files: list[FileResult],
     modified: int,
     skipped: int,
     failed: int,
@@ -85,6 +86,16 @@ def print_summary(
             print(f"    original: {format_size(original)} | saved: {format_size(result.saved_bytes)} ({percent})")
     else:
         print("Changed files: none")
+
+    print()
+
+    if failed_files:
+        print(f"Failed files ({len(failed_files)}):")
+        for result in failed_files:
+            print(f"  {display_path(result.path, config)}")
+            print(f"    reason: {result.error or 'unknown'}")
+    else:
+        print("Failed files: none")
 
     print("---------------------------------------")
     print(f"Started: {format_datetime(start_time)}")

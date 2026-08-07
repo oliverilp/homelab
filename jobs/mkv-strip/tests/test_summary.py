@@ -41,9 +41,16 @@ class SummaryFormattingTests(unittest.TestCase):
                         new_bytes=709,
                     ),
                 ],
+                failed_files=[
+                    FileResult(
+                        path=Path("/media/broken.mkv"),
+                        outcome=Outcome.FAILED,
+                        error="ffmpeg exited 1",
+                    ),
+                ],
                 modified=1,
-                skipped=496,
-                failed=0,
+                skipped=495,
+                failed=1,
                 total=497,
             )
 
@@ -56,6 +63,29 @@ class SummaryFormattingTests(unittest.TestCase):
         self.assertIn("Finished: 2026-04-26 20:33:35 +0300", summary)
         self.assertIn("Duration: 1h 01m 02s", summary)
         self.assertIn("Total saved: 291 B (29.1%)", summary)
+        self.assertIn("Failed files (1):", summary)
+        self.assertIn("broken.mkv", summary)
+        self.assertIn("reason: ffmpeg exited 1", summary)
+
+    def test_print_summary_reports_no_failures(self) -> None:
+        output = io.StringIO()
+
+        with redirect_stdout(output):
+            print_summary(
+                config=Config(directories=[Path("/media")]),
+                start_time=datetime(2026, 4, 26, 19, 32, 33, tzinfo=timezone.utc),
+                end_time=datetime(2026, 4, 26, 19, 33, 33, tzinfo=timezone.utc),
+                duration_seconds=60,
+                cleaned_files=[],
+                changed_files=[],
+                failed_files=[],
+                modified=0,
+                skipped=1,
+                failed=0,
+                total=1,
+            )
+
+        self.assertIn("Failed files: none", output.getvalue())
 
 
 if __name__ == "__main__":

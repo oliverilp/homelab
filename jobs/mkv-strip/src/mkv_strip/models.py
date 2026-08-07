@@ -19,6 +19,7 @@ class FileResult:
     outcome: Outcome
     original_bytes: int | None = None
     new_bytes: int | None = None
+    error: str | None = None
 
     @property
     def saved_bytes(self) -> int:

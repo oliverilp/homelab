@@ -44,6 +44,7 @@ def run(config: Config) -> int:
             duration_seconds=duration_seconds,
             cleaned_files=cleaned_files,
             changed_files=[],
+            failed_files=[],
             modified=0,
             skipped=0,
             failed=0,
@@ -55,22 +56,34 @@ def run(config: Config) -> int:
     skipped = 0
     failed = 0
     changed_files: list[FileResult] = []
+    failed_files: list[FileResult] = []
 
     runtime.LOGGER.info("found files=%s", len(files))
 
     for path in files:
         if runtime.SHUTDOWN_REQUESTED:
             failed += 1
+            failed_files.append(FileResult(path=path, outcome=Outcome.FAILED, error="shutdown requested"))
             break
 
         try:
             result = process_file(path, config)
         except ShutdownRequested:
             failed += 1
+            failed_files.append(
+                FileResult(path=path, outcome=Outcome.FAILED, error="interrupted mid-file by shutdown"),
+            )
             break
-        except Exception:
+        except Exception as error:
             failed += 1
             runtime.LOGGER.error("unexpected-error path=%s traceback=%s", path, traceback.format_exc())
+            failed_files.append(
+                FileResult(
+                    path=path,
+                    outcome=Outcome.FAILED,
+                    error=f"unexpected {type(error).__name__}: {error}",
+                ),
+            )
             cleanup(stripped_output_path(path))
             if not config.keep_going:
                 break
@@ -83,6 +96,7 @@ def run(config: Config) -> int:
             skipped += 1
         else:
             failed += 1
+            failed_files.append(result)
             if not config.keep_going:
                 break
 
@@ -104,6 +118,7 @@ def run(config: Config) -> int:
         duration_seconds=duration_seconds,
         cleaned_files=cleaned_files,
         changed_files=changed_files,
+        failed_files=failed_files,
         modified=modified,
         skipped=skipped,
         failed=failed,
