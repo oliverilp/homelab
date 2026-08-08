@@ -3,10 +3,12 @@ from __future__ import annotations
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import support  # noqa: F401
-from mkv_strip.models import Config
-from mkv_strip.processor import cleanup_leftovers, should_remove
+from mkv_strip import processor
+from mkv_strip.models import Config, Outcome
+from mkv_strip.processor import cleanup_leftovers, process_file, should_remove
 
 
 class StreamRemovalTests(unittest.TestCase):
@@ -53,6 +55,58 @@ class StartupCleanupTests(unittest.TestCase):
             self.assertFalse(nested_leftover.exists())
             self.assertTrue(keep_mkv.exists())
             self.assertTrue(keep_text.exists())
+
+
+STREAMS = [
+    {"index": 0, "codec_type": "video", "codec_name": "hevc", "tags": {"language": "und"}},
+    {"index": 1, "codec_type": "audio", "codec_name": "eac3", "tags": {"language": "eng"}},
+    {"index": 2, "codec_type": "audio", "codec_name": "eac3", "tags": {"language": "rus"}},
+]
+
+
+class GrowingSourceTests(unittest.TestCase):
+    """A still-downloading source must never be replaced by a remux of its partial bytes."""
+
+    def test_fails_when_source_grows_during_remux(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / "movie.mkv"
+            source.write_bytes(b"x" * 1000)
+
+            def fake_ffmpeg(_cmd: list[str], output_path: Path) -> int:
+                # ffmpeg reads the partial file while the torrent client keeps appending.
+                with source.open("ab") as handle:
+                    handle.write(b"x" * 9000)
+                output_path.write_bytes(b"y" * 900)
+                return 0
+
+            with (
+                mock.patch.object(processor, "probe", return_value=(STREAMS, None)),
+                mock.patch.object(processor, "run_ffmpeg", side_effect=fake_ffmpeg),
+            ):
+                result = process_file(source, Config(directories=[Path(temp_dir)]))
+
+            self.assertEqual(result.outcome, Outcome.FAILED)
+            self.assertIn("download in progress", result.error or "")
+            self.assertEqual(source.read_bytes(), b"x" * 10000)
+            self.assertFalse((Path(temp_dir) / "movie.stripped.mkv").exists())
+
+    def test_replaces_original_when_source_is_stable(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / "movie.mkv"
+            source.write_bytes(b"x" * 1000)
+
+            def fake_ffmpeg(_cmd: list[str], output_path: Path) -> int:
+                output_path.write_bytes(b"y" * 900)
+                return 0
+
+            with (
+                mock.patch.object(processor, "probe", return_value=(STREAMS, None)),
+                mock.patch.object(processor, "run_ffmpeg", side_effect=fake_ffmpeg),
+            ):
+                result = process_file(source, Config(directories=[Path(temp_dir)]))
+
+            self.assertEqual(result.outcome, Outcome.MODIFIED)
+            self.assertEqual(source.read_bytes(), b"y" * 900)
 
 
 if __name__ == "__main__":

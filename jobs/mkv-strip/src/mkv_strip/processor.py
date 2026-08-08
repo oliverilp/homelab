@@ -136,12 +136,24 @@ def stripped_output_path(path: Path) -> Path:
     return path.with_name(f"{path.stem}{STRIPPED_SUFFIX}{path.suffix}")
 
 
+def source_fingerprint(path: Path) -> tuple[int, int]:
+    """Size + mtime_ns, used to detect a file still being written (e.g. an in-progress torrent)."""
+    stat = path.stat()
+    return stat.st_size, stat.st_mtime_ns
+
+
 def process_file(path: Path, config: Config) -> FileResult:
     if path.stem.endswith(STRIPPED_SUFFIX):
         runtime.LOGGER.info("skip stripped-output path=%s", path)
         return FileResult(path=path, outcome=Outcome.SKIPPED)
 
     runtime.LOGGER.info("processing path=%s", path)
+
+    try:
+        original_size, original_mtime_ns = source_fingerprint(path)
+    except OSError as error:
+        runtime.LOGGER.error("could not stat source path=%s error=%s", path, error)
+        return FileResult(path=path, outcome=Outcome.FAILED, error=f"could not stat source: {error}")
 
     streams, probe_error = probe(path)
     if streams is None:
@@ -243,7 +255,30 @@ def process_file(path: Path, config: Config) -> FileResult:
         runtime.LOGGER.error("ffmpeg succeeded but output missing path=%s output=%s", path, output_path)
         return FileResult(path=path, outcome=Outcome.FAILED, error="ffmpeg exited 0 but output file is missing")
 
-    original_size = path.stat().st_size
+    try:
+        final_size, final_mtime_ns = source_fingerprint(path)
+    except OSError as error:
+        runtime.LOGGER.error("could not re-stat source path=%s error=%s", path, error)
+        cleanup(output_path)
+        return FileResult(path=path, outcome=Outcome.FAILED, error=f"could not re-stat source: {error}")
+
+    if (final_size, final_mtime_ns) != (original_size, original_mtime_ns):
+        runtime.LOGGER.error(
+            "source changed while remuxing path=%s start_bytes=%s end_bytes=%s",
+            path,
+            original_size,
+            final_size,
+        )
+        cleanup(output_path)
+        return FileResult(
+            path=path,
+            outcome=Outcome.FAILED,
+            error=(
+                f"source file changed while remuxing (download in progress?): "
+                f"{original_size} B at start vs {final_size} B at end"
+            ),
+        )
+
     new_size = output_path.stat().st_size
 
     if new_size == 0:
