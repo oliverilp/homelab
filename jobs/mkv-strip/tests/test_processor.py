@@ -17,6 +17,14 @@ class StreamRemovalTests(unittest.TestCase):
 
         self.assertTrue(should_remove(stream, Config(directories=[Path("/media")])))
 
+    def test_removes_belarusian_audio_and_subtitles(self) -> None:
+        config = Config(directories=[Path("/media")])
+        audio = {"codec_type": "audio", "tags": {"language": "bel"}}
+        subtitle = {"codec_type": "subtitle", "tags": {"language": "eng", "title": "Belarusian"}}
+
+        self.assertTrue(should_remove(audio, config))
+        self.assertTrue(should_remove(subtitle, config))
+
     def test_removes_matching_title_keyword(self) -> None:
         stream = {"codec_type": "subtitle", "tags": {"language": "eng", "title": "Russian forced"}}
 

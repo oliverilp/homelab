@@ -12,7 +12,8 @@ data:
       ],
       "remove_languages": [
         "rus",
-        "ukr"
+        "ukr",
+        "bel"
       ],
       "recursive": true,
       "keep_going": true,

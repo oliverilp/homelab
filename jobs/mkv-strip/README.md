@@ -1,6 +1,6 @@
 # mkv-strip
 
-Small maintenance job for remuxing MKV files and removing unwanted Russian and Ukrainian audio/subtitle tracks without re-encoding.
+Small maintenance job for remuxing MKV files and removing unwanted Russian, Ukrainian and Belarusian audio/subtitle tracks without re-encoding.
 
 The container uses the official Debian-based Python slim image plus `ffmpeg`. The Python script only uses the standard library, so there is no virtualenv or dependency lockfile.
 
