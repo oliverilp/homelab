@@ -1,0 +1,19 @@
+# Lets app HTTPRoutes in other namespaces send /outpost.goauthentik.io/* to the
+# embedded outpost. Forward auth sets its session cookie on the app's own
+# hostname, so the callback has to be served from that hostname — a
+# cross-namespace backendRef, which Gateway API denies (RefNotPermitted)
+# without this grant. Add one `from` entry per app namespace.
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-app-routes-to-authentik
+  namespace: authentik
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: qbittorrent
+  to:
+    - group: ""
+      kind: Service
+      name: authentik-server

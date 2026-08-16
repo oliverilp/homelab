@@ -12,10 +12,31 @@ spec:
   hostnames:
     - "qbittorrent.oliverilp.ee"
   rules:
+    # Outpost endpoints (/start, /callback, /sign_out) carry no forwardAuth
+    # filter — gating them would recurse on the login handshake itself.
+    # Cross-namespace backendRef, permitted by the ReferenceGrant in k8s/authentik/.
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /outpost.goauthentik.io
+      backendRefs:
+        - name: authentik-server
+          namespace: authentik
+          port: 80
     - matches:
         - path:
             type: PathPrefix
             value: /
+      filters:
+        # Per-rule ExtensionRef, not the router.middlewares annotation used by
+        # nextcloud — that applies to every rule, including the outpost path.
+        # The Middleware must live in this namespace; ExtensionRef has no
+        # namespace field.
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: authentik-forward-auth
       backendRefs:
         - name: qbittorrent
           port: 9092
