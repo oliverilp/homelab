@@ -241,13 +241,14 @@ Waves in use, roughly ordered:
 | -10 | cert-manager |
 | -9 | external-secrets |
 | -8 | external-dns, metrics-server, monitoring, reloader, blackbox-exporter |
-| -7 | rook-ceph-operator |
+| -7 | rook-ceph-operator, snapshot-controller |
 | -6 | ceph-csi-drivers |
 | -5 | rook-ceph-cluster, local-path-storage, traefik (gateways) |
 | -4 | traefik (controller) |
 | 5 | cnpg-barman-cloud |
 | 10 | postgresql clusters |
 | 20-30 | applications |
+| 35 | volume-snapshots (discovers PVCs at runtime, so it goes last) |
 
 ### Gateway API Pattern
 
@@ -391,6 +392,26 @@ When bootstrapping from scratch, follow BOOTSTRAP.MD strictly. Key dependencies:
 - **Deployments that need RWX must use `ceph-filesystem`** — an RBD (RWO) volume causes Multi-Attach errors on rolling updates. StatefulSets can stay on `ceph-block`.
 - PVC naming convention: `<app>-data-pvc`, or `<app>-<role>-pvc` when an app has several
 - Bulk media is mounted as static NFS PersistentVolumes with explicit paths, not dynamically provisioned
+
+#### Volume Snapshots
+
+`k8s/volume-snapshots/` snapshots **every** `ceph-block`/`ceph-filesystem` PVC on a daily(14) /
+weekly(8) / monthly(12) schedule with automatic pruning. Three CronJobs share one script; there is
+nothing to add per app.
+
+- Selection is opt-out but allowlisted by storage class — `local-path` and static NFS PVCs are
+  structurally unreachable (neither supports CSI snapshots)
+- Exclude a PVC with the annotation `snapshot.homelab/enabled: "false"`; override retention with
+  `snapshot.homelab/daily|weekly|monthly: "<n>"`
+- Snapshot classes `ceph-block` / `ceph-filesystem` come from
+  `ceph{BlockPools,FileSystem}VolumeSnapshotClass` in `rook-ceph-cluster-values.yaml`
+  (chart default is `enabled: false`); `deletionPolicy: Delete` so pruning reclaims space
+- Requires `drivers.*.snapshotPolicy: volumeSnapshot` in `ceph-csi-drivers-values.yaml` — the RBD
+  driver defaults to `none` and ships no snapshotter sidecar
+- The CSI snapshot controller + CRDs are vendored upstream in `k8s/snapshot-controller/`; the image
+  version and the vendored manifest version must be bumped together
+- These are in-cluster and crash-consistent only — not offsite, not a substitute for the CNPG
+  Barman backups. Restore runbook: `k8s/volume-snapshots/README.md`
 
 ### Network Policies
 

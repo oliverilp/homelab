@@ -362,6 +362,22 @@ Off-site backups to AWS S3 in `eu-north-1` (Stockholm), all client-side encrypte
 
 Each backup client authenticates with a dedicated IAM user and least-privilege policy scoped to its specific bucket only.
 
+### In-cluster volume snapshots
+
+Every Ceph-backed PVC is snapshotted on a tiered schedule by [k8s/volume-snapshots](k8s/volume-snapshots/) — CSI `VolumeSnapshot` objects created by three CronJobs, with automatic pruning:
+
+| Tier | Schedule | Keeps | Window |
+|------|----------|-------|--------|
+| Daily | 03:00 | 14 | 2 weeks |
+| Weekly | Sunday 03:30 | 8 | ~2 months |
+| Monthly | 1st, 04:00 | 12 | 12 months |
+
+Selection is opt-out but restricted to the `ceph-block` and `ceph-filesystem` storage classes, so new apps are covered automatically while `local-path` and the static NFS PVs (neither of which supports CSI snapshots) can never be selected. Annotate a PVC with `snapshot.homelab/enabled: "false"` to exclude it.
+
+Ceph snapshots are copy-on-write, so a year of history costs roughly the accumulated churn rather than a year of full copies. They are **not** offsite and **not** application-consistent — they cover accidental deletes, bad upgrades, and logical corruption, not loss of the cluster. Velero to S3 is the planned complement; the `VolumeSnapshotClass`es already carry the label it looks for.
+
+Restore is per-PVC and documented in [k8s/volume-snapshots/README.md](k8s/volume-snapshots/README.md). The supporting CSI snapshot controller is vendored from upstream in [k8s/snapshot-controller](k8s/snapshot-controller/).
+
 ## :construction: Bootstrapping
 
 This section documents the complete infrastructure provisioning and cluster bootstrap process, from Talos Linux configuration generation to Kubernetes cluster initialization and core operator deployment.
