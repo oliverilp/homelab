@@ -135,4 +135,31 @@ cephFileSystems:
         csi.storage.k8s.io/node-stage-secret-name: rook-csi-cephfs-node
         csi.storage.k8s.io/node-stage-secret-namespace: "{{ .Release.Namespace }}"
 
+# Snapshot classes for the two StorageClasses above (chart default is enabled: false).
+# The chart derives driver/clusterID/secrets from operatorNamespace and the release
+# namespace, so these stay correct if either ever moves.
+#
+# Requires the CSI snapshot controller + CRDs (k8s/snapshot-controller/) and
+# drivers.*.snapshotPolicy: volumeSnapshot (ceph-csi-drivers-values.yaml).
+# Consumed by the scheduled snapshots in k8s/volume-snapshots/.
+cephBlockPoolsVolumeSnapshotClass:
+  enabled: true
+  name: ceph-block
+  # Every snapshot names its class explicitly; no implicit default.
+  isDefault: false
+  # Delete, unlike the StorageClass's reclaimPolicy: Retain — scheduled pruning
+  # must actually reclaim Ceph space.
+  deletionPolicy: Delete
+  labels:
+    # Lets a future Velero install pick this class for the RBD driver unprompted.
+    velero.io/csi-volumesnapshot-class: "true"
+
+cephFileSystemVolumeSnapshotClass:
+  enabled: true
+  name: ceph-filesystem
+  isDefault: false
+  deletionPolicy: Delete
+  labels:
+    velero.io/csi-volumesnapshot-class: "true"
+
 cephObjectStores: []
