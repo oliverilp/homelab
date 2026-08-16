@@ -93,6 +93,12 @@
       "matchPackageNames": ["rook-ceph", "rook-ceph-cluster", "ceph-csi-drivers"],
       "matchUpdateTypes": ["patch"],
       "automerge": true
+    },
+    {
+      "description": "Never auto-merge the snapshot controller: its image version must stay in step with the vendored CRDs in k8s/snapshot-controller/, which Renovate cannot bump. Merging alone would create skew — re-vendor the manifests in the same PR.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["registry.k8s.io/sig-storage/snapshot-controller"],
+      "automerge": false
     }
   ],
   "vulnerabilityAlerts": {
