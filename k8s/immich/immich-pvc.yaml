@@ -16,6 +16,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: immich-ml-cache-pvc
   namespace: immich
+  annotations:
+    snapshot.homelab/enabled: "false"
 spec:
   accessModes:
     - ReadWriteMany

@@ -1,0 +1,145 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: volume-snapshotter-script
+  namespace: volume-snapshots
+data:
+  snapshot.sh: |
+    #!/bin/sh
+    # Tiered CSI snapshots for every Ceph-backed PVC in the cluster.
+    #
+    # One script, three CronJobs (daily/weekly/monthly) differing only by TIER + RETAIN.
+    # Selection is opt-out but allowlisted by StorageClass, so local-path (PostgreSQL,
+    # Prometheus) and the static TrueNAS NFS PVCs are structurally unreachable — neither
+    # supports CSI snapshots and silently failing on them would mask real errors.
+    set -eu
+
+    TIER="${TIER:?TIER is required}"
+    RETAIN="${RETAIN:?RETAIN is required}"
+    ORPHAN_SWEEP="${ORPHAN_SWEEP:-false}"
+    ORPHAN_MAX_AGE_DAYS="${ORPHAN_MAX_AGE_DAYS:-30}"
+
+    STAMP="$(date -u +%Y%m%d%H%M)"
+    WORK=/tmp/work
+    mkdir -p "$WORK"
+    failures=0
+
+    log() { echo "[$(date -u +%H:%M:%S)] $*"; }
+
+    # --- discover targets -----------------------------------------------------
+    # Emits: namespace \t pvc \t snapshotclass \t retain
+    # Per-PVC retention override: annotation snapshot.homelab/<tier> on the PVC.
+    kubectl get pvc --all-namespaces -o json \
+      | jq -r --arg tier "$TIER" --arg retain "$RETAIN" '
+          .items[]
+          | select(.status.phase == "Bound")
+          | select(.spec.storageClassName == "ceph-block"
+                or .spec.storageClassName == "ceph-filesystem")
+          | select((.metadata.annotations // {})["snapshot.homelab/enabled"] != "false")
+          | [ .metadata.namespace,
+              .metadata.name,
+              (if .spec.storageClassName == "ceph-block"
+                 then "ceph-block"
+                 else "ceph-filesystem" end),
+              ((.metadata.annotations // {})["snapshot.homelab/" + $tier] // $retain)
+            ] | @tsv' > "$WORK/targets.tsv"
+
+    log "tier=$TIER retain=$RETAIN targets=$(grep -c '' "$WORK/targets.tsv")"
+
+    # --- create ---------------------------------------------------------------
+    while IFS="$(printf '\t')" read -r ns pvc class _keep; do
+      name="${pvc}-${TIER}-${STAMP}"
+      if kubectl get volumesnapshot -n "$ns" "$name" >/dev/null 2>&1; then
+        log "skip  $ns/$name (already exists)"
+        continue
+      fi
+      if kubectl create -f - >/dev/null <<EOF
+    apiVersion: snapshot.storage.k8s.io/v1
+    kind: VolumeSnapshot
+    metadata:
+      name: $name
+      namespace: $ns
+      labels:
+        snapshot.homelab/managed: "true"
+        snapshot.homelab/tier: "$TIER"
+        snapshot.homelab/pvc: "$pvc"
+    spec:
+      volumeSnapshotClassName: $class
+      source:
+        persistentVolumeClaimName: $pvc
+    EOF
+      then
+        log "create $ns/$name ($class)"
+      else
+        log "ERROR  failed to create $ns/$name"
+        failures=$((failures + 1))
+      fi
+    done < "$WORK/targets.tsv"
+
+    # --- prune ----------------------------------------------------------------
+    # Per (namespace, pvc, tier): keep the newest N, delete the rest. Tiers are
+    # independent, so a Sunday legitimately holds both a daily and a weekly snapshot.
+    while IFS="$(printf '\t')" read -r ns pvc _class keep; do
+      case "$keep" in
+        ''|*[!0-9]*)
+          log "ERROR  $ns/$pvc: non-numeric retention '$keep', skipping prune"
+          failures=$((failures + 1))
+          continue
+          ;;
+      esac
+
+      # Guarded: one unreadable namespace must not abort pruning for every other PVC.
+      if ! kubectl get volumesnapshot -n "$ns" \
+        -l "snapshot.homelab/managed=true,snapshot.homelab/tier=$TIER,snapshot.homelab/pvc=$pvc" \
+        --sort-by=.metadata.creationTimestamp -o name > "$WORK/existing.txt"; then
+        log "ERROR  failed to list snapshots for $ns/$pvc"
+        failures=$((failures + 1))
+        continue
+      fi
+
+      excess=$(( $(wc -l < "$WORK/existing.txt") - keep ))
+      [ "$excess" -gt 0 ] || continue
+
+      head -n "$excess" "$WORK/existing.txt" > "$WORK/prune.txt"
+      while read -r obj; do
+        if kubectl delete -n "$ns" "$obj" --wait=false >/dev/null; then
+          log "prune  $ns/$obj"
+        else
+          log "ERROR  failed to prune $ns/$obj"
+          failures=$((failures + 1))
+        fi
+      done < "$WORK/prune.txt"
+    done < "$WORK/targets.tsv"
+
+    # --- orphan sweep (monthly only) ------------------------------------------
+    # Snapshots of a PVC that no longer exists are never revisited by the loops above,
+    # so deleting an app would otherwise pin its snapshots forever.
+    if [ "$ORPHAN_SWEEP" = "true" ]; then
+      cutoff=$(( $(date -u +%s) - ORPHAN_MAX_AGE_DAYS * 86400 ))
+      kubectl get pvc --all-namespaces \
+        -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name}{"\n"}{end}' \
+        > "$WORK/all-pvcs.txt"
+
+      kubectl get volumesnapshot --all-namespaces -l snapshot.homelab/managed=true -o json \
+        | jq -r --argjson cutoff "$cutoff" '
+            .items[]
+            | select((.metadata.creationTimestamp | fromdateiso8601) < $cutoff)
+            | [ .metadata.namespace,
+                .metadata.name,
+                (.spec.source.persistentVolumeClaimName // "")
+              ] | @tsv' > "$WORK/aged.tsv"
+
+      while IFS="$(printf '\t')" read -r ns snap src; do
+        [ -n "$src" ] || continue
+        grep -qxF "$ns/$src" "$WORK/all-pvcs.txt" && continue
+        if kubectl delete volumesnapshot -n "$ns" "$snap" --wait=false >/dev/null; then
+          log "orphan $ns/$snap (source pvc $src is gone)"
+        else
+          log "ERROR  failed to delete orphan $ns/$snap"
+          failures=$((failures + 1))
+        fi
+      done < "$WORK/aged.tsv"
+    fi
+
+    log "done, failures=$failures"
+    [ "$failures" -eq 0 ]

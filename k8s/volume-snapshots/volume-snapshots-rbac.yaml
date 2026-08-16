@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: volume-snapshotter
+  namespace: volume-snapshots
+
+---
+# Cluster-scoped because the CronJob snapshots PVCs in every application namespace.
+# Deliberately minimal: it can read PVCs and manage VolumeSnapshots, nothing else.
+# It cannot touch VolumeSnapshotContent — the snapshot-controller owns those and
+# reclaims them via the class's deletionPolicy: Delete.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: volume-snapshotter
+rules:
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list"]
+  - apiGroups: ["snapshot.storage.k8s.io"]
+    resources: ["volumesnapshots"]
+    verbs: ["get", "list", "create", "delete"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: volume-snapshotter
+subjects:
+  - kind: ServiceAccount
+    name: volume-snapshotter
+    namespace: volume-snapshots
+roleRef:
+  kind: ClusterRole
+  name: volume-snapshotter
+  apiGroup: rbac.authorization.k8s.io

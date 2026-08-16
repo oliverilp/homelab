@@ -1,0 +1,262 @@
+# Tiered CSI snapshots of every Ceph-backed PVC. Three CronJobs, one script
+# (volume-snapshotter-script), differing only by TIER/RETAIN.
+#
+# Tiers are independent: a Sunday produces both a daily and a weekly snapshot of the
+# same instant. Two Ceph snapshots, negligible with copy-on-write.
+#
+#   daily   14  ->  2 weeks of daily granularity
+#   weekly   8  ->  ~2 months
+#   monthly 12  ->  12 months
+#
+# ~34 snapshots per PVC. CephFS caps at mds_max_snaps_per_dir (default 100) per
+# subvolume, so do not raise these much without bumping that setting first.
+#
+# The pod specs are spelled out rather than shared via YAML anchors: anchors are
+# document-scoped, so they cannot cross the `---` separators below.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: volume-snapshot-daily
+  namespace: volume-snapshots
+  labels:
+    app: volume-snapshotter
+    tier: daily
+spec:
+  schedule: "0 3 * * *"
+  timeZone: Europe/Tallinn
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            app: volume-snapshotter
+            tier: daily
+        spec:
+          serviceAccountName: volume-snapshotter
+          # Unlike the other jobs in this repo this one needs the API, so the token stays.
+          automountServiceAccountToken: true
+          enableServiceLinks: false
+          hostIPC: false
+          hostNetwork: false
+          hostPID: false
+          restartPolicy: Never
+          shareProcessNamespace: false
+          terminationGracePeriodSeconds: 30
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            runAsGroup: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: snapshotter
+              image: docker.io/alpine/k8s:1.35.3@sha256:097aa60cbef561146757c7494468e9d7b04d843597ad1a1515ed09d0708c8014
+              imagePullPolicy: IfNotPresent
+              command: ["/bin/sh", "/scripts/snapshot.sh"]
+              env:
+                - name: TZ
+                  value: Europe/Tallinn
+                # kubectl writes a discovery cache; the rootfs is read-only.
+                - name: HOME
+                  value: /tmp
+                - name: TIER
+                  value: daily
+                - name: RETAIN
+                  value: "14"
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                privileged: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop:
+                    - ALL
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: scripts
+              configMap:
+                name: volume-snapshotter-script
+            - name: tmp
+              emptyDir: {}
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: volume-snapshot-weekly
+  namespace: volume-snapshots
+  labels:
+    app: volume-snapshotter
+    tier: weekly
+spec:
+  schedule: "30 3 * * 0"
+  timeZone: Europe/Tallinn
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            app: volume-snapshotter
+            tier: weekly
+        spec:
+          serviceAccountName: volume-snapshotter
+          automountServiceAccountToken: true
+          enableServiceLinks: false
+          hostIPC: false
+          hostNetwork: false
+          hostPID: false
+          restartPolicy: Never
+          shareProcessNamespace: false
+          terminationGracePeriodSeconds: 30
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            runAsGroup: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: snapshotter
+              image: docker.io/alpine/k8s:1.35.3@sha256:097aa60cbef561146757c7494468e9d7b04d843597ad1a1515ed09d0708c8014
+              imagePullPolicy: IfNotPresent
+              command: ["/bin/sh", "/scripts/snapshot.sh"]
+              env:
+                - name: TZ
+                  value: Europe/Tallinn
+                - name: HOME
+                  value: /tmp
+                - name: TIER
+                  value: weekly
+                - name: RETAIN
+                  value: "8"
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                privileged: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop:
+                    - ALL
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: scripts
+              configMap:
+                name: volume-snapshotter-script
+            - name: tmp
+              emptyDir: {}
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: volume-snapshot-monthly
+  namespace: volume-snapshots
+  labels:
+    app: volume-snapshotter
+    tier: monthly
+spec:
+  schedule: "0 4 1 * *"
+  timeZone: Europe/Tallinn
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            app: volume-snapshotter
+            tier: monthly
+        spec:
+          serviceAccountName: volume-snapshotter
+          automountServiceAccountToken: true
+          enableServiceLinks: false
+          hostIPC: false
+          hostNetwork: false
+          hostPID: false
+          restartPolicy: Never
+          shareProcessNamespace: false
+          terminationGracePeriodSeconds: 30
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            runAsGroup: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: snapshotter
+              image: docker.io/alpine/k8s:1.35.3@sha256:097aa60cbef561146757c7494468e9d7b04d843597ad1a1515ed09d0708c8014
+              imagePullPolicy: IfNotPresent
+              command: ["/bin/sh", "/scripts/snapshot.sh"]
+              env:
+                - name: TZ
+                  value: Europe/Tallinn
+                - name: HOME
+                  value: /tmp
+                - name: TIER
+                  value: monthly
+                - name: RETAIN
+                  value: "12"
+                # Only this tier sweeps snapshots whose source PVC was deleted — the
+                # per-PVC loops never revisit them, so they would pin space forever.
+                - name: ORPHAN_SWEEP
+                  value: "true"
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                privileged: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop:
+                    - ALL
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: scripts
+              configMap:
+                name: volume-snapshotter-script
+            - name: tmp
+              emptyDir: {}

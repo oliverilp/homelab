@@ -1,0 +1,37 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: volume-snapshot-alert-rules
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+spec:
+  groups:
+    - name: volume-snapshots
+      interval: 5m
+      rules:
+        # kube-state-metrics doesn't export VolumeSnapshot readiness without a
+        # custom-resource-state config, so job exit status is the signal: the script
+        # exits non-zero if any create/prune/delete failed.
+        - alert: VolumeSnapshotJobFailed
+          expr: kube_job_failed{namespace="volume-snapshots"} > 0
+          for: 15m
+          labels:
+            severity: warning
+            namespace: monitoring
+          annotations:
+            summary: "Volume snapshot job {{ $labels.job_name }} failed"
+            description: "{{ $labels.job_name }} failed — one or more PVCs were not snapshotted or old snapshots were not pruned. Check `kubectl -n volume-snapshots logs job/{{ $labels.job_name }}`."
+
+        # Silent failure mode: the CronJob stops firing (bad schedule, controller
+        # wedged, missed startingDeadlineSeconds) and nothing else notices.
+        - alert: VolumeSnapshotCronJobStale
+          expr: |
+            time() - kube_cronjob_status_last_schedule_time{namespace="volume-snapshots", cronjob="volume-snapshot-daily"} > 129600
+          for: 30m
+          labels:
+            severity: warning
+            namespace: monitoring
+          annotations:
+            summary: "Daily volume snapshots haven't run in 36h"
+            description: "volume-snapshot-daily last scheduled more than 36h ago. Daily PVC snapshot history is no longer being taken."
