@@ -17,7 +17,7 @@
   "helmfile": {
     "fileMatch": ["^k8s/argocd/argocd-helmfile\\.yaml$"]
   },
-  "minimumReleaseAge": "1 day",
+  "minimumReleaseAge": "3 days",
   "internalChecksFilter": "strict",
   "internalChecksAsSuccess": true,
   "pinDigests": true,
@@ -34,6 +34,14 @@
       "description": "No release-age gate on digests. They track mutable tags that get rebuilt upstream, which resets the age clock every run, so renovate/stability-days hangs pending forever and the branch is never green.",
       "matchUpdateTypes": ["digest", "pinDigest"],
       "minimumReleaseAge": null
+    },
+    {
+      "description": "GHCR/Quay return no release timestamps, so timestamp-required hangs pending forever (#404, #410, #411 stuck 3+ weeks). Gate by cadence instead: Wed PR, Sat merge = 3 day soak, weekend free to fix breakage.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/**", "quay.io/**"],
+      "minimumReleaseAgeBehaviour": "timestamp-optional",
+      "schedule": ["on wednesday"],
+      "automergeSchedule": ["on saturday"]
     },
     {
       "description": "Always auto-merge (including major) for selected apps",
@@ -86,5 +94,11 @@
       "matchUpdateTypes": ["patch"],
       "automerge": true
     }
-  ]
+  ],
+  "vulnerabilityAlerts": {
+    "description": "Dependabot alerts on, security updates off (they would compete with Renovate). Covers .github/workflows only: GHSA has no container or Helm ecosystem.",
+    "minimumReleaseAge": null,
+    "schedule": ["at any time"],
+    "automergeSchedule": ["at any time"]
+  }
 }
