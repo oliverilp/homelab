@@ -17,7 +17,7 @@
   "helmfile": {
     "fileMatch": ["^k8s/argocd/argocd-helmfile\\.yaml$"]
   },
-  "minimumReleaseAge": "1 day",
+  "minimumReleaseAge": "3 days",
   "internalChecksFilter": "strict",
   "internalChecksAsSuccess": true,
   "pinDigests": true,
@@ -34,6 +34,14 @@
       "description": "No release-age gate on digests. They track mutable tags that get rebuilt upstream, which resets the age clock every run, so renovate/stability-days hangs pending forever and the branch is never green.",
       "matchUpdateTypes": ["digest", "pinDigest"],
       "minimumReleaseAge": null
+    },
+    {
+      "description": "GHCR and Quay return no release timestamps, so minimumReleaseAge can never pass there: under the default timestamp-required these hang pending forever (PRs #404, #410, #411 sat 3+ weeks). Waive the timestamp requirement and substitute a weekly cadence: picked up Wednesday, auto-merged Saturday. Every update still soaks >=3 days as an open PR, breakage lands with the weekend free to fix it, and a hijacked release stays undiscovered up to a week.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/**", "quay.io/**"],
+      "minimumReleaseAgeBehaviour": "timestamp-optional",
+      "schedule": ["on wednesday"],
+      "automergeSchedule": ["on saturday"]
     },
     {
       "description": "Always auto-merge (including major) for selected apps",
@@ -86,5 +94,11 @@
       "matchUpdateTypes": ["patch"],
       "automerge": true
     }
-  ]
+  ],
+  "vulnerabilityAlerts": {
+    "description": "Live as of 2026-08-16: Dependabot alerts enabled, Dependabot security updates deliberately left disabled so it never opens PRs competing with Renovate. Coverage is only the actions in .github/workflows - GHSA has no ecosystem for container images or Helm charts, so nothing under k8s/ can fire. GHSA accepts maintainer-published advisories for their own repo without review, so a compromised maintainer could self-advisory past this gate: do not widen it. Malware advisories usually carry no fixed version, so they surface as notifications rather than auto-merged bumps.",
+    "minimumReleaseAge": null,
+    "schedule": ["at any time"],
+    "automergeSchedule": ["at any time"]
+  }
 }
