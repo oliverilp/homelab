@@ -35,6 +35,7 @@ alertmanager:
   ingress:
     enabled: false
   alertmanagerSpec:
+    externalUrl: https://alertmanager.oliverilp.ee
     replicas: 2
     resources:
       requests:
@@ -254,6 +255,9 @@ prometheus:
         volumeMounts:
           - name: prometheus-prometheus-prometheus-db
             mountPath: /prometheus
+    # Sets the alert generatorURL Alertmanager (and Telegram) links back to;
+    # otherwise alerts point at a pod IP that resolves nowhere off-cluster.
+    externalUrl: https://prometheus.oliverilp.ee
     replicas: 3
     replicaExternalLabelName: "replica"
     ruleSelectorNilUsesHelmValues: false

@@ -1,0 +1,40 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: prometheus-route
+  namespace: monitoring
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: prometheus.oliverilp.ee
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: traefik-internal-gateway
+      namespace: traefik
+  hostnames:
+    - prometheus.oliverilp.ee
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /outpost.goauthentik.io
+      backendRefs:
+        - name: authentik-server
+          namespace: authentik
+          port: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: authentik-forward-auth
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: prometheus-prometheus
+          port: 9090
+          weight: 1
