@@ -69,13 +69,30 @@ grafana:
     userKey: admin-user
     passwordKey: admin-password
   grafana.ini:
+    server:
+      root_url: https://grafana.oliverilp.ee   # OAuth redirect base
     database:
       type: postgres
       host: postgres-apps-rw.postgresql.svc.cluster.local:5432
       name: grafanadb
       user: grafana
       ssl_mode: disable
+    auth.generic_oauth:
+      enabled: true
+      name: Authentik
+      # client_id/secret injected as GF_AUTH_GENERIC_OAUTH_* env from grafana-oauth
+      # groups claim rides in Authentik's default 'profile' scope mapping
+      scopes: "openid email profile"
+      auth_url: https://authentik.oliverilp.ee/application/o/authorize/
+      token_url: https://authentik.oliverilp.ee/application/o/token/
+      api_url: https://authentik.oliverilp.ee/application/o/userinfo/
+      allow_sign_up: true
+      # Homelab Owners → Admin; strict denies login when no group matches
+      role_attribute_path: "contains(groups[*], 'Homelab Owners') && 'Admin'"
+      role_attribute_strict: true
   envFromSecret: grafana-postgres-auth
+  envFromSecrets:
+    - name: grafana-oauth
   resources:
     requests:
       cpu: 30m
