@@ -19,9 +19,15 @@ spec:
             type: PathPrefix
             value: /outpost.goauthentik.io
       backendRefs:
-        - name: authentik-server
+        # Schema defaults spelled out: this app syncs with ServerSideApply, so
+        # ArgoCD's client-side diff has no last-applied annotation to merge
+        # against and reports CRD-defaulted fields as permanent drift.
+        - group: ""
+          kind: Service
+          name: authentik-server
           namespace: authentik
           port: 80
+          weight: 1
     - matches:
         - path:
             type: PathPrefix
