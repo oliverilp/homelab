@@ -71,10 +71,10 @@ spec:
               value: "Europe/Tallinn"
           resources:
             requests:
-              memory: "1100Mi"
+              memory: "1500Mi"
               cpu: "180m"
             limits:
-              memory: "2000Mi"
+              memory: "3000Mi"
           # Readiness gates the Service: with 2 replicas + RollingUpdate, traffic
           # only reaches pods that pass /api/server/ping, so a starting/rolling
           # pod never serves errors. Startup probe covers the slow boot.
