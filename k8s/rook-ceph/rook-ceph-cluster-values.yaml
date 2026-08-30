@@ -57,6 +57,25 @@ cephClusterSpec:
         - "10.1.11.0/24"
       cluster:
         - "10.1.11.0/24"
+  # Ceph v20.2.4 (CVE-2025-30156) deprecates the `aes` cephx cipher: every key created
+  # before the upgrade trips AUTH_INSECURE_{SERVICE,CLIENT}_KEY_TYPE, and service keys are
+  # [ERR], so the cluster reports HEALTH_ERROR while I/O stays fine. Mons already run
+  # auth_preferred_cipher=aes256k; only rotating the existing keys clears it.
+  # Rotating `daemon` covers mon/mgr/osd/mds/crash/exporter + client.admin and drops the
+  # ERR to WARN. Bump keyGeneration again (never down) for any future rotation.
+  # NOT rotated, deliberately:
+  #   - csi: aes256k needs kernel >= 7.0 for krbd/kcephfs; Talos is on 6.18, so switching
+  #     the csi keys would break every mount. Rook pins cephx.csi.keyType=aes for this.
+  #   - allowedCiphers: [aes256k] would lock those csi clients out of the cluster.
+  # So AUTH_INSECURE_CLIENT_KEY_TYPE + KEYS_{ALLOWED,CREATABLE} stay as warnings until the
+  # nodes get a 7.x kernel; mute them (`ceph health mute <check> --sticky`) if the
+  # HEALTH_WARN -> ArgoCD Degraded noise is not wanted. Requires Rook >= 1.20.6.
+  security:
+    cephx:
+      daemon:
+        keyRotationPolicy: KeyGeneration
+        keyGeneration: 2
+        keyType: aes256k
   storage:
     useAllNodes: true
     useAllDevices: false
