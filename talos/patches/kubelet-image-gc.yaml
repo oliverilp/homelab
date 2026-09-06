@@ -1,0 +1,33 @@
+---
+# Bound the containerd image cache on the EPHEMERAL (/var) partition.
+#
+# Kubelet defaults leave images forever: imageMaximumGCAge is 0s (age-based GC
+# off) and disk-pressure GC only starts at 85% — above the 70% at which Ceph's
+# mon_data_avail_warn (30% free) fires, so MON_DISK_LOW always wins the race.
+# Measured on 2026-09-06, before this patch:
+#   worker-02  /var 70% used (45G/156G)  464 images, 86.8 GB
+#              of which 324 images / 50.7 GB last pulled before 2026-08-01
+#   worker-03  /var 61%  70 GB images
+#   worker-01  /var 59%  67 GB images
+#   master-01  /var 74%  (5G free of 20G)  12 GB images
+#   master-03  /var 75%  (4G free of 19G)  11 GB images
+# That produced a 3-day storm of CephMonDiskspaceLow + CephNodeDiskspaceWarning
+# and held rook-ceph-cluster Degraded in ArgoCD. mon.f's own store was 136 MB —
+# the mons were never the problem, the image cache was.
+#
+# The masters are the real hazard: etcd shares this partition and had 4 GB left.
+machine:
+  kubelet:
+    extraConfig:
+      # Primary mechanism. Evicts images unused for a week regardless of disk
+      # pressure, which is what actually clears the Renovate tag churn. In-use
+      # images are never touched, so the cost of a mistake is a re-pull.
+      # Caveat: kubelet tracks last-used in memory and resets it on restart, so
+      # this only collects if the kubelet stays up longer than the age.
+      imageMaximumGCAge: 168h
+      # Backstop below Ceph's 70% warn point, so disk-pressure GC gets a chance
+      # to act before the mons complain. The masters start above the high mark
+      # and cannot reach 55% (11 GB of images on a 20 GB disk), so their first
+      # pass drops every unreferenced image — intended.
+      imageGCHighThresholdPercent: 70
+      imageGCLowThresholdPercent: 55

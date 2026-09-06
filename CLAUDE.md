@@ -85,7 +85,7 @@ Nextcloud + Collabora, Immich (photos), Jellyfin (media), Stump (ebooks), Vaultw
 ├── talos/                        # Talos Linux configuration
 │   ├── patches/                  # cni, dns, disable-kube-proxy, install-disk,
 │   │                             # interface-names, kubelet-certificates, kubelet-nodeip,
-│   │                             # vip, metrics, control-plane-resources,
+│   │                             # kubelet-image-gc, vip, metrics, control-plane-resources,
 │   │                             # storage-net-worker-0{1,2,3} (per-node Ceph 10G NIC)
 │   ├── out/                      # Generated configurations (gitignored)
 │   └── secrets.yaml              # Cluster secrets (gitignored)
@@ -158,6 +158,7 @@ talosctl gen config magi https://10.1.20.10:6443 \
   --config-patch @patches/install-disk.yaml \
   --config-patch @patches/interface-names.yaml \
   --config-patch @patches/kubelet-certificates.yaml \
+  --config-patch @patches/kubelet-image-gc.yaml \
   --config-patch-control-plane @patches/vip.yaml \
   --config-patch-control-plane @patches/metrics.yaml \
   --config-patch-control-plane @patches/control-plane-resources.yaml \
