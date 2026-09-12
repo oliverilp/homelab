@@ -8,6 +8,9 @@ providers:
     enabled: true
   kubernetesGateway:
     enabled: true
+    # Both GatewayClasses share controllerName traefik.io/gateway-controller; without this each
+    # instance reconciles both Gateways, serves the other's routes, and flaps status.addresses
+    labelSelector: traefik-instance=internal
 
 additionalArguments:
   - "--entryPoints.web.http.middlewares=traefik-error-pages@kubernetescrd"
@@ -24,6 +27,8 @@ gateway:
 gatewayClass:
   enabled: true
   name: traefik-internal
+  labels:
+    traefik-instance: internal
 
 ingressClass:
   enabled: false
