@@ -142,7 +142,7 @@ cronjob:
         cpu: 20m
         memory: 100Mi
       limits:
-        memory: 100Mi
+        memory: 512Mi
 
 service:
   type: ClusterIP
@@ -178,12 +178,16 @@ startupProbe:
   timeoutSeconds: 10
   failureThreshold: 180
 
+# Idle ~160-200Mi, but each preview of a 12MP JPEG adds ~60-80Mi and the
+# Files grid fires ~9 at once; 300Mi limit OOMKilled both pods 2026-09-13.
+# Limit raised, request kept (failover request headroom is thin); concurrency
+# capped via preview_concurrency_* in nextcloud-configmap.yaml.
 resources:
   requests:
     cpu: 10m
     memory: 300Mi
   limits:
-    memory: 300Mi
+    memory: 1Gi
 
 affinity:
   nodeAffinity:

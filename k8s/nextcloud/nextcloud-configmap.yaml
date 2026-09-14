@@ -18,6 +18,9 @@ data:
       'maintenance_window_start' => 1,
       'default_phone_region' => 'EE',
       'instanceid' => 'oc33k8j4gjri',
+      // Defaults are nproc/2×nproc (16/32 on workers) — unbounded vs pod memory
+      'preview_concurrency_new' => 2,
+      'preview_concurrency_all' => 4,
     );
   zz-homelab.ini: |-
     memory_limit=1024M
