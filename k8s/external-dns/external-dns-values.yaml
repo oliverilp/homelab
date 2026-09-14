@@ -17,6 +17,11 @@ serviceAccount:
 
 policy: sync
 
+# v0.22.0 default prefix is external-dns.kubernetes.io/ with no fallback; without
+# this the Gateway target annotation (dc1.oliverilp.ee) is ignored and every
+# public record became an A to the private LB IP 10.1.20.50 (2026-09-14).
+annotationPrefix: external-dns.alpha.kubernetes.io/
+
 registry: txt
 txtOwnerId: external-dns-homelab
 
