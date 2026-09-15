@@ -24,7 +24,7 @@ locals {
     gateway         = "10.1.20.1"
     ip_base         = "10.1.20.2"
     network_tag     = 20
-    onboot          = false
+    onboot          = true
   }
   
   vms = {
