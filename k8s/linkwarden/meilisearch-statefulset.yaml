@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: meilisearch
-          image: getmeili/meilisearch:v1.12.8
+          image: getmeili/meilisearch:v1.54.2@sha256:1c9dc9b037162d59224a4fc8b1fadd96e343213acf7c828e5d380e28407443fb
           ports:
             - containerPort: 7700
               name: http
