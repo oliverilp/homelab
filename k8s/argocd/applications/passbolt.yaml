@@ -12,7 +12,7 @@ spec:
   sources:
     - repoURL: https://download.passbolt.com/charts/passbolt
       chart: passbolt
-      targetRevision: 2.1.1
+      targetRevision: 2.2.0
       helm:
         releaseName: passbolt
         valueFiles:
