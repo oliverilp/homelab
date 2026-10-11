@@ -33,12 +33,14 @@ spec:
               value: "1000"
             - name: MQTT_BROKER_URL
               value: "mqtt:1883"
+          # RSS ~380Mi after start, +10-20Mi retained per nightly automatic backup (~05:00 local), never freed.
+          # 550Mi limit → OOMKilled mid-backup every ~8-12d (2026-10-01, 10-11). Limit headroom ≈ 30d; image bumps restart sooner.
           resources:
             requests:
               cpu: 10m
               memory: 550Mi
             limits:
-              memory: 550Mi
+              memory: 1Gi
           volumeMounts:
             - name: homeassistant-config
               mountPath: /config
