@@ -2,7 +2,7 @@ name: gatus-monitoring
 
 services:
   gatus:
-    image: ghcr.io/twin/gatus:stable
+    image: ghcr.io/twin/gatus:stable@sha256:094eb186e55235db367e90e9d56140e5897b7044c41de23cde4cc18e6da1242e
     restart: unless-stopped
     environment:
       GATUS_CONFIG_PATH: /config
@@ -16,7 +16,7 @@ services:
       - ./data:/data
 
   cloudflared:
-    image: cloudflare/cloudflared:latest
+    image: cloudflare/cloudflared:latest@sha256:a15a3b50b8dabd57ac2090e9484c0247dba9dfa1f0df4d298d4317f9d69eb2d5
     restart: unless-stopped
     depends_on:
       - gatus
@@ -30,7 +30,7 @@ services:
       - ${CLOUDFLARE_TUNNEL_TOKEN:?set CLOUDFLARE_TUNNEL_TOKEN in .env}
 
   watchtower:
-    image: containrrr/watchtower:latest
+    image: containrrr/watchtower:latest@sha256:6dd50763bbd632a83cb154d5451700530d1e44200b268a4e9488fefdfcf2b038
     restart: unless-stopped
     environment:
       TZ: ${TZ:-Europe/Tallinn}
