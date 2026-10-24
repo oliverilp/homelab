@@ -9,13 +9,19 @@
     "k8s/mkv-strip/mkv-strip-job.yaml"
   ],
   "kubernetes": {
-    "fileMatch": ["^k8s/.*\\.yaml$"]
+    "managerFilePatterns": [
+      "/^k8s/.*\\.yaml$/"
+    ]
   },
   "argocd": {
-    "fileMatch": ["^k8s/argocd/applications/.*\\.yaml$"]
+    "managerFilePatterns": [
+      "/^k8s/argocd/applications/.*\\.yaml$/"
+    ]
   },
   "helmfile": {
-    "fileMatch": ["^k8s/argocd/argocd-helmfile\\.yaml$"]
+    "managerFilePatterns": [
+      "/^k8s/argocd/argocd-helmfile\\.yaml$/"
+    ]
   },
   "minimumReleaseAge": "3 days",
   "internalChecksFilter": "strict",
