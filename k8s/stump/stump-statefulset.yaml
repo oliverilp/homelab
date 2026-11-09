@@ -30,7 +30,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: stump
-          image: aaronleopold/stump:latest@sha256:2d62217aaabb68466d08d8f5275549ba8713b3ff5c1f39a80a742a6e66d8105b
+          image: aaronleopold/stump:latest@sha256:96789cc49986d6508d7fe5fa79d4c2e31012b6d710999fab1a09b8514f308adc
           ports:
             - name: http
               containerPort: 10801
