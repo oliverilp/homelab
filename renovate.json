@@ -30,6 +30,7 @@
   "automerge": false,
   "automergeType": "pr",
   "platformAutomerge": false,
+  "prConcurrentLimit": 0,
   "packageRules": [
     {
       "description": "Auto-merge minor, patch, digest and digest-pin updates for everything",
@@ -40,6 +41,12 @@
       "description": "No release-age gate on digests. They track mutable tags that get rebuilt upstream, which resets the age clock every run, so renovate/stability-days hangs pending forever and the branch is never green.",
       "matchUpdateTypes": ["digest", "pinDigest"],
       "minimumReleaseAge": null
+    },
+    {
+      "description": "No CI runs on k8s/ or docker/ and digests get no stability-days check, so these branches have zero status checks and Renovate never automerges them (#519 stuck 7 weeks, #485 merged by hand). jobs/ is excluded: its digests are gated by the mkv-strip test workflow.",
+      "matchUpdateTypes": ["digest", "pinDigest"],
+      "matchFileNames": ["k8s/**", "docker/**"],
+      "ignoreTests": true
     },
     {
       "description": "GHCR/Quay return no release timestamps, so timestamp-required hangs pending forever (#404, #410, #411 stuck 3+ weeks). Gate by cadence instead: Wed PR, Sat merge = 3 day soak, weekend free to fix breakage.",
