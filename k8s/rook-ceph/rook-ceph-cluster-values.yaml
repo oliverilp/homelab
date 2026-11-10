@@ -31,20 +31,14 @@ cephClusterSpec:
   dashboard:
     enabled: true
     ssl: false
-  # The *active* mgr's dashboard binds the Ceph public_addr (10.1.11.x, storage mesh),
-  # while Rook points the rook-ceph-mgr-dashboard Service endpoint at the mgr pod IP —
-  # the kubelet IP (10.1.20.x), since these pods are hostNetwork. Mismatched port →
-  # ceph.oliverilp.ee 502. A wildcard server_addr does NOT fix it: dashboard/module.py
-  # rewrites "::"/"0.0.0.0" to get_mgr_ip(), i.e. back to public_addr. Only the
-  # per-daemon override is honoured verbatim, so pin each mgr to its node's kubelet IP.
-  # Caveat: these are node-specific. If a mgr is rescheduled onto a different worker its
-  # dashboard fails to bind — re-point it with
-  #   ceph config set mgr mgr/dashboard/<id>/server_addr <new node 10.1.20.x>
-  cephConfig:
-    mgr:
-      mgr/dashboard/a/server_addr: "10.1.20.23" # k8s-worker-03
-      mgr/dashboard/b/server_addr: "10.1.20.22" # k8s-worker-02
-      mgr/dashboard/c/server_addr: "10.1.20.21" # k8s-worker-01
+  # Do NOT set mgr/dashboard/<id>/server_addr. Leave it at the default "::": the
+  # dashboard binds the wildcard (dashboard/module.py only swaps "::" for get_mgr_ip()
+  # in the advertised URL, not the bind), so it listens on the hostNetwork pod IP
+  # (10.1.20.x) that Rook's rook-ceph-mgr-dashboard Service targets. Per-daemon pins
+  # to node IPs broke on 2026-10-03 when mgr.a/b swapped workers: the dashboard module
+  # crashed with EADDRNOTAVAIL → RECENT_MGR_MODULE_CRASH → HEALTH_WARN → ArgoCD Degraded.
+  # Rook doesn't delete cephConfig keys dropped from here; they were removed with
+  #   ceph config rm mgr mgr/dashboard/<id>/server_addr
   # Ceph traffic runs over the dedicated 10G storage mesh (Proxmox STP bridge vmbr1,
   # Talos eth1 on 10.1.11.0/24). provider: host puts the daemons in the node netns so
   # they can bind to eth1; addressRanges map directly to Ceph public_network/cluster_network.
